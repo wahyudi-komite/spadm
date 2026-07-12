@@ -71,6 +71,7 @@ export class AuthService {
 
     signOut(): Observable<any> {
         return this._httpClient.post(`${environment.apiUrl}/auth/logout`, {}).pipe(
+            catchError(() => of(true)),
             tap(() => {
                 this.accessTokenSubject.next(null);
                 this._authenticated = false;
