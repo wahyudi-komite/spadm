@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Notification } from 'app/layout/common/notifications/notifications.types';
-import { map, Observable, ReplaySubject, switchMap, take, tap } from 'rxjs';
+import { map, Observable, of, ReplaySubject, switchMap, take, tap } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationsService {
@@ -33,13 +33,11 @@ export class NotificationsService {
      * Get all notifications
      */
     getAll(): Observable<Notification[]> {
-        return this._httpClient
-            .get<Notification[]>('api/common/notifications')
-            .pipe(
-                tap((notifications) => {
-                    this._notifications.next(notifications);
-                })
-            );
+        return of([]).pipe(
+            tap((notifications) => {
+                this._notifications.next(notifications);
+            })
+        );
     }
 
     /**

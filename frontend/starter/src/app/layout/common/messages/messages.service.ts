@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Message } from 'app/layout/common/messages/messages.types';
-import { map, Observable, ReplaySubject, switchMap, take, tap } from 'rxjs';
+import { map, Observable, of, ReplaySubject, switchMap, take, tap } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class MessagesService {
@@ -33,7 +33,7 @@ export class MessagesService {
      * Get all messages
      */
     getAll(): Observable<Message[]> {
-        return this._httpClient.get<Message[]>('api/common/messages').pipe(
+        return of([]).pipe(
             tap((messages) => {
                 this._messages.next(messages);
             })

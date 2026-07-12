@@ -1,34 +1,30 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, UseGuards, Request } from '@nestjs/common';
 import { DistributionsService } from './distributions.service';
-import { CreateDistributionDto } from './dto/create-distribution.dto';
-import { UpdateDistributionDto } from './dto/update-distribution.dto';
+import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../../common/guards/roles.guard';
+import { Roles } from '../../../common/decorators/roles.decorator';
 
-@Controller('distributions')
+@Controller('bazaar/distributions')
 export class DistributionsController {
   constructor(private readonly distributionsService: DistributionsService) {}
 
-  @Post()
-  create(@Body() createDistributionDto: CreateDistributionDto) {
-    return this.distributionsService.create(createDistributionDto);
+  @UseGuards(JwtAuthGuard)
+  @Get('token/:orderId')
+  getTokenByOrder(@Param('orderId') orderId: number) {
+    return this.distributionsService.getTokenByOrder(orderId);
   }
 
-  @Get()
-  findAll() {
-    return this.distributionsService.findAll();
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('PIC_AREA', 'SUPER_ADMIN')
+  @Get('validate/:tokenCode')
+  validateToken(@Param('tokenCode') tokenCode: string) {
+    return this.distributionsService.validateToken(tokenCode);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.distributionsService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateDistributionDto: UpdateDistributionDto) {
-    return this.distributionsService.update(+id, updateDistributionDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.distributionsService.remove(+id);
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('PIC_AREA', 'SUPER_ADMIN')
+  @Post('confirm')
+  confirmDistribution(@Request() req: any, @Body() body: { tokenCode: string, notes?: string }) {
+    return this.distributionsService.confirmDistribution(body.tokenCode, req.user.id, body.notes);
   }
 }

@@ -141,4 +141,30 @@ export class OrdersService {
       order: { createdAt: 'DESC' }
     });
   }
+
+  async getOrderById(orderId: number) {
+    return this.orderRepo.findOne({
+      where: { id: orderId },
+      relations: { items: true, event: true, batch: true }
+    });
+  }
+
+  async updateOrderStatus(orderId: number, status: OrderStatus | 'COMPLETED' | 'PAID' | 'CANCELLED') {
+    const order = await this.orderRepo.findOne({ where: { id: orderId } });
+    if (!order) throw new NotFoundException('Order tidak ditemukan');
+
+    order.status = status as OrderStatus;
+    await this.orderRepo.save(order);
+
+    const history = this.statusHistoryRepo.create({
+      order: { id: orderId },
+      status: status as OrderStatus,
+      notes: `Status updated to ${status}`,
+      createdBy: 'SYSTEM'
+    });
+    await this.statusHistoryRepo.save(history);
+
+    return order;
+  }
 }
+

@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Shortcut } from 'app/layout/common/shortcuts/shortcuts.types';
-import { map, Observable, ReplaySubject, switchMap, take, tap } from 'rxjs';
+import { map, Observable, of, ReplaySubject, switchMap, take, tap } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class ShortcutsService {
@@ -33,7 +33,7 @@ export class ShortcutsService {
      * Get all messages
      */
     getAll(): Observable<Shortcut[]> {
-        return this._httpClient.get<Shortcut[]>('api/common/shortcuts').pipe(
+        return of([]).pipe(
             tap((shortcuts) => {
                 this._shortcuts.next(shortcuts);
             })

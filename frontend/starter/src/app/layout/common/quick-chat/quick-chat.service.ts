@@ -47,7 +47,7 @@ export class QuickChatService {
      * Get chats
      */
     getChats(): Observable<any> {
-        return this._httpClient.get<Chat[]>('api/apps/chat/chats').pipe(
+        return of([]).pipe(
             tap((response: Chat[]) => {
                 this._chats.next(response);
             })
