@@ -23,7 +23,7 @@ export const authInterceptor = (
     return next(newReq).pipe(
         catchError((error) => {
             if (error instanceof HttpErrorResponse && error.status === 401) {
-                if (req.url.includes('/auth/refresh') || req.url.includes('/auth/sign-in')) {
+                if (req.url.includes('/auth/refresh') || req.url.includes('/auth/sign-in') || req.url.includes('/auth/logout')) {
                     return throwError(() => error);
                 }
 
