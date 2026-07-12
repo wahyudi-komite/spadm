@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { BazaarOrder } from '../bazaar/orders/entities/order.entity';
+import { BazaarOrder } from '../../bazaar/orders/entities/order.entity';
 
 export enum PaymentStatus {
   UNPAID = 'UNPAID',

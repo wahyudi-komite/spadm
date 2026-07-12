@@ -25,4 +25,8 @@ export default [
     path: 'bazaar/areas',
     loadChildren: () => import('./bazaar/areas/areas.routes'),
   },
+  {
+    path: 'bazaar/distribution',
+    loadComponent: () => import('./bazaar/distribution/distribution.component').then(m => m.AdminBazaarDistributionComponent)
+  }
 ] as Routes;

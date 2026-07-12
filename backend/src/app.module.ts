@@ -17,6 +17,7 @@ import { BatchesModule } from './modules/bazaar/batches/batches.module';
 import { ProductsModule } from './modules/bazaar/products/products.module';
 import { DistributionsModule } from './modules/bazaar/distributions/distributions.module';
 import { OrdersModule } from './modules/bazaar/orders/orders.module';
+import { PaymentsModule } from './modules/payments/payments.module';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import { OrdersModule } from './modules/bazaar/orders/orders.module';
     ProductsModule,
     DistributionsModule,
     OrdersModule,
+    PaymentsModule
   ],
   controllers: [AppController],
   providers: [

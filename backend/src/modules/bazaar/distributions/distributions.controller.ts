@@ -1,8 +1,6 @@
 import { Controller, Post, Body, Get, Param, UseGuards, Request } from '@nestjs/common';
 import { DistributionsService } from './distributions.service';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
-import { RolesGuard } from '../../../common/guards/roles.guard';
-import { Roles } from '../../../common/decorators/roles.decorator';
 
 @Controller('bazaar/distributions')
 export class DistributionsController {
@@ -14,17 +12,16 @@ export class DistributionsController {
     return this.distributionsService.getTokenByOrder(orderId);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('PIC_AREA', 'SUPER_ADMIN')
+  @UseGuards(JwtAuthGuard)
   @Get('validate/:tokenCode')
   validateToken(@Param('tokenCode') tokenCode: string) {
     return this.distributionsService.validateToken(tokenCode);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('PIC_AREA', 'SUPER_ADMIN')
+  @UseGuards(JwtAuthGuard)
   @Post('confirm')
   confirmDistribution(@Request() req: any, @Body() body: { tokenCode: string, notes?: string }) {
     return this.distributionsService.confirmDistribution(body.tokenCode, req.user.id, body.notes);
   }
 }
+
