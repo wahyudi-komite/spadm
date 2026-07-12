@@ -1,0 +1,73 @@
+<div class="flex flex-col flex-auto min-w-0 p-6 sm:p-10 bg-gray-50 dark:bg-gray-900 min-h-screen">
+    
+    <div *ngIf="loading" class="flex justify-center items-center h-64">
+        <div class="text-lg text-gray-500">Memuat data bazar...</div>
+    </div>
+
+    <div *ngIf="!loading && !activeEvent" class="bg-white dark:bg-gray-800 rounded-2xl shadow p-12 text-center">
+        <mat-icon class="text-6xl text-gray-400 mb-4" style="height: 64px; width: 64px;">event_busy</mat-icon>
+        <h2 class="text-3xl font-bold tracking-tight mb-2">Tidak Ada Bazar Aktif</h2>
+        <p class="text-gray-500 text-lg">Saat ini sedang tidak ada event bazar yang berlangsung. Silakan periksa kembali nanti.</p>
+    </div>
+
+    <div *ngIf="!loading && activeEvent" class="max-w-7xl mx-auto w-full">
+        <!-- Banner / Header -->
+        <div class="bg-blue-600 text-white rounded-3xl p-8 sm:p-12 mb-8 shadow-lg relative overflow-hidden">
+            <div class="relative z-10">
+                <div class="inline-block px-3 py-1 bg-blue-800 text-blue-100 text-sm font-semibold rounded-full mb-4">
+                    Event Spesial
+                </div>
+                <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4">{{activeEvent.name}}</h1>
+                <p class="text-blue-100 text-lg max-w-2xl">{{activeEvent.description || 'Mari ramaikan bazar dan dapatkan harga spesial untuk berbagai produk pilihan.'}}</p>
+                
+                <div class="mt-8 bg-white/10 backdrop-blur inline-block p-4 rounded-2xl border border-white/20">
+                    <div class="text-blue-100 text-sm font-medium mb-1">Status Batch Saat Ini:</div>
+                    <div class="flex items-center space-x-3">
+                        <span *ngIf="activeBatch" class="text-2xl font-bold">{{activeBatch.name}}</span>
+                        <span *ngIf="activeBatch" class="px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full uppercase tracking-wider">BUKA</span>
+                        <span *ngIf="!activeBatch" class="text-xl font-bold">Belum Ada Batch Terbuka</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Decorative circle -->
+            <div class="absolute -bottom-24 -right-24 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-70"></div>
+            <div class="absolute -top-24 -right-12 w-72 h-72 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-70"></div>
+        </div>
+
+        <!-- Products -->
+        <h2 class="text-3xl font-bold tracking-tight mb-6 text-gray-900 dark:text-gray-100">Katalog Produk</h2>
+        
+        <div *ngIf="products.length === 0" class="text-gray-500 p-8 text-center bg-white dark:bg-gray-800 rounded-2xl shadow">
+            Belum ada produk yang ditambahkan.
+        </div>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div *ngFor="let product of products" class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-xl transition-shadow duration-300 overflow-hidden border border-gray-100 dark:border-gray-700 flex flex-col">
+                <div class="h-48 bg-gray-200 dark:bg-gray-700 relative flex items-center justify-center">
+                    <!-- Placeholder Image -->
+                    <mat-icon class="text-gray-400 text-6xl" style="height: 64px; width: 64px;">shopping_bag</mat-icon>
+                    <div *ngIf="product.inventoryMode !== 'UNLIMITED' && product.stock <= 0" class="absolute inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm">
+                        <span class="text-white font-bold text-xl tracking-widest uppercase">Habis</span>
+                    </div>
+                </div>
+                <div class="p-6 flex flex-col flex-auto">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-xl font-bold leading-tight">{{product.name}}</h3>
+                        <span class="text-xs font-semibold text-gray-400">SKU: {{product.sku}}</span>
+                    </div>
+                    <div class="text-gray-500 text-sm mb-4 flex-auto">{{product.description || 'Tidak ada deskripsi.'}}</div>
+                    <div class="mt-auto">
+                        <div class="flex items-end space-x-2 mb-4">
+                            <span class="text-2xl font-bold text-blue-600 dark:text-blue-400">Rp {{product.sellingPrice | number}}</span>
+                            <span *ngIf="product.normalPrice > product.sellingPrice" class="text-sm text-gray-400 line-through mb-1">Rp {{product.normalPrice | number}}</span>
+                        </div>
+                        <button mat-flat-button color="primary" class="w-full h-12 text-lg" [disabled]="!activeBatch || (product.inventoryMode !== 'UNLIMITED' && product.stock <= 0)">
+                            Tambahkan
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class SeedRolesPermissions1712345678 implements MigrationInterface {
-  name = 'SeedRolesPermissions1712345678';
+export class SeedRolesPermissions1783865586045 implements MigrationInterface {
+  name = 'SeedRolesPermissions1783865586045';
 
   async up(queryRunner: QueryRunner): Promise<void> {
     const permissions = [
@@ -98,14 +98,13 @@ export class SeedRolesPermissions1712345678 implements MigrationInterface {
       await queryRunner.query(`INSERT INTO role_permissions (roleId, permissionId) VALUES (6, ?)`, [p.id]);
     }
 
-    const superAdminRoleId = 1;
     const users = await queryRunner.query(
       `SELECT id FROM users WHERE npk IN ('23893', '15012')`
     );
     for (const user of users) {
       await queryRunner.query(
         `INSERT INTO user_roles (userId, roleId, assignedBy, assignedAt) VALUES (?, ?, 1, NOW())`,
-        [user.id, superAdminRoleId],
+        [user.id, 1],
       );
     }
   }

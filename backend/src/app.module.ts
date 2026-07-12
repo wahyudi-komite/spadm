@@ -12,6 +12,10 @@ import { AuditLogModule } from './modules/audit-logs/audit-log.module';
 import { HealthModule } from './modules/health/health.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
 import { RolesModule } from './modules/roles/roles.module';
+import { EventsModule } from './modules/bazaar/events/events.module';
+import { BatchesModule } from './modules/bazaar/batches/batches.module';
+import { ProductsModule } from './modules/bazaar/products/products.module';
+import { DistributionsModule } from './modules/bazaar/distributions/distributions.module';
 
 @Module({
   imports: [
@@ -49,6 +53,10 @@ import { RolesModule } from './modules/roles/roles.module';
     HealthModule,
     PermissionsModule,
     RolesModule,
+    EventsModule,
+    BatchesModule,
+    ProductsModule,
+    DistributionsModule,
   ],
   controllers: [AppController],
   providers: [
