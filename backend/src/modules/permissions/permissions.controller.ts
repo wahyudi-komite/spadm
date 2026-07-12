@@ -4,6 +4,8 @@ import { PermissionsService } from './permissions.service';
 import { CreatePermissionDto } from './dto/create-permission.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 
+// TODO: Add PermissionsGuard + @Permissions() decorator once created in Task 5
+
 @ApiTags('Permissions')
 @Controller('permissions')
 export class PermissionsController {
