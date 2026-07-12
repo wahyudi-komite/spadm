@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+import { Repository, In, IsNull } from 'typeorm';
 import { Role } from './role.entity';
 import { RolePermission } from './role-permission.entity';
 import { UserRole } from './user-role.entity';
@@ -68,5 +68,61 @@ export class RolesService {
     role.permissions = role.permissions.filter((p) => p.id !== permissionId);
     await this.roleRepository.save(role);
     return this.findOne(roleId);
+  }
+
+  async getUserRoles(userId: number) {
+    const userRoles = await this.userRoleRepository.find({
+      where: { userId, revokedAt: IsNull() },
+      relations: { role: { permissions: true } },
+      order: { assignedAt: 'DESC' },
+    });
+    return userRoles;
+  }
+
+  async assignRole(userId: number, roleId: number, assignedBy: number, areaId?: number, reason?: string) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User tidak ditemukan');
+
+    const role = await this.roleRepository.findOne({ where: { id: roleId } });
+    if (!role) throw new NotFoundException('Role tidak ditemukan');
+
+    const existing = await this.userRoleRepository.findOne({
+      where: { userId, roleId, revokedAt: IsNull() },
+    });
+    if (existing) throw new BadRequestException('User sudah memiliki role ini');
+
+    const saved = await this.userRoleRepository.save(
+      this.userRoleRepository.create({ userId, roleId, assignedBy }),
+    );
+
+    await this.userRoleHistoryRepository.save({
+      userId, roleId, action: 'ASSIGN', changedBy: assignedBy,
+    });
+
+    await this.auditLogService.log({ userId, action: 'ASSIGN_ROLE', module: 'auth', entityType: 'user', entityId: userId, description: `Role ${role.name} assigned` });
+
+    return this.userRoleRepository.findOne({ where: { id: saved.id }, relations: { role: true } });
+  }
+
+  async revokeRole(userId: number, roleId: number, revokedBy: number, reason?: string) {
+    const userRole = await this.userRoleRepository.findOne({
+      where: { userId, roleId, revokedAt: IsNull() },
+    });
+    if (!userRole) throw new NotFoundException('Role assignment tidak ditemukan');
+
+    await this.userRoleRepository.update(userRole.id, { revokedAt: new Date(), revokedBy, reason });
+
+    await this.userRoleHistoryRepository.save({
+      userId, roleId, action: 'REVOKE', changedBy: revokedBy, reason,
+    });
+
+    await this.auditLogService.log({ userId, action: 'REVOKE_ROLE', module: 'auth', entityType: 'user', entityId: userId, description: `Role revoked` });
+  }
+
+  async getUserRoleHistory(userId: number) {
+    return this.userRoleHistoryRepository.find({
+      where: { userId },
+      order: { createdAt: 'DESC' },
+    });
   }
 }

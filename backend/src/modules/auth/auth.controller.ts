@@ -129,6 +129,14 @@ export class AuthController {
     return this.authService.getProfile(userId);
   }
 
+  @Get('me/permissions')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Permission user saat ini' })
+  async myPermissions(@CurrentUser() userId: number) {
+    return this.authService.getUserPermissions(userId);
+  }
+
   @Get('me/sessions')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()

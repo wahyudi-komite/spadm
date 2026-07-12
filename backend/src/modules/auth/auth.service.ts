@@ -9,6 +9,7 @@ import { Session } from './entities/session.entity';
 import { LoginHistory } from './entities/login-history.entity';
 import { PasswordResetToken } from './entities/password-reset-token.entity';
 import { Member } from '../members/entities/member.entity';
+import { UserRole } from '../roles/user-role.entity';
 import { AuditLogService } from '../audit-logs/audit-log.service';
 import { SignInDto } from './dto/sign-in.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -28,6 +29,8 @@ export class AuthService {
     private passwordResetTokenRepository: Repository<PasswordResetToken>,
     @InjectRepository(Member)
     private memberRepository: Repository<Member>,
+    @InjectRepository(UserRole)
+    private userRoleRepository: Repository<UserRole>,
     private jwtService: JwtService,
     private configService: ConfigService,
     private auditLogService: AuditLogService,
@@ -225,6 +228,22 @@ export class AuthService {
       where: { userId, isActive: true },
       order: { createdAt: 'DESC' },
     });
+  }
+
+  async getUserPermissions(userId: number) {
+    const userRoles = await this.userRoleRepository.find({
+      where: { userId, revokedAt: IsNull() },
+      relations: { role: { permissions: true } },
+    });
+
+    const permissions = new Set<string>();
+    for (const ur of userRoles) {
+      for (const p of ur.role.permissions) {
+        permissions.add(p.name);
+      }
+    }
+
+    return { userId, permissions: Array.from(permissions) };
   }
 
   private async generateTokens(user: User) {

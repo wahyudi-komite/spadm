@@ -10,10 +10,11 @@ import { Session } from './entities/session.entity';
 import { LoginHistory } from './entities/login-history.entity';
 import { PasswordResetToken } from './entities/password-reset-token.entity';
 import { Member } from '../members/entities/member.entity';
+import { UserRole } from '../roles/user-role.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Session, LoginHistory, PasswordResetToken, Member]),
+    TypeOrmModule.forFeature([User, Session, LoginHistory, PasswordResetToken, Member, UserRole]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

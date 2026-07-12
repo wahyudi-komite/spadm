@@ -4,6 +4,7 @@ import { RolesService } from './roles.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
 @ApiTags('Roles')
 @Controller('roles')
@@ -59,5 +60,44 @@ export class RolesController {
   @ApiOperation({ summary: 'Revoke permission dari role' })
   async removePermission(@Param('id') id: number, @Param('permissionId') permissionId: number) {
     return this.rolesService.removePermission(id, permissionId);
+  }
+
+  // User role assignment endpoints (TODO: Add PermissionsGuard and @Permissions decorator in Task 5)
+
+  @Get('users/:userId/roles')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Daftar roles user' })
+  async getUserRoles(@Param('userId') userId: number) {
+    return this.rolesService.getUserRoles(userId);
+  }
+
+  @Post('users/:userId/roles')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Assign role ke user' })
+  async assignRole(
+    @Param('userId') userId: number,
+    @Body() body: { roleId: number; reason?: string },
+    @CurrentUser() currentUserId: number,
+  ) {
+    return this.rolesService.assignRole(userId, body.roleId, currentUserId, undefined, body.reason);
+  }
+
+  @Delete('users/:userId/roles/:roleId')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Revoke role dari user' })
+  async revokeRole(
+    @Param('userId') userId: number,
+    @Param('roleId') roleId: number,
+    @Body() body: { reason?: string },
+    @CurrentUser() currentUserId: number,
+  ) {
+    return this.rolesService.revokeRole(userId, roleId, currentUserId, body.reason);
+  }
+
+  @Get('users/:userId/roles/history')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Histori role user' })
+  async getUserRoleHistory(@Param('userId') userId: number) {
+    return this.rolesService.getUserRoleHistory(userId);
   }
 }
