@@ -15,6 +15,7 @@ export class SeedRolesPermissions1712345678 implements MigrationInterface {
       { name: 'role.create', group: 'role', description: 'Membuat role' },
       { name: 'role.update', group: 'role', description: 'Mengubah role' },
       { name: 'role.assign', group: 'role', description: 'Assign role ke user' },
+      { name: 'role.delete', group: 'role', description: 'Menghapus role' },
       { name: 'bazaar.event.read', group: 'bazaar.event', description: 'Melihat event' },
       { name: 'bazaar.event.create', group: 'bazaar.event', description: 'Membuat event' },
       { name: 'bazaar.event.update', group: 'bazaar.event', description: 'Mengubah event' },
