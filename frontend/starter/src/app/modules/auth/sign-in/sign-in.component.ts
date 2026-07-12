@@ -41,6 +41,16 @@ export class AuthSignInComponent implements OnInit {
     signInForm: UntypedFormGroup;
     showAlert: boolean = false;
 
+    quickUsers = [
+        { npk: '23893', label: 'SUPER_ADMIN', color: 'warn' },
+        { npk: '15012', label: 'SUPER_ADMIN', color: 'warn' },
+        { npk: '10001', label: 'BAZAAR_ADMIN', color: 'primary' },
+        { npk: '10002', label: 'FINANCE_ADMIN', color: 'primary' },
+        { npk: '10003', label: 'AREA_PIC', color: 'accent' },
+        { npk: '10004', label: 'LEADERSHIP', color: 'accent' },
+        { npk: '10005', label: 'MEMBER', color: '' },
+    ];
+
     constructor(
         private _activatedRoute: ActivatedRoute,
         private _authService: AuthService,
@@ -53,6 +63,11 @@ export class AuthSignInComponent implements OnInit {
             npk: ['', [Validators.required]],
             password: ['', Validators.required],
         });
+    }
+
+    quickLogin(npk: string): void {
+        this.signInForm.setValue({ npk, password: 'SmartCare' });
+        this.signIn();
     }
 
     signIn(): void {
