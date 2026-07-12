@@ -1,0 +1,48 @@
+<nav class="text-gray-500">
+    <ul class="m-0 inline-flex rounded-md border border-gray-300 pl-0">
+        <li
+            [ngClass]="{ 'cursor-not-allowed text-gray-500': page === 1 }"
+            class="list-none px-3 py-2 text-md leading-5 text-gray-500"
+        >
+            <a
+                href="javascript:void(0)"
+                (click)="prev()"
+                class="font-medium decoration-current"
+            >
+                Prev
+            </a>
+        </li>
+
+        <li
+            *ngFor="let pageNumber of pages"
+            [ngClass]="{
+                'bg-indigo-200 text-indigo-600': page === pageNumber,
+                'cursor-not-allowed text-gray-500': !isPageEnabled(pageNumber),
+            }"
+            class="list-none border-l border-gray-300 px-3 py-2 text-md leading-5 text-gray-500 first:border-l-0"
+        >
+            <a
+                href="javascript:void(0)"
+                (click)="goToPage(pageNumber)"
+                class="font-medium decoration-current"
+            >
+                {{ pageNumber }}
+            </a>
+        </li>
+
+        <li
+            [ngClass]="{
+                'cursor-not-allowed text-gray-500': page === last_page,
+            }"
+            class="list-none px-3 py-2 text-md leading-5 text-gray-500"
+        >
+            <a
+                href="javascript:void(0)"
+                (click)="next()"
+                class="font-medium decoration-current"
+            >
+                Next
+            </a>
+        </li>
+    </ul>
+</nav>

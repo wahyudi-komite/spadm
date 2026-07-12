@@ -1,0 +1,713 @@
+<div class="flex items-center justify-between border-b-2 border-gray-200">
+    <h1 class="items-start text-right text-xl font-bold uppercase">
+        Form {{ this.action }} Data
+    </h1>
+    <button mat-icon-button (click)="closeDialog()">
+        <mat-icon>close</mat-icon>
+    </button>
+</div>
+<form
+    [formGroup]="form"
+    (submit)="doAction()"
+    autocomplete="off"
+    class="h-auto"
+>
+    <mat-dialog-content
+        class="px-0"
+        style="
+            max-height: none !important;
+            height: auto !important;
+            overflow: visible !important;
+        "
+    >
+        <div *ngIf="action != 'Delete'; else elseTemplate">
+            <div class="flex gap-2">
+                <div class="gt-xs:flex-row max-w-[80px] flex-1">
+                    <mat-form-field
+                        [ngClass]=""
+                        class="w-full"
+                        floatLabel="always"
+                    >
+                        <mat-label>NPK</mat-label>
+                        <input
+                            matInput
+                            formControlName="id"
+                            [placeholder]="'Npk..'"
+                            trim="blur"
+                            oninput="this.value = this.value.toUpperCase()"
+                            value="{{ this.local_data.id }}"
+                            readonly="{{ action == 'Update' ? true : false }}"
+                        />
+                        <mat-error
+                            *ngIf="f['id'].errors && f['id'].errors['required']"
+                        >
+                            You must enter a value
+                        </mat-error>
+                        <mat-error
+                            *ngIf="
+                                f['id'].errors && f['id'].errors['minlength']
+                            "
+                        >
+                            Min 5 Character
+                        </mat-error>
+                        <mat-error
+                            *ngIf="
+                                f['id'].errors &&
+                                f['id'].errors['alreadyExists']
+                            "
+                        >
+                            The name already exist
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+                <div class="gt-xs:flex-row flex-1">
+                    <mat-form-field class="w-full" floatLabel="always">
+                        <mat-label>Name</mat-label>
+                        <input
+                            matInput
+                            formControlName="name"
+                            placeholder="Enter Name.."
+                            trim="blur"
+                            oninput="this.value = this.value.toUpperCase()"
+                        />
+                        <mat-error *ngIf="f['name'].errors?.['required']">
+                            You must enter a value
+                        </mat-error>
+                        <mat-error *ngIf="f['name'].errors?.['maxlength']">
+                            Max 100 characters allowed
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+                <div class="gt-xs:flex-row flex-1">
+                    <mat-form-field class="w-full" floatLabel="always">
+                        <mat-label>Divisi</mat-label>
+                        <input
+                            matInput
+                            formControlName="divisi"
+                            placeholder="Masukkan Divisi.."
+                            trim="blur"
+                            oninput="this.value = this.value.toUpperCase()"
+                        />
+                        <mat-error *ngIf="f['divisi'].errors?.['required']">
+                            Divisi wajib diisi
+                        </mat-error>
+                        <mat-error *ngIf="f['divisi'].errors?.['maxlength']">
+                            Maksimal 100 karakter
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+                <div class="gt-xs:flex-row flex-1">
+                    <mat-form-field class="w-full" floatLabel="always">
+                        <mat-label>Department</mat-label>
+                        <input
+                            matInput
+                            formControlName="department"
+                            placeholder="Masukkan Department.."
+                            trim="blur"
+                            oninput="this.value = this.value.toUpperCase()"
+                        />
+                        <mat-error *ngIf="f['department'].errors?.['required']">
+                            Department wajib diisi
+                        </mat-error>
+                        <mat-error
+                            *ngIf="f['department'].errors?.['maxlength']"
+                        >
+                            Maksimal 100 karakter
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+            </div>
+            <div class="grid grid-cols-8 gap-4">
+                <div class="gt-xs:flex-row col-span-3">
+                    <mat-form-field class="w-full" floatLabel="always">
+                        <mat-label>Section</mat-label>
+                        <input
+                            matInput
+                            formControlName="section"
+                            placeholder="Masukkan Section.."
+                            trim="blur"
+                            oninput="this.value = this.value.toUpperCase()"
+                        />
+                        <mat-error *ngIf="f['section'].errors?.['required']">
+                            section wajib diisi
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+                <div class="gt-xs:flex-row col-span-2">
+                    <mat-form-field class="w-full" floatLabel="always">
+                        <mat-label>Shift</mat-label>
+                        <mat-select
+                            formControlName="shift"
+                            [ngClass]="
+                                f['shift'].value === ''
+                                    ? 'text-blue-500'
+                                    : 'text-gray-900'
+                            "
+                        >
+                            <mat-option
+                                *ngFor="let item of shiftList"
+                                [value]="item"
+                            >
+                                {{ item === '' ? 'Tidak Memilih' : item }}
+                            </mat-option>
+                        </mat-select>
+                        <mat-error *ngIf="f['shift'].errors?.['required']">
+                            Pilihan kaos wajib diisi
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+                <div class="gt-xs:flex-row flex">
+                    <mat-form-field class="w-full" floatLabel="always">
+                        <mat-label>Plant</mat-label>
+                        <mat-select
+                            formControlName="plant"
+                            [ngClass]="
+                                f['plant'].value === ''
+                                    ? 'text-blue-500'
+                                    : 'text-gray-900'
+                            "
+                        >
+                            <mat-option
+                                *ngFor="let item of plantList"
+                                [value]="item"
+                            >
+                                {{ item === '' ? 'Tidak Memilih' : item }}
+                            </mat-option>
+                        </mat-select>
+                        <mat-error *ngIf="f['plant'].errors?.['required']">
+                            Pilihan kaos wajib diisi
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+                <div class="gt-xs:flex-row col-span-2">
+                    <mat-form-field class="w-full" floatLabel="always">
+                        <mat-label>Jabatan</mat-label>
+                        <input
+                            matInput
+                            formControlName="jabatan"
+                            placeholder="Masukkan Jabatan.."
+                            trim="blur"
+                            oninput="this.value = this.value.toUpperCase()"
+                        />
+                        <mat-error *ngIf="f['jabatan'].errors?.['required']">
+                            Jabatan wajib diisi
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+            </div>
+            <div class="grid grid-cols-6 gap-4">
+                <div class="gt-xs:flex-row flex-1">
+                    <mat-form-field class="w-full" floatLabel="always">
+                        <mat-label>Golongan</mat-label>
+                        <input
+                            matInput
+                            formControlName="golongan"
+                            placeholder="Masukkan Golongan.."
+                            trim="blur"
+                            oninput="this.value = this.value.toUpperCase()"
+                        />
+                        <mat-error *ngIf="f['golongan'].errors?.['required']">
+                            Golongan wajib diisi
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+                <div class="gt-xs:flex-row flex">
+                    <mat-form-field class="w-full" floatLabel="always">
+                        <mat-label>Status</mat-label>
+                        <mat-select formControlName="status">
+                            <mat-option value="P">P</mat-option>
+                            <mat-option value="C">C</mat-option>
+                        </mat-select>
+                        <mat-error *ngIf="f['status'].errors?.['required']">
+                            Status wajib dipilih
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+                <div class="gt-xs:flex-row flex">
+                    <mat-form-field class="w-full" floatLabel="always">
+                        <mat-label>Gender</mat-label>
+                        <mat-select formControlName="gender">
+                            <mat-option value="M">M</mat-option>
+                            <mat-option value="F">F</mat-option>
+                        </mat-select>
+                        <mat-error *ngIf="f['gender'].errors?.['required']">
+                            Gender wajib dipilih
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+                <div class="gt-xs:flex-row flex">
+                    <mat-form-field class="w-full" floatLabel="always">
+                        <mat-label>Family Status</mat-label>
+                        <mat-select formControlName="family_stats">
+                            <mat-option
+                                *ngFor="let fs of familyStatsList"
+                                [value]="fs"
+                            >
+                                {{ fs }}
+                            </mat-option>
+                        </mat-select>
+                        <mat-error
+                            *ngIf="f['family_stats'].errors?.['required']"
+                        >
+                            Family status wajib dipilih
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+                <div class="gt-xs:flex-row flex">
+                    <mat-form-field class="w-full" floatLabel="always">
+                        <mat-label>No. WhatsApp</mat-label>
+                        <input
+                            matInput
+                            type="tel"
+                            formControlName="no_wa"
+                            placeholder="Masukkan No. WhatsApp.."
+                            trim="blur"
+                        />
+                        <mat-error *ngIf="f['no_wa'].errors?.['required']">
+                            Nomor WA wajib diisi
+                        </mat-error>
+                        <mat-error *ngIf="f['no_wa'].errors?.['maxlength']">
+                            Maksimal 20 digit
+                        </mat-error>
+                        <mat-error *ngIf="f['no_wa'].errors?.['pattern']">
+                            Nomor hanya boleh angka
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+                <div class="gt-xs:flex-row flex">
+                    <mat-form-field class="w-full" floatLabel="always">
+                        <mat-label>Terminated</mat-label>
+                        <mat-select
+                            formControlName="terminated"
+                            [ngClass]="
+                                f['terminated'].value === 'YES'
+                                    ? 'text-rose-500'
+                                    : ''
+                            "
+                        >
+                            <mat-option
+                                *ngFor="let tr of terminatedList"
+                                [value]="tr"
+                            >
+                                {{ tr }}
+                            </mat-option>
+                        </mat-select>
+                        <mat-error *ngIf="f['terminated'].errors?.['required']">
+                            Terminated status wajib dipilih
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="gt-xs:flex-row flex">
+                    <mat-form-field class="w-full" floatLabel="always">
+                        <mat-label>Kaos Employee 1</mat-label>
+                        <mat-select
+                            formControlName="kaos_employee1"
+                            [ngClass]="
+                                f['kaos_employee1'].value === ''
+                                    ? 'text-rose-500'
+                                    : ''
+                            "
+                        >
+                            <mat-option
+                                *ngFor="let item of kaosEmployeeList"
+                                [value]="item"
+                            >
+                                {{ item === '' ? 'Tidak Memilih' : item }}
+                            </mat-option>
+                        </mat-select>
+                        <mat-error
+                            *ngIf="f['kaos_employee1'].errors?.['required']"
+                        >
+                            Pilihan kaos wajib diisi
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+                <div class="gt-xs:flex-row flex">
+                    <mat-form-field class="w-full" floatLabel="always">
+                        <mat-label>Kaos Spouse</mat-label>
+                        <mat-select
+                            formControlName="kaos_spouse1"
+                            [ngClass]="
+                                f['kaos_spouse1'].value === ''
+                                    ? 'text-rose-500'
+                                    : ''
+                            "
+                        >
+                            <mat-option
+                                *ngFor="let item of kaosEmployeeList"
+                                [value]="item"
+                            >
+                                {{ item === '' ? 'Tidak Memilih' : item }}
+                            </mat-option>
+                        </mat-select>
+                        <mat-error
+                            *ngIf="f['kaos_spouse1'].errors?.['required']"
+                        >
+                            Pilihan kaos wajib diisi
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+            </div>
+            <div class="grid grid-cols-6 gap-4">
+                <div class="gt-xs:flex-row flex">
+                    <mat-form-field class="w-full" floatLabel="always">
+                        <mat-label>Kaos Child 1</mat-label>
+                        <mat-select
+                            formControlName="kaos_child1"
+                            [ngClass]="
+                                f['kaos_child1'].value === ''
+                                    ? 'text-rose-500'
+                                    : ''
+                            "
+                        >
+                            <mat-option
+                                *ngFor="let item of kaosChild1List"
+                                [value]="item"
+                            >
+                                {{ item === '' ? 'Tidak Memilih' : item }}
+                            </mat-option>
+                        </mat-select>
+                        <mat-error
+                            *ngIf="f['kaos_child1'].errors?.['required']"
+                        >
+                            Pilihan kaos child 1 wajib diisi
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+
+                <div class="gt-xs:flex-row flex">
+                    <mat-form-field class="w-full" floatLabel="always">
+                        <mat-label>Kaos Child 2</mat-label>
+                        <mat-select
+                            formControlName="kaos_child2"
+                            [ngClass]="
+                                f['kaos_child2'].value === ''
+                                    ? 'text-rose-500'
+                                    : ''
+                            "
+                        >
+                            <mat-option
+                                *ngFor="let item of kaosChild1List"
+                                [value]="item"
+                            >
+                                {{ item === '' ? 'Tidak Memilih' : item }}
+                            </mat-option>
+                        </mat-select>
+                        <mat-error
+                            *ngIf="f['kaos_child2'].errors?.['required']"
+                        >
+                            Pilihan kaos child 1 wajib diisi
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+
+                <div class="gt-xs:flex-row flex">
+                    <mat-form-field class="w-full" floatLabel="always">
+                        <mat-label>Kaos Child 3</mat-label>
+                        <mat-select
+                            formControlName="kaos_child3"
+                            [ngClass]="
+                                f['kaos_child3'].value === ''
+                                    ? 'text-rose-500'
+                                    : ''
+                            "
+                        >
+                            <mat-option
+                                *ngFor="let item of kaosChild1List"
+                                [value]="item"
+                            >
+                                {{ item === '' ? 'Tidak Memilih' : item }}
+                            </mat-option>
+                        </mat-select>
+                        <mat-error
+                            *ngIf="f['kaos_child3'].errors?.['required']"
+                        >
+                            Pilihan kaos child 1 wajib diisi
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+
+                <div class="gt-xs:flex-row flex">
+                    <mat-form-field class="w-full" floatLabel="always">
+                        <mat-label>Kaos Child 4</mat-label>
+                        <mat-select
+                            formControlName="kaos_child4"
+                            [ngClass]="
+                                f['kaos_child4'].value === ''
+                                    ? 'text-rose-500'
+                                    : ''
+                            "
+                        >
+                            <mat-option
+                                *ngFor="let item of kaosChild1List"
+                                [value]="item"
+                            >
+                                {{ item === '' ? 'Tidak Memilih' : item }}
+                            </mat-option>
+                        </mat-select>
+                        <mat-error
+                            *ngIf="f['kaos_child4'].errors?.['required']"
+                        >
+                            Pilihan kaos child 1 wajib diisi
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+
+                <div class="gt-xs:flex-row flex">
+                    <mat-form-field class="w-full" floatLabel="always">
+                        <mat-label>Kaos Child 5</mat-label>
+                        <mat-select
+                            formControlName="kaos_child5"
+                            [ngClass]="
+                                f['kaos_child5'].value === ''
+                                    ? 'text-rose-500'
+                                    : ''
+                            "
+                        >
+                            <mat-option
+                                *ngFor="let item of kaosChild1List"
+                                [value]="item"
+                            >
+                                {{ item === '' ? 'Tidak Memilih' : item }}
+                            </mat-option>
+                        </mat-select>
+                        <mat-error
+                            *ngIf="f['kaos_child5'].errors?.['required']"
+                        >
+                            Pilihan kaos child 1 wajib diisi
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+
+                <div class="gt-xs:flex-row flex">
+                    <mat-form-field class="w-full" floatLabel="always">
+                        <mat-label>Kaos Child 6</mat-label>
+                        <mat-select
+                            formControlName="kaos_child6"
+                            [ngClass]="
+                                f['kaos_child6'].value === ''
+                                    ? 'text-rose-500'
+                                    : ''
+                            "
+                        >
+                            <mat-option
+                                *ngFor="let item of kaosChild1List"
+                                [value]="item"
+                            >
+                                {{ item === '' ? 'Tidak Memilih' : item }}
+                            </mat-option>
+                        </mat-select>
+                        <mat-error
+                            *ngIf="f['kaos_child6'].errors?.['required']"
+                        >
+                            Pilihan kaos child 1 wajib diisi
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+            </div>
+            <div class="grid grid-cols-4 gap-4">
+                <div class="gt-xs:flex-row flex">
+                    <mat-form-field class="w-full" floatLabel="always">
+                        <mat-label>Dewasa Pendek</mat-label>
+                        <input
+                            matInput
+                            formControlName="dshort"
+                            placeholder="Dewasa Pendek"
+                            trim="blur"
+                            oninput="this.value = this.value.toUpperCase()"
+                        />
+                        <mat-error *ngIf="f['dshort'].errors?.['required']">
+                            You must enter a value
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+
+                <div class="gt-xs:flex-row flex">
+                    <mat-form-field class="w-full" floatLabel="always">
+                        <mat-label>Dewasa Panjang</mat-label>
+                        <input
+                            matInput
+                            formControlName="dlong"
+                            placeholder="Dewasa Panjang.."
+                            trim="blur"
+                            oninput="this.value = this.value.toUpperCase()"
+                        />
+                        <mat-error *ngIf="f['dlong'].errors?.['required']">
+                            You must enter a value
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+                <div class="gt-xs:flex-row flex">
+                    <mat-form-field class="w-full" floatLabel="always">
+                        <mat-label>Anak Pendek</mat-label>
+                        <input
+                            matInput
+                            formControlName="cshort"
+                            placeholder="Anak Pendek.."
+                            trim="blur"
+                            oninput="this.value = this.value.toUpperCase()"
+                        />
+                        <mat-error *ngIf="f['cshort'].errors?.['required']">
+                            You must enter a value
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+                <div class="gt-xs:flex-row flex">
+                    <mat-form-field class="w-full" floatLabel="always">
+                        <mat-label>Anak Panjang</mat-label>
+                        <input
+                            matInput
+                            formControlName="clong"
+                            placeholder="Anak Panjang.."
+                            trim="blur"
+                            oninput="this.value = this.value.toUpperCase()"
+                        />
+                        <mat-error *ngIf="f['clong'].errors?.['required']">
+                            You must enter a value
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+            </div>
+            <!-- Scan Status -->
+            <div class="grid grid-cols-4 gap-4">
+                <div
+                    class="gt-xs:flex-row flex"
+                    *ngIf="this.local_data.scan_vendor === 1"
+                >
+                    <mat-form-field class="w-full" floatLabel="always">
+                        <mat-label>Scan Vendor</mat-label>
+                        <mat-select
+                            formControlName="scan_vendor"
+                            [ngClass]="
+                                f['scan_vendor'].value === null
+                                    ? 'text-rose-500'
+                                    : ''
+                            "
+                        >
+                            <mat-option
+                                *ngFor="let item of scan_vendorList"
+                                [value]="item.value"
+                            >
+                                {{ item.label }}
+                            </mat-option>
+                        </mat-select>
+                        <mat-error
+                            *ngIf="f['scan_vendor'].errors?.['required']"
+                        >
+                            Pilihan scan vendor wajib diisi</mat-error
+                        >
+                    </mat-form-field>
+                </div>
+                <div
+                    class="gt-xs:flex-row flex"
+                    *ngIf="this.local_data.scan_vendor === 1"
+                >
+                    <mat-form-field class="w-full" floatLabel="always">
+                        <mat-label>Tanggal Vendor Plant</mat-label>
+                        <input
+                            matInput
+                            formControlName="scan_vendor_date"
+                            placeholder="Tanggal Vendor Plant.."
+                            readonly
+                        />
+
+                        <mat-error
+                            *ngIf="f['scan_vendor_date'].errors?.['required']"
+                        >
+                            Tanggal scan vendor wajib diisi
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+
+                <div
+                    class="gt-xs:flex-row flex"
+                    *ngIf="this.local_data.scan_plant"
+                >
+                    <mat-form-field class="w-full" floatLabel="always">
+                        <mat-label>Scan Plant</mat-label>
+                        <mat-select
+                            formControlName="scan_plant"
+                            [ngClass]="
+                                f['scan_plant'].value === null
+                                    ? 'text-rose-500'
+                                    : ''
+                            "
+                        >
+                            <mat-option
+                                *ngFor="let item of scan_plantList"
+                                [value]="item"
+                            >
+                                {{ item === '' ? 'Belum Scan' : item }}
+                            </mat-option>
+                        </mat-select>
+                        <mat-error *ngIf="f['scan_plant'].errors?.['required']">
+                            Pilihan scan plant wajib diisi</mat-error
+                        >
+                    </mat-form-field>
+                </div>
+                <div
+                    class="gt-xs:flex-row flex"
+                    *ngIf="this.local_data.scan_plant"
+                >
+                    <mat-form-field class="w-full" floatLabel="always">
+                        <mat-label>Tanggal Scan Plant</mat-label>
+                        <input
+                            matInput
+                            formControlName="scan_plant_date"
+                            placeholder="Tanggal Scan Plant.."
+                            readonly
+                        />
+
+                        <mat-error
+                            *ngIf="f['scan_plant_date'].errors?.['required']"
+                        >
+                            Tanggal scan plant wajib diisi
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+            </div>
+        </div>
+        <ng-template #elseTemplate>
+            <div class="-mt-2 mb-2 flex w-full flex-col">
+                <span
+                    ><strong
+                        class="rounded-sm px-2 py-1 font-normal text-gray-800"
+                        >Are you sure to delete :
+                    </strong></span
+                >
+                <div class="mb-4 mt-2 flex w-full items-center justify-center">
+                    <h3
+                        class="rounded-xl bg-black px-4 py-1 text-2xl font-extrabold text-indigo-50"
+                    >
+                        {{ local_data.id }} & {{ local_data.name }}?
+                    </h3>
+                </div>
+            </div>
+        </ng-template>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end" class="-mt-4">
+        <button
+            mat-raised-button
+            type="reset"
+            color="warn"
+            (click)="closeDialog()"
+        >
+            <mat-icon>cancel</mat-icon>
+            CANCEL
+        </button>
+        <button
+            [disabled]="
+                action == 'Delete' ? false : !(form.valid && form.dirty)
+            "
+            class="ml-6"
+            mat-raised-button
+            color="primary"
+            type="submit"
+        >
+            <mat-icon>save</mat-icon>
+            {{ action != 'Delete' ? 'SAVE' : 'DELETE' }}
+        </button>
+    </mat-dialog-actions>
+</form>

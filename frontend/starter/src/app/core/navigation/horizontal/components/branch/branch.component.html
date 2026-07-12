@@ -1,0 +1,79 @@
+@if (!child) {
+    <div
+        [ngClass]="{
+            'fuse-horizontal-navigation-menu-active': trigger.menuOpen,
+            'fuse-horizontal-navigation-menu-active-forced': item.active,
+        }"
+        [matMenuTriggerFor]="matMenu"
+        (onMenuOpen)="triggerChangeDetection()"
+        (onMenuClose)="triggerChangeDetection()"
+        #trigger="matMenuTrigger"
+    >
+        <ng-container *ngTemplateOutlet="itemTemplate; context: { $implicit: item }"></ng-container>
+    </div>
+}
+
+<mat-menu
+    class="fuse-horizontal-navigation-menu-panel"
+    [overlapTrigger]="false"
+    #matMenu="matMenu"
+>
+    @for (child of item.children; track trackByFn($index, child)) {
+        @if (!child.hidden || !child.hidden(child)) {
+            @if (child.type === 'basic') {
+                <div class="fuse-horizontal-navigation-menu-item" [disabled]="child.disabled" mat-menu-item>
+                    <app-horizontal-nav-basic-item [item]="child" [name]="name"></app-horizontal-nav-basic-item>
+                </div>
+            }
+            @if (child.type === 'collapsable' || child.type === 'group' || child.type === 'aside') {
+                <div class="fuse-horizontal-navigation-menu-item" [disabled]="child.disabled" [matMenuTriggerFor]="branch.matMenu" mat-menu-item>
+                    <ng-container *ngTemplateOutlet="itemTemplate; context: { $implicit: child }"></ng-container>
+                    <app-horizontal-nav-branch-item [child]="true" [item]="child" [name]="name" #branch></app-horizontal-nav-branch-item>
+                </div>
+            }
+            @if (child.type === 'divider') {
+                <div class="fuse-horizontal-navigation-menu-item" mat-menu-item>
+                    <app-horizontal-nav-divider-item [item]="child" [name]="name"></app-horizontal-nav-divider-item>
+                </div>
+            }
+        }
+    }
+</mat-menu>
+
+<ng-template let-item #itemTemplate>
+    <div
+        class="fuse-horizontal-navigation-item-wrapper"
+        [class.fuse-horizontal-navigation-item-has-subtitle]="!!item.subtitle"
+        [ngClass]="item.classes?.wrapper"
+    >
+        <div
+            class="fuse-horizontal-navigation-item"
+            [ngClass]="{
+                'fuse-horizontal-navigation-item-disabled': item.disabled,
+                'fuse-horizontal-navigation-item-active-forced': item.active,
+            }"
+            [matTooltip]="item.tooltip || ''"
+        >
+            @if (item.icon) {
+                <mat-icon class="fuse-horizontal-navigation-item-icon" [ngClass]="item.classes?.icon" [svgIcon]="item.icon"></mat-icon>
+            }
+            <div class="fuse-horizontal-navigation-item-title-wrapper">
+                <div class="fuse-horizontal-navigation-item-title">
+                    <span [ngClass]="item.classes?.title">{{ item.title }}</span>
+                </div>
+                @if (item.subtitle) {
+                    <div class="fuse-horizontal-navigation-item-subtitle text-hint">
+                        <span [ngClass]="item.classes?.subtitle">{{ item.subtitle }}</span>
+                    </div>
+                }
+            </div>
+            @if (item.badge) {
+                <div class="fuse-horizontal-navigation-item-badge">
+                    <div class="fuse-horizontal-navigation-item-badge-content" [ngClass]="item.badge.classes">
+                        {{ item.badge.title }}
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</ng-template>

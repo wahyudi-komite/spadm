@@ -1,0 +1,23 @@
+#print-section {
+    display: none;
+}
+
+@media print {
+    body * {
+        visibility: hidden;
+    }
+
+    #print-section {
+        display: block;
+        visibility: visible;
+        width: 100%;
+        position: absolute;
+        left: 0;
+        top: 0;
+        overflow: hidden;
+    }
+}
+
+:host ::ng-deep .p-datatable td {
+    white-space: nowrap;
+}

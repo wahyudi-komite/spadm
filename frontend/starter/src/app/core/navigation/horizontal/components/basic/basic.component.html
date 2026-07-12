@@ -1,0 +1,58 @@
+@if (!item.hidden || !item.hidden(item)) {
+    <div class="fuse-horizontal-navigation-item-wrapper" [ngClass]="item.classes?.wrapper">
+        @if (item.link && !item.externalLink) {
+            <a class="fuse-horizontal-navigation-item"
+               [routerLink]="[item.link]"
+               routerLinkActive="fuse-horizontal-navigation-item-active"
+               [routerLinkActiveOptions]="{ exact: item.exactMatch ?? false }"
+               [attr.disabled]="item.disabled || null"
+               [attr.target]="item.target"
+               (click)="item.function ? item.function(item) : null">
+                <ng-container *ngTemplateOutlet="itemTemplate"></ng-container>
+            </a>
+        }
+        @if (item.externalLink) {
+            <a class="fuse-horizontal-navigation-item"
+               [href]="item.link"
+               [attr.target]="item.target || '_blank'"
+               [attr.disabled]="item.disabled || null"
+               (click)="item.function ? item.function(item) : null">
+                <ng-container *ngTemplateOutlet="itemTemplate"></ng-container>
+            </a>
+        }
+        @if (!item.link && !item.externalLink) {
+            <div class="fuse-horizontal-navigation-item"
+                 [class.fuse-horizontal-navigation-item-disabled]="item.disabled"
+                 (click)="item.function ? item.function(item) : null">
+                <ng-container *ngTemplateOutlet="itemTemplate"></ng-container>
+            </div>
+        }
+    </div>
+}
+
+<ng-template #itemTemplate>
+    @if (item.icon) {
+        <mat-icon class="fuse-horizontal-navigation-item-icon"
+                  [svgIcon]="item.icon"></mat-icon>
+    }
+    @if (item.title) {
+        <span class="fuse-horizontal-navigation-item-title-wrapper">
+            <span class="fuse-horizontal-navigation-item-title">
+                {{ item.title }}
+            </span>
+            @if (item.subtitle) {
+                <span class="fuse-horizontal-navigation-item-subtitle">
+                    {{ item.subtitle }}
+                </span>
+            }
+        </span>
+    }
+    @if (item.badge) {
+        <div class="fuse-horizontal-navigation-item-badge">
+            <div class="fuse-horizontal-navigation-item-badge-content"
+                 [ngClass]="item.badge.classes">
+                {{ item.badge.title }}
+            </div>
+        </div>
+    }
+</ng-template>

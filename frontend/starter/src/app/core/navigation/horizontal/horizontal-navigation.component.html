@@ -1,0 +1,13 @@
+<div class="fuse-horizontal-navigation-wrapper">
+    @for (item of navigation; track item.id || $index) {
+        @if (!item.hidden || !item.hidden(item)) {
+            @switch (item.type) {
+                @case ('basic') { <app-horizontal-nav-basic-item class="fuse-horizontal-navigation-menu-item" [item]="item" [name]="name" /> }
+                @case ('collapsable') { <app-horizontal-nav-branch-item class="fuse-horizontal-navigation-menu-item" [item]="item" [name]="name" /> }
+                @case ('group') { <app-horizontal-nav-branch-item class="fuse-horizontal-navigation-menu-item" [item]="item" [name]="name" /> }
+                @case ('aside') { <app-horizontal-nav-branch-item class="fuse-horizontal-navigation-menu-item" [item]="item" [name]="name" /> }
+                @case ('spacer') { <app-horizontal-nav-spacer-item class="fuse-horizontal-navigation-menu-item" [item]="item" [name]="name" /> }
+            }
+        }
+    }
+</div>

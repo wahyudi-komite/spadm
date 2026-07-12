@@ -1,0 +1,21 @@
+<div class="paginate-wrapper">
+    <nav aria-label="...">
+        <ul class="pagination justify-content-end" style="margin: 20px 0 0 0">
+            <li [class.disabled]="page === 1">
+                <a (click)="prev()" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            <li *ngFor="let p of pages" [class.active]="p === page" [class.disabled]="p === '...' || p === page">
+                <a (click)="goToPage(p)" *ngIf="p !== '...' && p !== page">{{ p }}</a>
+                <a *ngIf="p === '...'">...</a>
+                <a (click)="goToPage(p)" *ngIf="p === page">{{ p }}</a>
+            </li>
+            <li [class.disabled]="page === last_page">
+                <a (click)="next()" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>

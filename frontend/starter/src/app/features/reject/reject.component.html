@@ -1,0 +1,47 @@
+<div class="flex h-full w-full flex-col p-4 print:hidden">
+    <!-- Toolbar -->
+    <div class="mb-4 flex flex-col items-center gap-2 sm:flex-row">
+        <div class="flex w-full items-center justify-center">
+            <form
+                class="rounded-md border-2 border-white bg-white p-4 shadow-xl"
+                [formGroup]="form"
+                (submit)="onSubmit()"
+                autocomplete="off"
+                novalidate
+            >
+                <div class="mx-auto flex w-full max-w-md flex-col items-center">
+                    <label
+                        for="big-input"
+                        class="mb-2 text-center text-lg font-medium text-gray-700"
+                    >
+                        Scan QR Code Merchandise Reject {{ this.user.plant }}
+                    </label>
+                    <input
+                        type="text"
+                        formControlName="id"
+                        value=""
+                        #id
+                        autofocus
+                        class="w-full rounded-xl border-2 border-gray-300 p-4 text-center text-3xl focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                </div>
+                <div class="mt-4 flex items-center justify-between gap-6">
+                    <button
+                        class="align-middle h-12 w-full select-none rounded-lg bg-gray-800 px-6 py-3 text-center font-sans text-xl font-bold uppercase text-white shadow-md shadow-blue-500/20 transition-all hover:shadow-lg hover:shadow-blue-500/40 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
+                        type="submit"
+                    >
+                        SUBMIT
+                    </button>
+
+                    <button
+                        (click)="resetForm()"
+                        class="align-middle h-12 w-full select-none rounded-lg bg-crayola-300 px-6 py-3 text-center font-sans text-xl font-bold uppercase text-white shadow-md shadow-blue-500/20 transition-all hover:shadow-lg hover:shadow-blue-500/40 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
+                        type="button"
+                    >
+                        CLEAR
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

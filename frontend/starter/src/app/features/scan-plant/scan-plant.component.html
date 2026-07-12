@@ -1,0 +1,550 @@
+<div class="flex h-full w-full flex-col p-4 print:hidden">
+    <!-- Toolbar -->
+    <div class="mb-4 flex flex-col items-center gap-2 sm:flex-row">
+        <div class="flex w-full items-center justify-center">
+            <form
+                class="rounded-md border-2 border-white bg-white p-4 shadow-xl"
+                [formGroup]="form"
+                (submit)="onSubmit()"
+                autocomplete="off"
+                novalidate
+            >
+                <div class="mx-auto flex w-full max-w-md flex-col items-center">
+                    <label
+                        for="big-input"
+                        class="mb-2 text-center text-lg font-medium text-gray-700"
+                    >
+                        Scan QR Code By Admin Plant {{ this.user.plant }}
+                    </label>
+                    <input
+                        type="text"
+                        formControlName="id"
+                        value=""
+                        #id
+                        autofocus
+                        class="w-full rounded-2xl border-2 border-gray-300 p-4 text-center text-4xl focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                </div>
+                <div class="mt-4 flex items-center justify-between gap-6">
+                    <button
+                        class="align-middle h-12 w-full select-none rounded-lg bg-fuchsia-800 px-6 py-3 text-center font-sans text-xl font-bold uppercase text-white shadow-md shadow-blue-500/20 transition-all hover:shadow-lg hover:shadow-blue-500/40 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
+                        type="submit"
+                    >
+                        SUBMIT
+                    </button>
+
+                    <button
+                        (click)="resetForm()"
+                        class="align-middle h-12 w-full select-none rounded-lg bg-crayola-300 px-6 py-3 text-center font-sans text-xl font-bold uppercase text-white shadow-md shadow-blue-500/20 transition-all hover:shadow-lg hover:shadow-blue-500/40 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
+                        type="button"
+                    >
+                        CLEAR
+                    </button>
+                </div>
+            </form>
+        </div>
+        <!-- Notifikasi NOT OK -->
+        <div
+            *ngIf="errorNotifikasi.divDisplay"
+            class="flex flex-col h-full min-w-2/3 items-center justify-center gap-2 rounded-2xl p-2 text-center {{
+                errorNotifikasi.bgColor
+            }}"
+        >
+            <!-- <div class=""> -->
+            <h1
+                class="{{
+                    this.errorNotifikasi.sizeFont
+                }} font-bold uppercase text-white"
+            >
+                {{ this.errorNotifikasi.message }}
+            </h1>
+            <!-- </div>
+            <div class=""> -->
+            <p-message
+                *ngIf="this.errorNotifikasi.returnHro"
+                variant="outlined"
+                severity="error"
+                size="large"
+                class="bg-card"
+                >PLEASE RETURN TO HRO FOR JUDGE</p-message
+            >
+            <!-- </div> -->
+        </div>
+
+        <!-- Notifikasi OK -->
+        <div
+            class="flex h-full min-w-2/3 flex-col items-start gap-2"
+            *ngIf="this.enableDataScan"
+        >
+            <div class="grid w-full grid-cols-2 gap-1">
+                <div class="grid w-full grid-cols-1">
+                    <div
+                        class="bg-card flex flex-auto flex-col overflow-hidden rounded-xl p-1 shadow"
+                    >
+                        <div
+                            class="flex h-8 items-center justify-center border-b-2"
+                        >
+                            <div
+                                class="truncate text-md font-bold leading-6 tracking-tight"
+                            >
+                                {{ this.responScan.name }}
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-center justify-center">
+                            <div
+                                class="flex min-h-10 items-center justify-center px-2 text-center text-xl font-bold text-indigo-900 dark:text-blue-500"
+                            >
+                                {{ this.responScan.id }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div
+                    class="bg-card flex flex-auto flex-col overflow-hidden rounded-xl p-1 shadow"
+                >
+                    <div
+                        class="flex h-8 items-center justify-center rounded-xl border-b-2 bg-orange-700 text-white"
+                    >
+                        <div
+                            class="truncate text-md font-bold leading-6 tracking-tight"
+                        >
+                            DEPARTEMEN
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-center justify-center">
+                        <div
+                            class="flex min-h-10 items-center justify-center px-2 text-center text-xl font-bold text-indigo-800 dark:text-blue-500"
+                        >
+                            {{ this.responScan.department }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="grid w-full grid-cols-2 gap-1">
+                <div
+                    class="bg-card flex flex-auto flex-col overflow-hidden rounded-xl p-1 shadow"
+                >
+                    <div
+                        class="flex h-8 items-center justify-center rounded-xl border-b-2 bg-blue-700 text-white"
+                    >
+                        <div
+                            class="truncate text-md font-bold leading-6 tracking-tight"
+                        >
+                            SECTION
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-center justify-center">
+                        <div
+                            class="flex min-h-10 items-center justify-center px-2 text-center text-xl font-bold text-indigo-800 dark:text-blue-500"
+                        >
+                            {{ this.responScan.section }}
+                        </div>
+                    </div>
+                </div>
+                <div
+                    class="bg-card flex flex-auto flex-col overflow-hidden rounded-xl p-1 shadow"
+                >
+                    <div
+                        class="flex h-8 items-center justify-center rounded-xl border-b-2 bg-fuchsia-700 text-white"
+                    >
+                        <div
+                            class="truncate text-md font-bold leading-6 tracking-tight"
+                        >
+                            SHIFT
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-center justify-center">
+                        <div
+                            class="flex min-h-10 items-center justify-center px-2 text-center text-xl font-bold text-indigo-900 dark:text-blue-500"
+                        >
+                            {{ this.responScan.shift }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div
+        class="mb-4 grid w-full min-w-0 grid-cols-1 sm:grid-cols-2 md:grid-cols-8 md:gap-6 lg:gap-2 xl:gap-6"
+    >
+        <ng-container *ngFor="let a of plantDataAll; let i = index">
+            <div
+                class="flex flex-auto flex-col overflow-hidden rounded-2xl {{
+                    countsAll[a.value] - a.counting == 0 ? 'bg-card' : 'bg-card'
+                }} xl:p-6 lg:p-4 shadow"
+            >
+                <div class="flex items-start justify-between">
+                    <div
+                        class="truncate text-3xl font-bold leading-6 tracking-tight"
+                    >
+                        {{ a.label }}
+                    </div>
+                    <div class="-mr-3 -mt-2 ml-2">
+                        <p-badge
+                            value="Closed"
+                            severity="info"
+                            *ngIf="countsAll[a.value] - a.counting === 0"
+                        />
+                    </div>
+                </div>
+                <div class="mt-2 flex flex-col items-center">
+                    <div
+                        class="text-7xl font-bold leading-none tracking-tight text-fuchsia-600 sm:text-7xl"
+                    >
+                        <span
+                            [countUp]="a.counting"
+                            duration="3"
+                            [options]="{ separator: '.', decimal: ',' }"
+                        ></span>
+                    </div>
+                    <div
+                        class="font-medium text-gray-500 dark:text-blue-500 lg:text-md xl:text-lg"
+                    >
+                        Progress:<p-tag
+                            [value]="
+                                counts[a.value] === 0
+                                    ? '0%'
+                                    : ((a.counting / countsAll[a.value]) * 100
+                                          | number: '1.0-2') + '%'
+                            "
+                            severity="success"
+                        />
+                    </div>
+                    <div
+                        class="text-lg font-medium text-gray-500 dark:text-blue-500"
+                    >
+                        OPEN :
+                        <p-tag
+                            [value]="countsAll[a.value] - a.counting | number"
+                            severity="warn"
+                        />
+                    </div>
+                    <div
+                        class="font-medium text-gray-500 dark:text-blue-500 lg:text-md xl:text-lg"
+                    >
+                        Total Data :
+                        <b>{{ countsAll[a.value] | number }}</b>
+                    </div>
+                </div>
+            </div>
+        </ng-container>
+        <div
+            class="bg-card flex flex-auto flex-col overflow-hidden rounded-2xl shadow lg:p-4 xl:p-6"
+        >
+            <div class="flex items-start justify-between">
+                <div
+                    class="truncate text-3xl font-bold leading-6 tracking-tight"
+                >
+                    TOTAL
+                </div>
+                <div class="-mr-3 -mt-2 ml-2"></div>
+            </div>
+            <div class="mt-2 flex flex-col items-center">
+                <div
+                    class="text-7xl font-bold leading-none tracking-tight text-orange-500 sm:text-7xl"
+                >
+                    <span
+                        [countUp]="totalCounts"
+                        duration="2"
+                        [options]="{ separator: '.', decimal: ',' }"
+                    ></span>
+                </div>
+                <div
+                    class="font-medium text-gray-500 dark:text-blue-500 lg:text-md xl:text-lg"
+                >
+                    Progress:<p-tag
+                        [value]="
+                            totalCounts === 0
+                                ? '0%'
+                                : ((totalCounts / totalCountsAll) * 100
+                                      | number: '1.0-2') + '%'
+                        "
+                        severity="success"
+                    />
+                </div>
+                <div
+                    class="text-lg font-medium text-gray-500 dark:text-blue-500"
+                >
+                    OPEN :
+                    <p-tag
+                        [value]="totalCountsAll - totalCounts | number"
+                        severity="warn"
+                    />
+                </div>
+                <div
+                    class="font-medium text-gray-500 dark:text-blue-500 lg:text-md xl:text-lg"
+                >
+                    Total data :
+                    <b>{{ totalCountsAll | number }}</b>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div
+        class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
+    >
+        <div class="card w-full">
+            <p-table
+                #dt1
+                sortField="scan_plant_date"
+                [sortOrder]="-1"
+                [value]="datas"
+                [columns]="cols"
+                [rows]="request.rows"
+                [first]="request.first"
+                showGridlines
+                stripedRows
+                [paginator]="true"
+                [loading]="loading"
+                [rows]="10"
+                [scrollable]="true"
+                scrollHeight="65vh"
+                [(selection)]="selectedDatas"
+                selectionMode="checkbox"
+                (onRowSelect)="onRowSelect($event)"
+                (onRowUnselect)="onRowUnselect($event)"
+                (onHeaderCheckboxToggle)="onHeaderToggle($event)"
+                dataKey="id"
+                [tableStyle]="{ 'min-width': '50rem' }"
+                [rowsPerPageOptions]="[10, 20, 50, 100, 1000]"
+                [totalRecords]="this.total"
+                [showCurrentPageReport]="true"
+                [lazy]="true"
+                (onLazyLoad)="loadLazy($event)"
+            >
+                <ng-template #caption>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xl font-bold">Data Employee</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <!-- <p-button
+                                styleClass="disabled:cursor-not-allowed"
+                                icon="pi pi-print"
+                                label="Print Selected"
+                                [disabled]="
+                                    !selectedDatas || selectedDatas.length === 0
+                                "
+                                (click)="printMultipleSelected()"
+                                severity="info"
+                            /> -->
+                            <p-button
+                                label="Clear Filter"
+                                [outlined]="true"
+                                icon="pi pi-filter-slash"
+                                (click)="clear(dt1)"
+                            />
+                            <p-button
+                                icon="pi pi-external-link"
+                                label="Export"
+                                (click)="exportExcel(dt1)"
+                            />
+                            <p-iconfield iconPosition="left" class="ml-auto">
+                                <p-inputicon>
+                                    <i class="pi pi-search"></i>
+                                </p-inputicon>
+                                <input
+                                    pInputText
+                                    type="text"
+                                    (input)="
+                                        dt1.filterGlobal(
+                                            $event.target.value,
+                                            'contains'
+                                        )
+                                    "
+                                    placeholder="Search keyword"
+                                />
+                            </p-iconfield>
+                        </div>
+                    </div>
+                </ng-template>
+                <ng-template #header let-columns>
+                    <tr>
+                        <!-- <th style="width: 3rem" pFrozenColumn>
+                            <p-tableHeaderCheckbox
+                                [value]="rowData"
+                            ></p-tableHeaderCheckbox>
+                        </th>
+                        <th style="width: 3rem" pFrozenColumn>Action</th> -->
+                        <th
+                            *ngFor="let col of columns"
+                            [pSortableColumn]="col.sortable ? col.field : null"
+                        >
+                            <div class="flex items-center justify-between">
+                                {{ col.header.toUpperCase() }}
+                                <div
+                                    class="ml-4 flex items-center justify-between"
+                                >
+                                    <ng-container *ngIf="col.sortable" class="">
+                                        <p-sortIcon
+                                            [field]="col.field"
+                                        ></p-sortIcon>
+                                        <p-columnFilter
+                                            [type]="col.filterType || 'text'"
+                                            [field]="col.field"
+                                            [showOperator]="false"
+                                            [showAddButton]="false"
+                                            [matchMode]="
+                                                col.filterType === 'select'
+                                                    ? 'in'
+                                                    : 'equals'
+                                            "
+                                            display="menu"
+                                        >
+                                            @if (col.filterType === 'select') {
+                                                <ng-template
+                                                    #filter
+                                                    let-value
+                                                    let-filter="filterCallback"
+                                                >
+                                                    <p-multiselect
+                                                        [(ngModel)]="value"
+                                                        [options]="
+                                                            this[
+                                                                col.field +
+                                                                    'Data'
+                                                            ]
+                                                        "
+                                                        placeholder="Select {{
+                                                            col.header
+                                                        }}"
+                                                        (onChange)="
+                                                            filter($event.value)
+                                                        "
+                                                        optionLabel="label"
+                                                        style="min-width: 10rem"
+                                                        [panelStyle]="{
+                                                            minWidth: '10rem',
+                                                        }"
+                                                    >
+                                                        <ng-template
+                                                            let-option
+                                                            #item
+                                                        >
+                                                            <div
+                                                                class="flex items-center gap-2"
+                                                            >
+                                                                <span>{{
+                                                                    option.label
+                                                                }}</span>
+                                                            </div>
+                                                        </ng-template>
+                                                    </p-multiselect>
+                                                </ng-template>
+                                            }
+                                        </p-columnFilter>
+                                    </ng-container>
+                                </div>
+                            </div>
+                        </th>
+                    </tr>
+                </ng-template>
+                <ng-template
+                    #body
+                    let-datas
+                    let-rowIndex="rowIndex"
+                    class="bodyTable"
+                >
+                    <tr
+                        [pSelectableRow]="datas"
+                        [pSelectableRowIndex]="rowIndex"
+                    >
+                        <td class="text-center">
+                            <p-tag
+                                class="px-2 py-0"
+                                [value]="datas.scan_plant"
+                                [severity]="success"
+                            />
+                        </td>
+                        <td>
+                            {{
+                                datas.scan_plant_date !== '1970-01-01 07:00:00'
+                                    ? datas.scan_plant_date
+                                    : ''
+                            }}
+                        </td>
+                        <!-- <td pFrozenColumn>
+                            <p-tableCheckbox [value]="datas" />
+                        </td> -->
+                        <!-- <td class="p-0 text-center" pFrozenColumn>
+                            <div
+                                class="flex items-center justify-center gap-2 p-0 mx-2"
+                            >
+                                <p-button
+                                    size="small"
+                                    icon="pi pi-print"
+                                    (click)="printSelected(datas)"
+                                    severity="info"
+                                    pTooltip="Print this row"
+                                    tooltipPosition="top"
+                                />
+                                <p-button
+                                    size="small"
+                                    icon="pi pi-pen-to-square"
+                                    (click)="openDialog('Update', datas)"
+                                    severity="success"
+                                    pTooltip="Edit this row"
+                                    tooltipPosition="top"
+                                />
+                            </div>
+                        </td> -->
+
+                        <td class="text-center">{{ datas.id }}</td>
+                        <td class="whitespace-nowrap">{{ datas.name }}</td>
+                        <td>{{ datas.divisi }}</td>
+                        <td>{{ datas.department }}</td>
+                        <td class="">{{ datas.section }}</td>
+                        <td class="text-center">
+                            <p-tag
+                                class="px-2 py-0"
+                                [value]="datas.shift"
+                                [severity]="displayLabel(datas.shift)"
+                            />
+                        </td>
+                        <td class="text-center">{{ datas.plant }}</td>
+
+                        <td class="text-center">
+                            <p-tag
+                                class="px-2 py-0"
+                                [value]="datas.status"
+                                [severity]="displayLabel(datas.status)"
+                            />
+                        </td>
+                        <td class="text-center">
+                            <p-tag
+                                class="px-2 py-0"
+                                [value]="datas.terminated"
+                                [severity]="displayLabel(datas.terminated)"
+                            />
+                        </td>
+                        <td class="text-center">
+                            <p-tag
+                                class="px-2 py-0"
+                                [value]="datas.gender"
+                                [severity]="displayLabel(datas.gender)"
+                            />
+                        </td>
+
+                        <td>{{ datas.family_stats }}</td>
+                        <!-- <td>{{ datas.no_wa }}</td> -->
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="paginatorleft">
+                    <!-- <span
+                        >✅ Selected
+                        {{ selectedDatas?.length || 0 }} records</span
+                    > -->
+                </ng-template>
+
+                <ng-template pTemplate="paginatorright">
+                    <span
+                        >📄 Showing {{ dt1.first + 1 }} to
+                        {{ dt1.first + dt1.rows }} of
+                        {{ dt1.totalRecords }} entries</span
+                    >
+                </ng-template>
+            </p-table>
+        </div>
+    </div>
+</div>

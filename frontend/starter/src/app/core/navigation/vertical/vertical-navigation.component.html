@@ -1,0 +1,30 @@
+<div class="fuse-vertical-navigation-wrapper">
+    <div class="fuse-vertical-navigation-header">
+        <ng-content select="[appVerticalNavigationHeader]"></ng-content>
+    </div>
+    <div class="fuse-vertical-navigation-content">
+        <div class="fuse-vertical-navigation-content-header">
+            <ng-content select="[appVerticalNavigationContentHeader]"></ng-content>
+        </div>
+        @for (item of navigation; track item.id || $index) {
+            @if (!item.hidden || !item.hidden(item)) {
+                @switch (item.type) {
+                    @case ('basic') { <app-vertical-nav-basic-item [item]="item" [name]="name" /> }
+                    @case ('collapsable') { <app-vertical-nav-collapsable-item [item]="item" [name]="name" /> }
+                    @case ('group') { <app-vertical-nav-group-item [item]="item" [name]="name" /> }
+                    @case ('divider') { <app-vertical-nav-divider-item [item]="item" [name]="name" /> }
+                    @case ('spacer') { <app-vertical-nav-spacer-item [item]="item" [name]="name" /> }
+                }
+            }
+        }
+        <div class="fuse-vertical-navigation-content-footer">
+            <ng-content select="[appVerticalNavigationContentFooter]"></ng-content>
+        </div>
+    </div>
+    <div class="fuse-vertical-navigation-footer">
+        <ng-content select="[appVerticalNavigationFooter]"></ng-content>
+    </div>
+</div>
+@if (mode === 'over' && opened) {
+    <div class="fuse-vertical-navigation-overlay" (click)="close()"></div>
+}

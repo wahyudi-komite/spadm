@@ -1,0 +1,216 @@
+<!-- Start Page -->
+<div class="flex h-full w-full flex-col p-4 print:hidden">
+    <!-- Toolbar -->
+    <div
+        class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
+    >
+        <div class="card w-2/4">
+            <p-table
+                class="bg w-1/4"
+                #dt1
+                sortField="id"
+                [sortOrder]="-1"
+                [value]="datas"
+                [columns]="cols"
+                [rows]="request.rows"
+                [first]="request.first"
+                showGridlines
+                stripedRows
+                [paginator]="true"
+                [loading]="loading"
+                [rows]="10"
+                [scrollable]="true"
+                scrollHeight="65vh"
+                [(selection)]="selectedDatas"
+                selectionMode="checkbox"
+                (onRowSelect)="onRowSelect($event)"
+                (onRowUnselect)="onRowUnselect($event)"
+                (onHeaderCheckboxToggle)="onHeaderToggle($event)"
+                dataKey="id"
+                [tableStyle]=""
+                [rowsPerPageOptions]="[10, 20, 50, 100]"
+                [totalRecords]="this.total"
+                [showCurrentPageReport]="true"
+                [lazy]="true"
+                (onLazyLoad)="loadLazy($event)"
+            >
+                <ng-template #caption>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xl font-bold">Data Employee</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <!-- <p-button
+                                styleClass="disabled:cursor-not-allowed"
+                                icon="pi pi-print"
+                                label="Print Selected"
+                                [disabled]="
+                                    !selectedDatas || selectedDatas.length === 0
+                                "
+                                (click)="printMultipleSelected()"
+                                severity="info"
+                            /> -->
+                            <p-button
+                                label="Clear Filter"
+                                [outlined]="true"
+                                icon="pi pi-filter-slash"
+                                (click)="clear(dt1)"
+                            />
+                            <!-- <p-button
+                                icon="pi pi-external-link"
+                                label="Export"
+                                (click)="exportExcel(dt1)"
+                            /> -->
+                            <p-iconfield iconPosition="left" class="ml-auto">
+                                <p-inputicon>
+                                    <i class="pi pi-search"></i>
+                                </p-inputicon>
+                                <input
+                                    pInputText
+                                    type="text"
+                                    (input)="
+                                        dt1.filterGlobal(
+                                            $event.target.value,
+                                            'contains'
+                                        )
+                                    "
+                                    placeholder="Search keyword"
+                                />
+                            </p-iconfield>
+                        </div>
+                    </div>
+                </ng-template>
+                <ng-template #header let-columns>
+                    <tr>
+                        <!-- <th style="width: 3rem" pFrozenColumn>
+                            <p-tableHeaderCheckbox
+                                [value]="rowData"
+                            ></p-tableHeaderCheckbox>
+                        </th> -->
+                        <th style="width: 3rem" pFrozenColumn>Action</th>
+                        <th
+                            *ngFor="let col of columns"
+                            [pSortableColumn]="col.sortable ? col.field : null"
+                        >
+                            <div class="flex items-center justify-between">
+                                {{ col.header.toUpperCase() }}
+                                <div
+                                    class="ml-4 flex items-center justify-between"
+                                >
+                                    <ng-container *ngIf="col.sortable" class="">
+                                        <p-sortIcon
+                                            [field]="col.field"
+                                        ></p-sortIcon>
+                                        <p-columnFilter
+                                            [type]="col.filterType || 'text'"
+                                            [field]="col.field"
+                                            [showOperator]="false"
+                                            [showAddButton]="false"
+                                            [matchMode]="
+                                                col.filterType === 'select'
+                                                    ? 'in'
+                                                    : 'equals'
+                                            "
+                                            display="menu"
+                                        >
+                                            @if (col.filterType === 'select') {
+                                                <ng-template
+                                                    #filter
+                                                    let-value
+                                                    let-filter="filterCallback"
+                                                >
+                                                    <p-multiselect
+                                                        [(ngModel)]="value"
+                                                        [options]="
+                                                            this[
+                                                                col.field +
+                                                                    'Data'
+                                                            ]
+                                                        "
+                                                        placeholder="Select {{
+                                                            col.header
+                                                        }}"
+                                                        (onChange)="
+                                                            filter($event.value)
+                                                        "
+                                                        optionLabel="label"
+                                                        style="min-width: 10rem"
+                                                        [panelStyle]="{
+                                                            minWidth: '10rem',
+                                                        }"
+                                                    >
+                                                        <ng-template
+                                                            let-option
+                                                            #item
+                                                        >
+                                                            <div
+                                                                class="flex items-center gap-2"
+                                                            >
+                                                                <span>{{
+                                                                    option.label
+                                                                }}</span>
+                                                            </div>
+                                                        </ng-template>
+                                                    </p-multiselect>
+                                                </ng-template>
+                                            }
+                                        </p-columnFilter>
+                                    </ng-container>
+                                </div>
+                            </div>
+                        </th>
+                    </tr>
+                </ng-template>
+                <ng-template #body let-datas let-rowIndex="rowIndex">
+                    <tr
+                        [pSelectableRow]="datas"
+                        [pSelectableRowIndex]="rowIndex"
+                    >
+                        <!-- <td pFrozenColumn>
+                            <p-tableCheckbox [value]="datas" />
+                        </td> -->
+                        <td class="p-0 text-center" pFrozenColumn>
+                            <div
+                                class="mx-2 flex items-center justify-center gap-2 p-0"
+                            >
+                                <!-- <p-button
+                                    size="small"
+                                    icon="pi pi-print"
+                                    (click)="printSelected(datas)"
+                                    severity="info"
+                                    pTooltip="Print this row"
+                                    tooltipPosition="top"
+                                /> -->
+                                <p-button
+                                    size="small"
+                                    icon="pi pi-pen-to-square"
+                                    (click)="openDialog('Update', datas)"
+                                    severity="success"
+                                    pTooltip="Edit this row"
+                                    tooltipPosition="top"
+                                />
+                            </div>
+                        </td>
+
+                        <td class="text-center">{{ datas.name }}</td>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="paginatorleft">
+                    <!-- <span
+                        >✅ Selected
+                        {{ selectedDatas?.length || 0 }} records</span
+                    > -->
+                </ng-template>
+
+                <ng-template pTemplate="paginatorright">
+                    <span
+                        >📄 Showing {{ dt1.first + 1 }} to
+                        {{ dt1.first + dt1.rows }} of
+                        {{ dt1.totalRecords }} entries</span
+                    >
+                </ng-template>
+            </p-table>
+        </div>
+    </div>
+</div>

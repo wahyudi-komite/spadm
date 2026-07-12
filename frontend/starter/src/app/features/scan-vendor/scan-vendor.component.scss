@@ -1,0 +1,9 @@
+p-table {
+    @apply bg-violet-500;
+
+    tr {
+        td {
+            @apply whitespace-nowrap;
+        }
+    }
+}

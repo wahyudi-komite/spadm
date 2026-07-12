@@ -1,0 +1,19 @@
+<div>
+    <mat-form-field>
+        <input matInput [matDatepicker]="startPicker" placeholder="Start Date" [(ngModel)]="startDate">
+        <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+        <mat-datepicker #startPicker></mat-datepicker>
+    </mat-form-field>
+    <mat-form-field>
+        <input matInput type="time" placeholder="Start Time" [(ngModel)]="startTime">
+    </mat-form-field>
+    <mat-form-field>
+        <input matInput [matDatepicker]="endPicker" placeholder="End Date" [(ngModel)]="endDate">
+        <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+        <mat-datepicker #endPicker></mat-datepicker>
+    </mat-form-field>
+    <mat-form-field>
+        <input matInput type="time" placeholder="End Time" [(ngModel)]="endTime">
+    </mat-form-field>
+    <button mat-raised-button color="primary" (click)="getCombinedDateTime()">Get Combined DateTime</button>
+</div>

@@ -1,0 +1,49 @@
+@if (!item.hidden || !item.hidden(item)) {
+    <div class="fuse-vertical-navigation-item-wrapper" [ngClass]="item.classes?.wrapper">
+        <div class="fuse-vertical-navigation-item"
+             [class.fuse-vertical-navigation-item-disabled]="item.disabled"
+             (click)="toggle()">
+            @if (item.icon) {
+                <mat-icon class="fuse-vertical-navigation-item-icon" [svgIcon]="item.icon"></mat-icon>
+            }
+            @if (item.title) {
+                <span class="fuse-vertical-navigation-item-title-wrapper">
+                    <span class="fuse-vertical-navigation-item-title">{{ item.title }}</span>
+                    @if (item.subtitle) {
+                        <span class="fuse-vertical-navigation-item-subtitle">{{ item.subtitle }}</span>
+                    }
+                </span>
+            }
+            @if (item.badge) {
+                <div class="fuse-vertical-navigation-item-badge">
+                    <div class="fuse-vertical-navigation-item-badge-content" [ngClass]="item.badge.classes">{{ item.badge.title }}</div>
+                </div>
+            }
+            <mat-icon class="fuse-vertical-navigation-item-arrow-icon"
+                      [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+        </div>
+    </div>
+    @if (isExpanded() && item.children?.length) {
+        <div class="fuse-vertical-navigation-item-children">
+            @for (child of item.children; track child.id || $index) {
+                @switch (child.type) {
+                    @case ('basic') {
+                        <app-vertical-nav-basic-item [item]="child" [name]="name" />
+                    }
+                    @case ('collapsable') {
+                        <app-vertical-nav-collapsable-item [item]="child" [name]="name" />
+                    }
+                    @case ('group') {
+                        <app-vertical-nav-group-item [item]="child" [name]="name" />
+                    }
+                    @case ('divider') {
+                        <app-vertical-nav-divider-item [item]="child" [name]="name" />
+                    }
+                    @case ('spacer') {
+                        <app-vertical-nav-spacer-item [item]="child" [name]="name" />
+                    }
+                }
+            }
+        </div>
+    }
+}

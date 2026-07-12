@@ -1,0 +1,20 @@
+<div class="relative">
+    <svg
+        class="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-gray-500"
+        fill="currentColor"
+        viewBox="0 0 20 20"
+        xmlns="http://www.w3.org/2000/svg"
+    >
+        <path
+            fill-rule="evenodd"
+            d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+            clip-rule="evenodd"
+        ></path>
+    </svg>
+    <input
+        type="text"
+        [placeholder]="placeholder"
+        (keyup)="onSearch($event)"
+        class="block w-60 rounded-sm border border-gray-300 bg-gray-100 py-2 pl-10 pr-3 text-sm font-medium text-gray-600 hover:border-emerald-700 focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-700"
+    />
+</div>
