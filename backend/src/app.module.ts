@@ -10,6 +10,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { MembersModule } from './modules/members/members.module';
 import { AuditLogModule } from './modules/audit-logs/audit-log.module';
 import { HealthModule } from './modules/health/health.module';
+import { PermissionsModule } from './modules/permissions/permissions.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { HealthModule } from './modules/health/health.module';
     AuthModule,
     MembersModule,
     HealthModule,
+    PermissionsModule,
   ],
   controllers: [AppController],
   providers: [
