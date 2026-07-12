@@ -16,11 +16,11 @@ const menu: NavigationItem[] = [
         link: '/bazaar',
     },
     {
-        id: 'profile',
-        title: 'Profil',
+        id: 'orders',
+        title: 'Riwayat Pesanan',
         type: 'basic',
-        icon: 'heroicons_outline:user',
-        link: '/profile',
+        icon: 'heroicons_outline:clipboard-document-list',
+        link: '/bazaar/orders',
     },
     {
         id: 'admin',

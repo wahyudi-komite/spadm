@@ -80,7 +80,7 @@ export const appRoutes: Route[] = [
     {
         path: '',
         component: LayoutComponent,
-        data: { layout: 'modern' },
+        data: { layout: 'classy' },
         resolve: { initialData: initialDataResolver },
         children: [
             {

@@ -33,7 +33,7 @@ export class ShortcutsService {
      * Get all messages
      */
     getAll(): Observable<Shortcut[]> {
-        return of([]).pipe(
+        return of<Shortcut[]>([]).pipe(
             tap((shortcuts) => {
                 this._shortcuts.next(shortcuts);
             })

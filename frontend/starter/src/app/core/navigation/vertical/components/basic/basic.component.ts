@@ -1,14 +1,14 @@
 import { Component, Input, ViewEncapsulation } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
-import { NgClass } from '@angular/common';
+import { NgClass, NgTemplateOutlet } from '@angular/common';
 import { NavigationItem } from '../../../navigation.types';
 
 @Component({
     selector: 'app-vertical-nav-basic-item',
     templateUrl: './basic.component.html',
     standalone: true,
-    imports: [RouterLink, RouterLinkActive, MatIconModule, NgClass],
+    imports: [RouterLink, RouterLinkActive, MatIconModule, NgClass, NgTemplateOutlet],
     encapsulation: ViewEncapsulation.None,
 })
 export class AppVerticalNavBasicItemComponent {

@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { DOCUMENT } from '@angular/common';
 
 @Component({
     selector: 'app-root',
@@ -7,9 +8,16 @@ import { RouterOutlet } from '@angular/router';
     styleUrls: ['./app.component.scss'],
     imports: [RouterOutlet]
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
     /**
      * Constructor
      */
-    constructor() {}
+    constructor(@Inject(DOCUMENT) private _document: Document) {}
+
+    ngOnInit(): void {
+        const splashScreen = this._document.getElementById('app-splash-screen');
+        if (splashScreen) {
+            splashScreen.remove();
+        }
+    }
 }
