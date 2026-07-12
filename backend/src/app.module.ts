@@ -16,6 +16,7 @@ import { EventsModule } from './modules/bazaar/events/events.module';
 import { BatchesModule } from './modules/bazaar/batches/batches.module';
 import { ProductsModule } from './modules/bazaar/products/products.module';
 import { DistributionsModule } from './modules/bazaar/distributions/distributions.module';
+import { OrdersModule } from './modules/bazaar/orders/orders.module';
 
 @Module({
   imports: [
@@ -36,7 +37,7 @@ import { DistributionsModule } from './modules/bazaar/distributions/distribution
         database: configService.get('database.database'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         migrations: [__dirname + '/database/migrations/*{.ts,.js}'],
-        synchronize: process.env.NODE_ENV !== 'production',
+        synchronize: false,
         logging: process.env.NODE_ENV === 'development',
         timezone: '+07:00',
       }),
@@ -57,6 +58,7 @@ import { DistributionsModule } from './modules/bazaar/distributions/distribution
     BatchesModule,
     ProductsModule,
     DistributionsModule,
+    OrdersModule,
   ],
   controllers: [AppController],
   providers: [

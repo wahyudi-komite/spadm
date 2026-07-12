@@ -89,11 +89,11 @@ export const appRoutes: Route[] = [
             },
             {
                 path: 'admin',
-                loadChildren: () => import('app/modules/admin/admin.routes'),
+                loadChildren: () => import('./modules/admin/admin.routes'),
             },
             {
                 path: 'bazaar',
-                loadChildren: () => import('app/features/bazaar/bazaar.routes'),
+                loadChildren: () => import('./features/bazaar/bazaar.routes'),
             },
         ],
     },
