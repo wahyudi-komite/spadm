@@ -120,6 +120,6 @@ export class AuthService {
             return this.signInUsingToken();
         }
 
-        return of(false);
+        return this.signInUsingToken();
     }
 }

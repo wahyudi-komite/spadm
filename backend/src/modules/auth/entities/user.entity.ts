@@ -19,6 +19,12 @@ export class User {
   @Column({ default: true })
   isActive: boolean;
 
+  @Column({ default: 0 })
+  failedLoginAttempts: number;
+
+  @Column({ nullable: true })
+  lockedUntil: Date;
+
   @Column({ nullable: true })
   lastLoginAt: Date;
 

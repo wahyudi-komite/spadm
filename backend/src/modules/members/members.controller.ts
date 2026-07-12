@@ -1,5 +1,7 @@
-import { Controller, Get, Post, Patch, Body, Param, Query, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { Controller, Get, Post, Patch, Body, Param, Query, UseGuards, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
 import { MembersService } from './members.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -39,10 +41,22 @@ export class MembersController {
     return this.membersService.update(id, data, userId);
   }
 
+  @Post('import/preview')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Preview import anggota dari Excel' })
+  async importPreview(@UploadedFile() file: Express.Multer.File) {
+    return this.membersService.previewImport(file);
+  }
+
   @Post('import')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Import anggota dari Excel' })
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @ApiOperation({ summary: 'Konfirmasi import anggota' })
   async import(@Body() body: { rows: Array<{ npk: string; name: string; email?: string; workUnit?: string; phone?: string; plant?: string; status?: string }> }) {
     return this.membersService.importFromExcel(body.rows);
   }

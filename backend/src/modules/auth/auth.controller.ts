@@ -1,4 +1,5 @@
 import { Controller, Post, Get, Delete, Body, Param, Req, Res, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
@@ -16,6 +17,7 @@ export class AuthController {
 
   @Post('sign-in')
   @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @ApiOperation({ summary: 'Login menggunakan NPK dan password' })
   async signIn(@Body() dto: SignInDto, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const result = await this.authService.signIn(dto, req.ip, req.headers['user-agent']);
@@ -41,7 +43,8 @@ export class AuthController {
   async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const refreshToken = req.cookies?.refreshToken || req.body?.refreshToken;
     if (!refreshToken) {
-      return { success: false, message: 'Refresh token diperlukan' };
+      res.status(HttpStatus.UNAUTHORIZED);
+      return { message: 'Refresh token diperlukan' };
     }
 
     const result = await this.authService.refresh(refreshToken, req.ip, req.headers['user-agent']);

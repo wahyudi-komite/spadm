@@ -2,9 +2,11 @@ import { Injectable, BadRequestException, NotFoundException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like, IsNull } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import * as XLSX from 'xlsx';
 import { Member } from './entities/member.entity';
 import { MemberStatusHistory } from './entities/member-status-history.entity';
 import { User } from '../auth/entities/user.entity';
+import { AuditLogService } from '../audit-logs/audit-log.service';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
@@ -17,6 +19,7 @@ export class MembersService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private configService: ConfigService,
+    private auditLogService: AuditLogService,
   ) {}
 
   async findAll(query: { page?: number; limit?: number; search?: string; status?: string; plant?: string }) {
@@ -27,7 +30,21 @@ export class MembersService {
     const where: any = { deletedAt: IsNull() };
 
     if (query.search) {
-      where.name = Like(`%${query.search}%`);
+      const searchWhere: any = [
+        { name: Like(`%${query.search}%`), deletedAt: IsNull() },
+        { npk: Like(`%${query.search}%`), deletedAt: IsNull() },
+      ];
+      if (query.status) searchWhere.forEach((w: any) => w.status = query.status);
+      if (query.plant) searchWhere.forEach((w: any) => w.plant = query.plant);
+
+      const [data, total] = await this.memberRepository.findAndCount({
+        where: searchWhere,
+        skip,
+        take: limit,
+        order: { name: 'ASC' },
+      });
+
+      return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
     }
     if (query.status) {
       where.status = query.status;
@@ -79,6 +96,7 @@ export class MembersService {
     }
 
     await this.memberRepository.update(id, data);
+    await this.auditLogService.log({ userId: changedByUserId, action: 'UPDATE_MEMBER', module: 'members', entityType: 'member', entityId: id, description: `Update member ${member.npk}` });
     return this.findOne(id);
   }
 
@@ -100,6 +118,30 @@ export class MembersService {
       });
     }
     return member;
+  }
+
+  async previewImport(file: Express.Multer.File) {
+    if (!file) throw new BadRequestException('File Excel diperlukan');
+
+    const workbook = XLSX.read(file.buffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+    if (!sheetName) throw new BadRequestException('File Excel kosong');
+
+    const sheet = workbook.Sheets[sheetName];
+    const rawRows = XLSX.utils.sheet_to_json<Record<string, string>>(sheet);
+
+    const rows = rawRows.map((row, index) => ({
+      rowNumber: index + 2,
+      npk: String(row['NPK'] || row['npk'] || '').trim(),
+      name: String(row['Nama'] || row['name'] || '').trim(),
+      email: String(row['Email'] || row['email'] || '').trim(),
+      workUnit: String(row['Unit Kerja'] || row['workUnit'] || row['work_unit'] || '').trim(),
+      phone: String(row['Telepon'] || row['phone'] || '').trim(),
+      plant: String(row['Plant'] || row['plant'] || '').trim(),
+      status: String(row['Status'] || row['status'] || 'active').trim(),
+    }));
+
+    return { total: rows.length, rows };
   }
 
   async importFromExcel(rows: Array<{ npk: string; name: string; email?: string; workUnit?: string; phone?: string; plant?: string; status?: string }>) {
@@ -157,6 +199,8 @@ export class MembersService {
         results.errors.push(`Error processing NPK ${row.npk}: ${error.message}`);
       }
     }
+
+    await this.auditLogService.log({ action: 'IMPORT_MEMBERS', module: 'members', description: `Import ${results.created} created, ${results.updated} updated, ${results.errors.length} errors` });
 
     return results;
   }

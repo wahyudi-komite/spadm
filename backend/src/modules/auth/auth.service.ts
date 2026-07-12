@@ -9,6 +9,7 @@ import { Session } from './entities/session.entity';
 import { LoginHistory } from './entities/login-history.entity';
 import { PasswordResetToken } from './entities/password-reset-token.entity';
 import { Member } from '../members/entities/member.entity';
+import { AuditLogService } from '../audit-logs/audit-log.service';
 import { SignInDto } from './dto/sign-in.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
@@ -29,6 +30,7 @@ export class AuthService {
     private memberRepository: Repository<Member>,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private auditLogService: AuditLogService,
   ) {}
 
   async signIn(dto: SignInDto, ipAddress?: string, userAgent?: string) {
@@ -45,11 +47,27 @@ export class AuthService {
       throw new UnauthorizedException({ message: 'Akun tidak aktif', code: 'ACCOUNT_INACTIVE' });
     }
 
+    if (user.lockedUntil && user.lockedUntil > new Date()) {
+      throw new UnauthorizedException({ message: 'Akun terkunci. Coba lagi nanti.', code: 'ACCOUNT_LOCKED' });
+    }
+
     const isPasswordValid = await bcrypt.compare(dto.password, user.password);
     if (!isPasswordValid) {
+      const attempts = (user.failedLoginAttempts || 0) + 1;
+      if (attempts >= 5) {
+        await this.userRepository.update(user.id, {
+          failedLoginAttempts: attempts,
+          lockedUntil: new Date(Date.now() + 15 * 60 * 1000),
+        });
+        await this.auditLogService.log({ userId: user.id, action: 'ACCOUNT_LOCKED', module: 'auth', description: 'Akun terkunci setelah 5x gagal login', ipAddress, userAgent });
+      } else {
+        await this.userRepository.update(user.id, { failedLoginAttempts: attempts });
+      }
       await this.saveLoginHistory(user.id, ipAddress, userAgent, false, 'Password salah');
       throw new UnauthorizedException({ message: 'NPK atau password salah', code: 'INVALID_CREDENTIALS' });
     }
+
+    await this.userRepository.update(user.id, { failedLoginAttempts: 0 });
 
     const tokens = await this.generateTokens(user);
     const expiresAt = new Date();
@@ -65,6 +83,7 @@ export class AuthService {
 
     await this.userRepository.update(user.id, { lastLoginAt: new Date() });
     await this.saveLoginHistory(user.id, ipAddress, userAgent, true);
+    await this.auditLogService.log({ userId: user.id, action: 'LOGIN_SUCCESS', module: 'auth', description: `Login NPK ${user.npk}`, ipAddress, userAgent });
 
     return {
       accessToken: tokens.accessToken,
@@ -80,12 +99,31 @@ export class AuthService {
       relations: { user: { member: true } },
     });
 
-    if (!session || session.expiresAt < new Date()) {
+    if (!session) {
+      const oldSession = await this.sessionRepository.findOne({
+        where: { isActive: true },
+        relations: { user: true },
+        order: { createdAt: 'DESC' },
+      });
+      if (oldSession) {
+        await this.sessionRepository.update({ userId: oldSession.userId }, { isActive: false });
+      }
+      throw new UnauthorizedException({ message: 'Token tidak valid', code: 'INVALID_TOKEN' });
+    }
+
+    if (session.expiresAt < new Date()) {
+      await this.sessionRepository.update(session.id, { isActive: false });
       throw new UnauthorizedException({ message: 'Session expired', code: 'SESSION_EXPIRED' });
     }
 
     if (!session.user.isActive) {
       throw new UnauthorizedException({ message: 'Akun tidak aktif', code: 'ACCOUNT_INACTIVE' });
+    }
+
+    if (session.refreshToken !== refreshToken) {
+      await this.auditLogService.log({ userId: session.userId, action: 'TOKEN_REUSE_DETECTED', module: 'auth', description: 'Refresh token reuse detected, all sessions invalidated', ipAddress, userAgent });
+      await this.sessionRepository.update({ userId: session.userId }, { isActive: false });
+      throw new UnauthorizedException({ message: 'Token reuse terdeteksi', code: 'INVALID_TOKEN' });
     }
 
     const tokens = await this.generateTokens(session.user);
@@ -130,6 +168,7 @@ export class AuthService {
       password: hashedPassword,
       mustChangePassword: false,
     });
+    await this.auditLogService.log({ userId, action: 'CHANGE_PASSWORD', module: 'auth', description: 'Password berhasil diubah' });
   }
 
   async forgotPassword(dto: ForgotPasswordDto) {
@@ -148,6 +187,7 @@ export class AuthService {
       expiresAt,
     });
 
+    await this.auditLogService.log({ userId: user.id, action: 'FORGOT_PASSWORD', module: 'auth', description: 'Reset password diminta' });
     return { message: 'Jika NPK terdaftar, link reset password akan dikirim' };
   }
 
@@ -165,6 +205,7 @@ export class AuthService {
       password: hashedPassword,
       mustChangePassword: false,
     });
+    await this.auditLogService.log({ userId: resetToken.userId, action: 'RESET_PASSWORD', module: 'auth', description: 'Password direset via token' });
 
     await this.passwordResetTokenRepository.update(resetToken.id, { isUsed: true });
     await this.sessionRepository.update({ userId: resetToken.userId }, { isActive: false });

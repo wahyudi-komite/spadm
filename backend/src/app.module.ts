@@ -8,6 +8,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
 import { MembersModule } from './modules/members/members.module';
+import { AuditLogModule } from './modules/audit-logs/audit-log.module';
 import { HealthModule } from './modules/health/health.module';
 
 @Module({

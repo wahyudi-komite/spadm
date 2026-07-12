@@ -1,7 +1,7 @@
 import { HttpErrorResponse, HttpEvent, HttpHandlerFn, HttpRequest } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { AuthService } from 'app/core/auth/auth.service';
-import { Observable, catchError, throwError } from 'rxjs';
+import { catchError, Observable, switchMap, throwError } from 'rxjs';
 
 export const authInterceptor = (
     req: HttpRequest<unknown>,
@@ -23,9 +23,27 @@ export const authInterceptor = (
     return next(newReq).pipe(
         catchError((error) => {
             if (error instanceof HttpErrorResponse && error.status === 401) {
-                authService.signOut().subscribe(() => {
-                    window.location.href = '/sign-in';
-                });
+                if (req.url.includes('/auth/refresh') || req.url.includes('/auth/sign-in')) {
+                    return throwError(() => error);
+                }
+
+                return authService.signInUsingToken().pipe(
+                    switchMap((refreshed) => {
+                        if (refreshed) {
+                            const retryReq = req.clone({
+                                withCredentials: true,
+                                setHeaders: {
+                                    Authorization: `Bearer ${authService.accessToken}`,
+                                },
+                            });
+                            return next(retryReq);
+                        }
+                        authService.signOut().subscribe(() => {
+                            window.location.href = '/sign-in';
+                        });
+                        return throwError(() => error);
+                    })
+                );
             }
             return throwError(() => error);
         })
