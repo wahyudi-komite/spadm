@@ -45,6 +45,7 @@ import { RolesModule } from './modules/roles/roles.module';
 
     AuthModule,
     MembersModule,
+    AuditLogModule,
     HealthModule,
     PermissionsModule,
     RolesModule,
