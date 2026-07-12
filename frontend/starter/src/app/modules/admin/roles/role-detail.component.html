@@ -1,0 +1,52 @@
+<div class="p-8 max-w-4xl mx-auto">
+  <div class="flex items-center gap-4 mb-6">
+    <button mat-icon-button (click)="router.navigate(['/admin/roles'])">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1 class="text-2xl font-bold">{{ isNew ? 'Tambah Role' : 'Edit Role' }}</h1>
+  </div>
+
+  <div class="bg-card rounded-2xl shadow p-6 mb-6">
+    <div class="grid grid-cols-2 gap-4">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Nama Role</mat-label>
+        <input matInput [(ngModel)]="role.name" placeholder="Masukkan nama role" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Deskripsi</mat-label>
+        <input matInput [(ngModel)]="role.description" placeholder="Deskripsi role" />
+      </mat-form-field>
+    </div>
+  </div>
+
+  <div class="bg-card rounded-2xl shadow p-6 mb-6">
+    <h2 class="text-lg font-semibold mb-4">Permissions</h2>
+
+    <div *ngFor="let group of getGroups()" class="mb-6">
+      <h3 class="text-sm font-medium text-gray-500 uppercase mb-2">{{ group }}</h3>
+      <div class="flex flex-wrap gap-3">
+        <label
+          *ngFor="let perm of allPermissions[group]"
+          class="flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer hover:bg-gray-50"
+          [class.bg-primary-50]="hasPermission(perm.id)"
+        >
+          <mat-checkbox
+            [checked]="hasPermission(perm.id)"
+            (change)="togglePermission(perm.id)"
+            [disabled]="isNew"
+          >
+            {{ perm.name }}
+          </mat-checkbox>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex justify-end gap-3">
+    <button mat-stroked-button (click)="router.navigate(['/admin/roles'])">Batal</button>
+    <button mat-flat-button color="primary" (click)="save()">
+      {{ isNew ? 'Simpan' : 'Simpan Perubahan' }}
+    </button>
+  </div>
+</div>
