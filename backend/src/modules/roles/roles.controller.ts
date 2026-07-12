@@ -3,17 +3,17 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { RolesService } from './roles.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { JwtAuthGuard, PermissionsGuard } from '../../common/guards';
+import { CurrentUser, Permissions } from '../../common/decorators';
 
 @ApiTags('Roles')
 @Controller('roles')
-@UseGuards(JwtAuthGuard)
-// TODO: Add PermissionsGuard and @Permissions decorator (Task 5)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class RolesController {
   constructor(private rolesService: RolesService) {}
 
   @Get()
+  @Permissions('role.read')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Daftar semua role' })
   async findAll() {
@@ -21,6 +21,7 @@ export class RolesController {
   }
 
   @Post()
+  @Permissions('role.create')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Buat role baru' })
   async create(@Body() dto: CreateRoleDto) {
@@ -28,6 +29,7 @@ export class RolesController {
   }
 
   @Get(':id')
+  @Permissions('role.read')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Detail role' })
   async findOne(@Param('id') id: number) {
@@ -35,6 +37,7 @@ export class RolesController {
   }
 
   @Patch(':id')
+  @Permissions('role.update')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update role' })
   async update(@Param('id') id: number, @Body() dto: UpdateRoleDto) {
@@ -42,6 +45,7 @@ export class RolesController {
   }
 
   @Delete(':id')
+  @Permissions('role.delete')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Hapus role' })
   async remove(@Param('id') id: number) {
@@ -49,6 +53,7 @@ export class RolesController {
   }
 
   @Post(':id/permissions')
+  @Permissions('role.update')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Assign permissions ke role' })
   async assignPermissions(@Param('id') id: number, @Body() body: { permissionIds: number[] }) {
@@ -56,15 +61,15 @@ export class RolesController {
   }
 
   @Delete(':id/permissions/:permissionId')
+  @Permissions('role.update')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Revoke permission dari role' })
   async removePermission(@Param('id') id: number, @Param('permissionId') permissionId: number) {
     return this.rolesService.removePermission(id, permissionId);
   }
 
-  // User role assignment endpoints (TODO: Add PermissionsGuard and @Permissions decorator in Task 5)
-
   @Get('users/:userId/roles')
+  @Permissions('role.read')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Daftar roles user' })
   async getUserRoles(@Param('userId') userId: number) {
@@ -72,6 +77,7 @@ export class RolesController {
   }
 
   @Post('users/:userId/roles')
+  @Permissions('role.assign')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Assign role ke user' })
   async assignRole(
@@ -83,6 +89,7 @@ export class RolesController {
   }
 
   @Delete('users/:userId/roles/:roleId')
+  @Permissions('role.assign')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Revoke role dari user' })
   async revokeRole(
@@ -95,6 +102,7 @@ export class RolesController {
   }
 
   @Get('users/:userId/roles/history')
+  @Permissions('role.read')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Histori role user' })
   async getUserRoleHistory(@Param('userId') userId: number) {
