@@ -1,5 +1,4 @@
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
-import { GlobalVariable } from '../../../node/common/global-variable';
 
 @Component({
     selector: 'app-paginate-take',
@@ -9,7 +8,7 @@ import { GlobalVariable } from '../../../node/common/global-variable';
 })
 export class PaginateTakeComponent implements OnInit {
     @Output() limitChanged = new EventEmitter<number>();
-    limit = GlobalVariable.pageTake;
+    limit = 10;
 
     constructor() {}
 

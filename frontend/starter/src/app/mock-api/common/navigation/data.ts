@@ -5,43 +5,25 @@ const menu: NavigationItem[] = [
         id: 'dashboard',
         title: 'Dashboard',
         type: 'basic',
-        icon: 'heroicons_outline:queue-list',
+        icon: 'heroicons_outline:home',
         link: '/dashboard',
-        meta: { roles: ['admin', 'user', 'supplier'] },
     },
     {
-        id: 'scan',
-        title: 'Sto Print',
+        id: 'bazaar',
+        title: 'Bazar SPADM',
         type: 'basic',
-        icon: 'heroicons_outline:qr-code',
-        link: '/scan',
-        meta: { roles: ['admin'] },
+        icon: 'heroicons_outline:shopping-cart',
+        link: '/bazaar',
     },
     {
-        id: 'scan-vendor',
-        title: 'Sto Vendor',
+        id: 'profile',
+        title: 'Profil',
         type: 'basic',
-        icon: 'heroicons_outline:qr-code',
-        link: '/scan-vendor',
-        meta: { roles: ['supplier', 'admin'] },
-    },
-    {
-        id: 'scan-plant',
-        title: 'Sto Plant',
-        type: 'basic',
-        icon: 'heroicons_outline:qr-code',
-        link: '/scan-plant',
-        meta: { roles: ['user', 'admin'] },
-    },
-    {
-        id: 'example',
-        title: 'Example',
-        type: 'basic',
-        icon: 'heroicons_outline:cube',
-        link: '/example',
-        meta: { roles: ['admin', 'user', 'supplier'] },
+        icon: 'heroicons_outline:user',
+        link: '/profile',
     },
 ];
+
 export const defaultNavigation: NavigationItem[] = menu;
 export const compactNavigation: NavigationItem[] = menu;
 export const futuristicNavigation: NavigationItem[] = menu;

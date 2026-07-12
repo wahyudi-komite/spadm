@@ -1,4 +1,5 @@
 export const environment = {
     production: false,
-    apiUrl: 'http://' + window.location.hostname + ':3000/api/v1',
+    apiUrl: 'http://' + window.location.hostname + ':3000/api',
+    appName: 'SPADM',
 };
