@@ -58,6 +58,10 @@ export const appRoutes: Route[] = [
                 path: 'unlock-session',
                 loadChildren: () => import('app/modules/auth/unlock-session/unlock-session.routes'),
             },
+            {
+                path: 'change-password',
+                loadChildren: () => import('app/modules/auth/change-password/change-password.routes'),
+            },
         ],
     },
 

@@ -6,6 +6,8 @@ import { APP_GUARD } from '@nestjs/core';
 import { appConfig, databaseConfig, jwtConfig } from './config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthModule } from './modules/auth/auth.module';
+import { MembersModule } from './modules/members/members.module';
 import { HealthModule } from './modules/health/health.module';
 
 @Module({
@@ -38,6 +40,8 @@ import { HealthModule } from './modules/health/health.module';
       limit: 60,
     }]),
 
+    AuthModule,
+    MembersModule,
     HealthModule,
   ],
   controllers: [AppController],

@@ -15,7 +15,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MessageModule } from 'primeng/message';
 import { AuthService } from 'app/core/auth/auth.service';
 import { finalize } from 'rxjs';
@@ -61,10 +61,15 @@ export class AuthResetPasswordComponent implements OnInit {
     /**
      * Constructor
      */
+    private _token: string = '';
+
     constructor(
         private _authService: AuthService,
-        private _formBuilder: UntypedFormBuilder
-    ) {}
+        private _formBuilder: UntypedFormBuilder,
+        private _route: ActivatedRoute
+    ) {
+        this._token = this._route.snapshot.queryParamMap.get('token') || '';
+    }
 
     // -----------------------------------------------------------------------------------------------------
     // @ Lifecycle hooks
@@ -107,7 +112,7 @@ export class AuthResetPasswordComponent implements OnInit {
 
         // Send the request to the server
         this._authService
-            .resetPassword(this.resetPasswordForm.get('password').value)
+            .resetPassword(this._token, this.resetPasswordForm.get('password').value)
             .pipe(
                 finalize(() => {
                     // Re-enable the form

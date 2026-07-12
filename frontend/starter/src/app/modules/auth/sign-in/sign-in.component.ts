@@ -8,7 +8,6 @@ import {
     Validators,
 } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -29,12 +28,10 @@ import { AuthService } from 'app/core/auth/auth.service';
         MatInputModule,
         MatButtonModule,
         MatIconModule,
-        MatCheckboxModule,
         MatProgressSpinnerModule,
     ],
 })
 export class AuthSignInComponent implements OnInit {
-    private apiUrl = '/api';
     @ViewChild('signInNgForm') signInNgForm: NgForm;
 
     alert: { type: 'success' | 'error' | 'info' | 'warn'; message: string } = {
@@ -44,9 +41,6 @@ export class AuthSignInComponent implements OnInit {
     signInForm: UntypedFormGroup;
     showAlert: boolean = false;
 
-    /**
-     * Constructor
-     */
     constructor(
         private _activatedRoute: ActivatedRoute,
         private _authService: AuthService,
@@ -54,72 +48,38 @@ export class AuthSignInComponent implements OnInit {
         private _router: Router
     ) {}
 
-    // -----------------------------------------------------------------------------------------------------
-    // @ Lifecycle hooks
-    // -----------------------------------------------------------------------------------------------------
-
-    /**
-     * On init
-     */
     ngOnInit(): void {
-        // Create the form
         this.signInForm = this._formBuilder.group({
-            username: ['', [Validators.required]],
-            password: ['12345678', Validators.required],
-            // rememberMe: [''],
+            npk: ['', [Validators.required]],
+            password: ['', Validators.required],
         });
     }
 
-    // -----------------------------------------------------------------------------------------------------
-    // @ Public methods
-    // -----------------------------------------------------------------------------------------------------
-
-    /**
-     * Sign in
-     */
     signIn(): void {
-        // Return if the form is invalid
         if (this.signInForm.invalid) {
             return;
         }
-        // Disable the form
-        this.signInForm.disable();
 
-        // Hide the alert
+        this.signInForm.disable();
         this.showAlert = false;
 
-        // Sign in
-        this._authService.signIn(this.signInForm.value).subscribe(
-            () => {
-                // Set the redirect url.
-                // The '/signed-in-redirect' is a dummy url to catch the request and redirect the user
-                // to the correct page after a successful sign in. This way, that url can be set via
-                // routing file and we don't have to touch here.
-                const redirectURL =
-                    this._activatedRoute.snapshot.queryParamMap.get(
-                        'redirectURL'
-                    ) || '/signed-in-redirect';
-
-                // Navigate to the redirect url
+        this._authService.signIn(this.signInForm.value).subscribe({
+            next: (response: any) => {
+                if (response.mustChangePassword) {
+                    this._router.navigateByUrl('/change-password');
+                    return;
+                }
                 this._router.navigateByUrl('dashboard');
-                // No need to return or subscribe to navigateByUrl, as it returns a Promise, not an Observable
             },
-            (response) => {
-                // Re-enable the form
+            error: (response: any) => {
                 this.signInForm.enable();
-
-                // Reset the form
                 this.signInNgForm.resetForm();
-
-                // Set the alert
                 this.alert = {
                     type: 'error',
-                    message: 'Wrong email or password',
+                    message: response.error?.message || 'NPK atau password salah',
                 };
-
-                // Show the alert
                 this.showAlert = true;
-            }
-        );
+            },
+        });
     }
 }
