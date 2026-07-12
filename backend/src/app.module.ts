@@ -11,6 +11,7 @@ import { MembersModule } from './modules/members/members.module';
 import { AuditLogModule } from './modules/audit-logs/audit-log.module';
 import { HealthModule } from './modules/health/health.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
+import { RolesModule } from './modules/roles/roles.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { PermissionsModule } from './modules/permissions/permissions.module';
     MembersModule,
     HealthModule,
     PermissionsModule,
+    RolesModule,
   ],
   controllers: [AppController],
   providers: [
