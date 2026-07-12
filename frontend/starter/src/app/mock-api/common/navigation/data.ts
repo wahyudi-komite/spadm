@@ -22,6 +22,13 @@ const menu: NavigationItem[] = [
         icon: 'heroicons_outline:user',
         link: '/profile',
     },
+    {
+        id: 'admin',
+        title: 'Admin',
+        type: 'basic',
+        icon: 'heroicons_outline:shield-check',
+        link: '/admin/roles',
+    },
 ];
 
 export const defaultNavigation: NavigationItem[] = menu;
