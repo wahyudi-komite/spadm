@@ -12,7 +12,10 @@ const generatePalette = require(
  * Tailwind-like color palettes automatically
  */
 const customPalettes = {
-    brand: generatePalette('#2196F3'),
+    brand: generatePalette('#0057B8'),
+    spadmBlue: generatePalette('#009FE3'),
+    spadmNavy: generatePalette('#001F4E'),
+    spadmRed: generatePalette('#D20F17'),
 };
 
 /**
@@ -44,7 +47,18 @@ const themes = {
     // Rest of the themes will use the 'default' as the base
     // theme and will extend it with their given configuration.
     brand: {
-        primary: customPalettes.brand,
+        primary: {
+            ...customPalettes.brand,
+            DEFAULT: '#0057B8',
+        },
+        accent: {
+            ...customPalettes.spadmBlue,
+            DEFAULT: '#009FE3',
+        },
+        warn: {
+            ...customPalettes.spadmRed,
+            DEFAULT: '#D20F17',
+        },
     },
     teal: {
         primary: {
@@ -164,6 +178,14 @@ const config = {
                     800: '#335957',
                     900: '#2e4c4b',
                     950: '#1f3232',
+                },
+                spadm: {
+                    navy: '#001F4E',
+                    ink: '#071A33',
+                    blue: '#0057B8',
+                    sky: '#009FE3',
+                    light: '#EAF6FF',
+                    red: '#D20F17',
                 },
             },
             flex: {

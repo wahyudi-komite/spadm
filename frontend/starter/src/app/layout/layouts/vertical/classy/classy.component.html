@@ -1,15 +1,22 @@
 <app-loading-bar></app-loading-bar>
 
 <app-vertical-navigation
-    class="dark bg-emerald-900 print:hidden"
+    class="spadm-sidebar dark print:hidden"
     [mode]="isScreenSmall ? 'over' : 'side'"
     [name]="'mainNavigation'"
     [navigation]="navigation.default"
     [opened]="!isScreenSmall"
 >
     <ng-container appVerticalNavigationContentHeader>
-        <div class="flex w-full items-center p-4 pl-6">
-            <div class="flex items-center justify-center">
+        <div class="flex w-full items-center border-b border-white/10 px-5 py-4">
+            <div class="flex items-center gap-3">
+                <div class="spadm-brand-mark h-12 w-12 border-2 text-sm shadow-none"></div>
+                <div class="min-w-0">
+                    <div class="text-lg font-black leading-none text-white">SPADM</div>
+                    <div class="mt-1 text-xs font-semibold leading-tight text-sky-100">
+                        Serikat Pekerja Astra Daihatsu Motor
+                    </div>
+                </div>
             </div>
             <div class="ml-auto flex items-center">
                 <user [showAvatar]="false"></user>
@@ -55,11 +62,19 @@
 
 <div class="flex w-full min-w-0 flex-auto flex-col">
     <div
-        class="bg-card relative z-49 flex h-16 w-full flex-0 items-center px-4 shadow dark:border-b dark:bg-transparent dark:shadow-none md:px-6 print:hidden"
+        class="spadm-shell-header relative z-49 flex h-16 w-full flex-0 items-center px-4 shadow-sm dark:border-b md:px-6 print:hidden"
     >
         <button mat-icon-button (click)="toggleNavigation('mainNavigation')">
             <mat-icon [svgIcon]="'heroicons_outline:bars-3'"></mat-icon>
         </button>
+        <div class="ml-3 min-w-0">
+            <div class="text-base font-black leading-none text-[var(--spadm-navy)]">
+                SPADM Super App
+            </div>
+            <div class="mt-1 hidden text-xs font-semibold text-slate-500 sm:block">
+                Kolaborasi, smart media, dan layanan anggota
+            </div>
+        </div>
         <div class="ml-auto flex items-center space-x-0.5 pl-2 sm:space-x-2">
             <app-fullscreen class="hidden md:block"></app-fullscreen>
         </div>
