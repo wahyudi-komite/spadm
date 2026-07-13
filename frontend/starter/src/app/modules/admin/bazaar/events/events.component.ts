@@ -9,6 +9,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { environment } from 'environments/environment';
+import { DialogFeedbackService } from 'app/shared/dialog-feedback/dialog-feedback.service';
 
 @Component({
   selector: 'admin-bazaar-event-dialog',
@@ -63,7 +64,11 @@ export class AdminBazaarEventsComponent implements OnInit {
   events: any[] = [];
   displayedColumns = ['id', 'name', 'isActive', 'actions'];
 
-  constructor(private http: HttpClient, private dialog: MatDialog) {}
+  constructor(
+    private http: HttpClient,
+    private dialog: MatDialog,
+    private feedback: DialogFeedbackService
+  ) {}
 
   ngOnInit() {
     this.loadEvents();
@@ -93,10 +98,17 @@ export class AdminBazaarEventsComponent implements OnInit {
   }
 
   deleteEvent(id: number) {
-    if (confirm('Hapus event ini?')) {
+    this.feedback.confirm({
+      title: 'Hapus event',
+      message: 'Hapus event ini?',
+      confirmText: 'Hapus',
+      tone: 'warn',
+    }).subscribe((confirmed) => {
+      if (!confirmed) return;
+
       this.http.delete(`${environment.apiUrl}/bazaar/events/${id}`).subscribe(() => {
         this.loadEvents();
       });
-    }
+    });
   }
 }

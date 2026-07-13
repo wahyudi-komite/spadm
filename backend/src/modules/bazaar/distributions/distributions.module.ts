@@ -9,6 +9,7 @@ import { DistributionArea } from './entities/distribution-area.entity';
 import { OrganizationalUnitAreaMapping } from './entities/ou-area-mapping.entity';
 import { DistributionHistory } from './entities/distribution-history.entity';
 import { UserRole } from '../../roles/user-role.entity';
+import { NotificationsModule } from '../../notifications/notifications.module';
 
 @Module({
   imports: [
@@ -20,7 +21,8 @@ import { UserRole } from '../../roles/user-role.entity';
       DistributionHistory,
       UserRole,
     ]),
-    forwardRef(() => OrdersModule)
+    forwardRef(() => OrdersModule),
+    NotificationsModule,
   ],
   controllers: [DistributionsController],
   providers: [DistributionsService],

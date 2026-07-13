@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatCardModule } from '@angular/material/card';
 import { environment } from 'environments/environment';
+import { DialogFeedbackService } from 'app/shared/dialog-feedback/dialog-feedback.service';
 
 @Component({
   selector: 'admin-bazaar-distribution',
@@ -21,7 +22,10 @@ export class AdminBazaarDistributionComponent {
   submitting = false;
   error: string | null = null;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private feedback: DialogFeedbackService
+  ) {}
 
   scanToken() {
     if (!this.tokenCode.trim()) return;
@@ -45,22 +49,28 @@ export class AdminBazaarDistributionComponent {
   confirmDistribution() {
     if (!this.scannedToken) return;
     
-    if (confirm('Apakah Anda yakin barang sudah diserahkan ke anggota yang bersangkutan?')) {
+    this.feedback.confirm({
+      title: 'Konfirmasi penyerahan',
+      message: 'Apakah Anda yakin barang sudah diserahkan ke anggota yang bersangkutan?',
+      confirmText: 'Konfirmasi',
+    }).subscribe((confirmed) => {
+      if (!confirmed) return;
+
       this.submitting = true;
       this.http.post(`${environment.apiUrl}/bazaar/distributions/confirm`, {
         tokenCode: this.scannedToken.tokenCode
       }).subscribe({
         next: () => {
           this.submitting = false;
-          alert('Barang berhasil diserahkan!');
+          this.feedback.success('Barang berhasil diserahkan!');
           this.tokenCode = '';
           this.scannedToken = null;
         },
         error: (err) => {
           this.submitting = false;
-          alert('Gagal konfirmasi: ' + (err.error?.message || err.message));
+          this.feedback.error('Gagal konfirmasi: ' + (err.error?.message || err.message));
         }
       });
-    }
+    });
   }
 }

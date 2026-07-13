@@ -9,6 +9,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { environment } from 'environments/environment';
+import { DialogFeedbackService } from 'app/shared/dialog-feedback/dialog-feedback.service';
 
 @Component({
   selector: 'admin-bazaar-batch-dialog',
@@ -63,7 +64,11 @@ export class AdminBazaarBatchesComponent implements OnInit {
   batches: any[] = [];
   displayedColumns = ['id', 'event', 'name', 'status', 'actions'];
 
-  constructor(private http: HttpClient, private dialog: MatDialog) {}
+  constructor(
+    private http: HttpClient,
+    private dialog: MatDialog,
+    private feedback: DialogFeedbackService
+  ) {}
 
   ngOnInit() {
     this.loadBatches();
@@ -87,18 +92,32 @@ export class AdminBazaarBatchesComponent implements OnInit {
   }
 
   changeStatus(batch: any, newStatus: string) {
-    if (confirm(`Ubah status menjadi ${newStatus}?`)) {
-      this.http.patch(`${environment.apiUrl}/bazaar/batches/${batch.id}`, { status: newStatus }).subscribe(() => {
+    this.feedback.confirm({
+      title: 'Ubah status batch',
+      message: `Ubah status menjadi ${newStatus}?`,
+      confirmText: 'Ubah status',
+    }).subscribe((confirmed) => {
+      if (!confirmed) return;
+
+      const endpoint = newStatus === 'OPEN' ? 'open' : 'close';
+      this.http.post(`${environment.apiUrl}/bazaar/batches/${batch.id}/${endpoint}`, {}).subscribe(() => {
         this.loadBatches();
       });
-    }
+    });
   }
 
   deleteBatch(id: number) {
-    if (confirm('Hapus batch ini?')) {
+    this.feedback.confirm({
+      title: 'Hapus batch',
+      message: 'Hapus batch ini?',
+      confirmText: 'Hapus',
+      tone: 'warn',
+    }).subscribe((confirmed) => {
+      if (!confirmed) return;
+
       this.http.delete(`${environment.apiUrl}/bazaar/batches/${id}`).subscribe(() => {
         this.loadBatches();
       });
-    }
+    });
   }
 }

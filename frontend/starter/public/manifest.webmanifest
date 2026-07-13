@@ -1,0 +1,20 @@
+{
+    "name": "SPADM - Serikat Pekerja Astra Daihatsu Motor",
+    "short_name": "SPADM",
+    "description": "Aplikasi resmi anggota SPADM",
+    "lang": "id-ID",
+    "start_url": "/dashboard",
+    "scope": "/",
+    "display": "standalone",
+    "orientation": "any",
+    "background_color": "#0f172a",
+    "theme_color": "#0f172a",
+    "icons": [
+        {
+            "src": "logo-small.png",
+            "sizes": "954x954",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}

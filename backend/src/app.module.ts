@@ -18,6 +18,9 @@ import { ProductsModule } from './modules/bazaar/products/products.module';
 import { DistributionsModule } from './modules/bazaar/distributions/distributions.module';
 import { OrdersModule } from './modules/bazaar/orders/orders.module';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { ReportsModule } from './modules/bazaar/reports/reports.module';
 
 @Module({
   imports: [
@@ -49,6 +52,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
       ttl: 60000,
       limit: 60,
     }]),
+    ScheduleModule.forRoot(),
 
     AuthModule,
     MembersModule,
@@ -61,7 +65,9 @@ import { PaymentsModule } from './modules/payments/payments.module';
     ProductsModule,
     DistributionsModule,
     OrdersModule,
-    PaymentsModule
+    PaymentsModule,
+    NotificationsModule
+    ,ReportsModule
   ],
   controllers: [AppController],
   providers: [

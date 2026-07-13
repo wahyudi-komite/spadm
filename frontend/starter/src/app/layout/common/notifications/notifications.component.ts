@@ -17,6 +17,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 import { NotificationsService } from 'app/layout/common/notifications/notifications.service';
+import { NotificationsWebSocketService } from 'app/layout/common/notifications/notifications-websocket.service';
 import { Notification } from 'app/layout/common/notifications/notifications.types';
 import { Subject, takeUntil } from 'rxjs';
 
@@ -52,29 +53,24 @@ export class NotificationsComponent implements OnInit, OnDestroy {
     constructor(
         private _changeDetectorRef: ChangeDetectorRef,
         private _notificationsService: NotificationsService,
+        private _notificationsWebSocketService: NotificationsWebSocketService,
         private _overlay: Overlay,
         private _viewContainerRef: ViewContainerRef
     ) {}
 
-    // -----------------------------------------------------------------------------------------------------
-    // @ Lifecycle hooks
-    // -----------------------------------------------------------------------------------------------------
-
-    /**
-     * On init
-     */
     ngOnInit(): void {
-        // Subscribe to notification changes
         this._notificationsService.notifications$
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe((notifications: Notification[]) => {
-                // Load the notifications
                 this.notifications = notifications;
-
-                // Calculate the unread count
                 this._calculateUnreadCount();
+                this._changeDetectorRef.markForCheck();
+            });
 
-                // Mark for check
+        this._notificationsService.unreadCount$
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe((count: number) => {
+                this.unreadCount = count;
                 this._changeDetectorRef.markForCheck();
             });
     }

@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { DateTimePickerComponentComponent } from './date-time-picker-component.component';
+import { provideNativeDateAdapter } from '@angular/material/core';
 
 describe('DateTimePickerComponentComponent', () => {
   let component: DateTimePickerComponentComponent;
@@ -8,7 +9,8 @@ describe('DateTimePickerComponentComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [DateTimePickerComponentComponent]
+      imports: [DateTimePickerComponentComponent],
+      providers: [provideNativeDateAdapter()],
     })
     .compileComponents();
 

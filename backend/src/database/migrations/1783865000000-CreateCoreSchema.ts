@@ -171,6 +171,43 @@ export class CreateCoreSchema1783865000000 implements MigrationInterface {
         KEY IDX_member_status_history_member (memberId, createdAt),
         CONSTRAINT FK_member_status_history_member FOREIGN KEY (memberId) REFERENCES members(id) ON DELETE CASCADE
       ) ENGINE=InnoDB`,
+      `CREATE TABLE IF NOT EXISTS member_imports (
+        id INT NOT NULL AUTO_INCREMENT,
+        fileName VARCHAR(255) NOT NULL,
+        status VARCHAR(30) NOT NULL DEFAULT 'PREVIEW',
+        uploadedBy INT NOT NULL,
+        confirmedBy INT NULL,
+        confirmedAt DATETIME NULL,
+        totalRows INT NOT NULL DEFAULT 0,
+        validRows INT NOT NULL DEFAULT 0,
+        invalidRows INT NOT NULL DEFAULT 0,
+        createdCount INT NOT NULL DEFAULT 0,
+        updatedCount INT NOT NULL DEFAULT 0,
+        errorCount INT NOT NULL DEFAULT 0,
+        createdAt DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+        updatedAt DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+        PRIMARY KEY (id),
+        KEY IDX_member_import_status_created (status, createdAt),
+        CONSTRAINT FK_member_import_uploader FOREIGN KEY (uploadedBy) REFERENCES users(id),
+        CONSTRAINT FK_member_import_confirmer FOREIGN KEY (confirmedBy) REFERENCES users(id)
+      ) ENGINE=InnoDB`,
+      `CREATE TABLE IF NOT EXISTS member_import_rows (
+        id INT NOT NULL AUTO_INCREMENT,
+        importId INT NOT NULL,
+        rowNumber INT NOT NULL,
+        npk VARCHAR(10) NULL,
+        rawData JSON NOT NULL,
+        normalizedData JSON NOT NULL,
+        isValid TINYINT NOT NULL DEFAULT 0,
+        action VARCHAR(20) NOT NULL,
+        errors JSON NULL,
+        processedAt DATETIME NULL,
+        createdAt DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+        PRIMARY KEY (id),
+        KEY IDX_member_import_row_import (importId, rowNumber),
+        KEY IDX_member_import_row_npk (npk),
+        CONSTRAINT FK_member_import_row_import FOREIGN KEY (importId) REFERENCES member_imports(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB`,
       `CREATE TABLE IF NOT EXISTS bazaar_events (
         id INT NOT NULL AUTO_INCREMENT,
         code VARCHAR(30) NOT NULL,
@@ -430,6 +467,42 @@ export class CreateCoreSchema1783865000000 implements MigrationInterface {
         CONSTRAINT FK_distribution_history_order FOREIGN KEY (orderId) REFERENCES bazaar_orders(id),
         CONSTRAINT FK_distribution_history_user FOREIGN KEY (performedBy) REFERENCES users(id)
       ) ENGINE=InnoDB`,
+      `CREATE TABLE IF NOT EXISTS notifications (
+        id INT NOT NULL AUTO_INCREMENT,
+        userId INT NOT NULL,
+        type ENUM('PAYMENT_SUCCESS','PAYMENT_EXPIRED','ORDER_CANCELLED','PICKUP_QR_READY','DISTRIBUTION_SCHEDULE','ORDER_DISTRIBUTED','PASSWORD_RESET','SYSTEM_ANNOUNCEMENT') NOT NULL,
+        title VARCHAR(150) NOT NULL,
+        message TEXT NOT NULL,
+        deepLink VARCHAR(500) NULL,
+        metadata JSON NULL,
+        isRead TINYINT NOT NULL DEFAULT 0,
+        readAt DATETIME NULL,
+        createdAt DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+        updatedAt DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+        PRIMARY KEY (id),
+        KEY IDX_notification_user_unread (userId, isRead, createdAt),
+        CONSTRAINT FK_notification_user FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB`,
+      `CREATE TABLE IF NOT EXISTS notification_deliveries (
+        id INT NOT NULL AUTO_INCREMENT,
+        notificationId INT NOT NULL,
+        channel VARCHAR(20) NOT NULL,
+        recipient VARCHAR(30) NOT NULL,
+        template VARCHAR(80) NOT NULL,
+        payload JSON NOT NULL,
+        status ENUM('PENDING','PROCESSING','RETRY','SENT','DELIVERED','FAILED') NOT NULL DEFAULT 'PENDING',
+        attempts INT NOT NULL DEFAULT 0,
+        nextAttemptAt DATETIME NULL,
+        lastError TEXT NULL,
+        providerMessageId VARCHAR(255) NULL,
+        sentAt DATETIME NULL,
+        deliveredAt DATETIME NULL,
+        createdAt DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+        updatedAt DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+        PRIMARY KEY (id),
+        KEY IDX_delivery_queue (status, nextAttemptAt, createdAt),
+        CONSTRAINT FK_delivery_notification FOREIGN KEY (notificationId) REFERENCES notifications(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB`,
     ];
 
     for (const statement of statements) {
@@ -439,6 +512,8 @@ export class CreateCoreSchema1783865000000 implements MigrationInterface {
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     const tables = [
+      'notification_deliveries',
+      'notifications',
       'distribution_histories',
       'distributions',
       'pickup_tokens',
@@ -455,6 +530,8 @@ export class CreateCoreSchema1783865000000 implements MigrationInterface {
       'bazaar_products',
       'bazaar_batches',
       'bazaar_events',
+      'member_import_rows',
+      'member_imports',
       'member_status_histories',
       'user_role_histories',
       'user_roles',

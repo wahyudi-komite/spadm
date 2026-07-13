@@ -9,6 +9,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { environment } from 'environments/environment';
+import { DialogFeedbackService } from 'app/shared/dialog-feedback/dialog-feedback.service';
 
 @Component({
   selector: 'admin-bazaar-area-dialog',
@@ -68,7 +69,11 @@ export class AdminBazaarAreasComponent implements OnInit {
   mappings: any[] = [];
   displayedColumns = ['id', 'plant', 'workUnit', 'areaCode', 'actions'];
 
-  constructor(private http: HttpClient, private dialog: MatDialog) {}
+  constructor(
+    private http: HttpClient,
+    private dialog: MatDialog,
+    private feedback: DialogFeedbackService
+  ) {}
 
   ngOnInit() {
     this.loadMappings();
@@ -92,10 +97,17 @@ export class AdminBazaarAreasComponent implements OnInit {
   }
 
   deleteMapping(id: number) {
-    if (confirm('Hapus pemetaan area ini?')) {
+    this.feedback.confirm({
+      title: 'Hapus pemetaan area',
+      message: 'Hapus pemetaan area ini?',
+      confirmText: 'Hapus',
+      tone: 'warn',
+    }).subscribe((confirmed) => {
+      if (!confirmed) return;
+
       this.http.delete(`${environment.apiUrl}/bazaar/distributions/mappings/${id}`).subscribe(() => {
         this.loadMappings();
       });
-    }
+    });
   }
 }

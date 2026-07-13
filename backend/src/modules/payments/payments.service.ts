@@ -21,6 +21,7 @@ import { Payment, PaymentStatus } from './entities/payment.entity';
 import { PaymentStatusHistory } from './entities/payment-status-history.entity';
 import { PaymentWebhookLog } from './entities/payment-webhook-log.entity';
 import { PaymentProviderRegistry } from './providers/payment-provider.registry';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class PaymentsService {
@@ -38,6 +39,7 @@ export class PaymentsService {
     private readonly providerRegistry: PaymentProviderRegistry,
     private readonly configService: ConfigService,
     private readonly auditLogService: AuditLogService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async generatePayment(orderId: number, userId: number) {
@@ -212,6 +214,7 @@ export class PaymentsService {
           createdBy: 'SYSTEM',
         });
       });
+      await this.notificationsService.notifyPaymentExpired(payment.order.id);
     }
     return payments.length;
   }
@@ -239,7 +242,7 @@ export class PaymentsService {
   }
 
   private async markPaid(referenceId: string, status: PaymentStatus) {
-    const paymentId = await this.paymentRepository.manager.transaction(
+    const paymentResult = await this.paymentRepository.manager.transaction(
       async (manager) => {
         const payment = await manager.findOne(Payment, {
           where: { referenceId },
@@ -248,7 +251,7 @@ export class PaymentsService {
         });
         if (!payment) throw new NotFoundException('Payment tidak ditemukan');
         if ([PaymentStatus.PAID, PaymentStatus.MANUAL_VERIFIED].includes(payment.status)) {
-          return payment.id;
+          return { id: payment.id, changed: false };
         }
         if (payment.status === PaymentStatus.EXPIRED) {
           throw new BadRequestException('Payment sudah kedaluwarsa');
@@ -273,15 +276,18 @@ export class PaymentsService {
           notes: 'Pembayaran berhasil',
           createdBy: 'SYSTEM',
         });
-        return payment.id;
+        return { id: payment.id, changed: true };
       },
     );
 
     const payment = await this.paymentRepository.findOneOrFail({
-      where: { id: paymentId },
+      where: { id: paymentResult.id },
       relations: { order: true },
     });
-    await this.distributionsService.generatePickupToken(payment.order.id);
+    if (paymentResult.changed) {
+      await this.distributionsService.generatePickupToken(payment.order.id);
+      await this.notificationsService.notifyPaymentSuccess(payment.order.id);
+    }
     return payment;
   }
 

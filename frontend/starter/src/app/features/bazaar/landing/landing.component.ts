@@ -8,6 +8,7 @@ import { MatDialog, MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angu
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { environment } from 'environments/environment';
+import { DialogFeedbackService } from 'app/shared/dialog-feedback/dialog-feedback.service';
 
 @Component({
   selector: 'bazaar-checkout-dialog',
@@ -79,7 +80,12 @@ export class BazaarLandingComponent implements OnInit {
   
   checkingOut = false;
 
-  constructor(private http: HttpClient, private dialog: MatDialog, private router: Router) {}
+  constructor(
+    private http: HttpClient,
+    private dialog: MatDialog,
+    private router: Router,
+    private feedback: DialogFeedbackService
+  ) {}
 
   ngOnInit() {
     this.loadData();
@@ -158,7 +164,7 @@ export class BazaarLandingComponent implements OnInit {
           },
           error: (err) => {
             this.checkingOut = false;
-            alert('Gagal membuat pesanan: ' + (err.error?.message || err.message));
+            this.feedback.error('Gagal membuat pesanan: ' + (err.error?.message || err.message));
           }
         });
       }

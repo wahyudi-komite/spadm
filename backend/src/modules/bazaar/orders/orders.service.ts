@@ -47,7 +47,10 @@ export class OrdersService {
     const products = [];
 
     for (const id of uniqueProductIds) {
-      const product = await this.productRepo.findOne({ where: { id, isActive: true } });
+      const product = await this.productRepo.findOne({
+        where: { id, isActive: true },
+        relations: { event: true },
+      });
       if (!product) throw new NotFoundException(`Produk ID ${id} tidak ditemukan`);
       
       if (product.inventoryMode !== 'UNLIMITED' && product.stock <= 0) {
@@ -58,9 +61,14 @@ export class OrdersService {
       products.push(product);
     }
 
-    const goodieBagFee = 3000;
-    const applicationFee = 1000;
-    const subsidy = 20000;
+    const eventIds = new Set(products.map((product) => product.eventId));
+    if (eventIds.size !== 1) {
+      throw new BadRequestException('Semua produk harus berasal dari event yang sama');
+    }
+    const event = products[0].event;
+    const goodieBagFee = Number(event.goodieBagFee);
+    const applicationFee = Number(event.applicationFee);
+    const subsidy = Number(event.subsidy);
     const grandTotal = productSubtotal + goodieBagFee + applicationFee - subsidy;
 
     return {

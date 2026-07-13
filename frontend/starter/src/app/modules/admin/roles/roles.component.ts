@@ -7,6 +7,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 import { environment } from 'environments/environment';
+import { DialogFeedbackService } from 'app/shared/dialog-feedback/dialog-feedback.service';
 
 @Component({
   selector: 'admin-roles',
@@ -18,7 +19,10 @@ export class AdminRolesComponent implements OnInit {
   roles: any[] = [];
   displayedColumns = ['name', 'description', 'permissionsCount', 'isSystem', 'actions'];
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private feedback: DialogFeedbackService
+  ) {}
 
   ngOnInit() {
     this.loadRoles();
@@ -31,8 +35,15 @@ export class AdminRolesComponent implements OnInit {
   }
 
   deleteRole(id: number) {
-    if (confirm('Hapus role ini?')) {
+    this.feedback.confirm({
+      title: 'Hapus role',
+      message: 'Hapus role ini?',
+      confirmText: 'Hapus',
+      tone: 'warn',
+    }).subscribe((confirmed) => {
+      if (!confirmed) return;
+
       this.http.delete(`${environment.apiUrl}/roles/${id}`).subscribe(() => this.loadRoles());
-    }
+    });
   }
 }

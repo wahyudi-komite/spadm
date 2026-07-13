@@ -5,11 +5,13 @@ import {
     APP_INITIALIZER,
     ApplicationConfig,
     inject,
+    isDevMode,
     LOCALE_ID,
 } from '@angular/core';
 import { LuxonDateAdapter } from '@angular/material-luxon-adapter';
 import { DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
+import { provideServiceWorker } from '@angular/service-worker';
 import {
     PreloadAllModules,
     provideRouter,
@@ -31,6 +33,10 @@ registerLocaleData(localeId, 'id');
 export const appConfig: ApplicationConfig = {
     providers: [
         provideAnimations(),
+        provideServiceWorker('ngsw-worker.js', {
+            enabled: !isDevMode(),
+            registrationStrategy: 'registerWhenStable:30000',
+        }),
         provideHttpClient(),
         provideToastr(),
         provideRouter(

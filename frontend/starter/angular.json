@@ -70,6 +70,9 @@
                             "includePaths": ["src/styles/fuse"]
                         },
                         "styles": [
+                            "public/fonts/inter/inter.css",
+                            "public/styles/icon/icon.css",
+                            "public/styles/splash-screen.css",
                             "src/styles/fuse/tailwind.scss",
                             "src/styles/fuse/themes.scss",
                             "src/styles/vendors.scss",
@@ -82,6 +85,7 @@
                     },
                     "configurations": {
                         "production": {
+                            "serviceWorker": "ngsw-config.json",
                             "budgets": [
                                 {
                                     "type": "initial",

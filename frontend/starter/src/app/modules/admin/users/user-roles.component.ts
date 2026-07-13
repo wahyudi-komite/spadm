@@ -9,6 +9,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatTableModule } from '@angular/material/table';
 import { ActivatedRoute } from '@angular/router';
 import { environment } from 'environments/environment';
+import { DialogFeedbackService } from 'app/shared/dialog-feedback/dialog-feedback.service';
 
 @Component({
   selector: 'admin-user-roles',
@@ -24,7 +25,11 @@ export class AdminUserRolesComponent implements OnInit {
   history: any[] = [];
   displayedColumns = ['role', 'assignedAt', 'revokedAt', 'actions'];
 
-  constructor(private http: HttpClient, private route: ActivatedRoute) {}
+  constructor(
+    private http: HttpClient,
+    private route: ActivatedRoute,
+    private feedback: DialogFeedbackService
+  ) {}
 
   ngOnInit() {
     this.userId = Number(this.route.snapshot.paramMap.get('id'));
@@ -57,9 +62,16 @@ export class AdminUserRolesComponent implements OnInit {
   }
 
   revokeRole(roleId: number) {
-    if (confirm('Revoke role ini?')) {
+    this.feedback.confirm({
+      title: 'Revoke role',
+      message: 'Revoke role ini?',
+      confirmText: 'Revoke',
+      tone: 'warn',
+    }).subscribe((confirmed) => {
+      if (!confirmed) return;
+
       this.http.delete(`${environment.apiUrl}/roles/users/${this.userId}/roles/${roleId}`)
         .subscribe(() => this.loadUserRoles());
-    }
+    });
   }
 }

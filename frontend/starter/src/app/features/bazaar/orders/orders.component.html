@@ -104,10 +104,9 @@
               <h4 class="font-bold text-blue-800 mb-2">Segera Lakukan Pembayaran</h4>
               <div class="text-xs text-blue-600 mb-4">Ref: {{ paymentData[order.id].referenceId }}</div>
               
-              <div class="bg-white p-2 rounded-lg shadow-sm border mb-4">
-                <div class="w-32 h-32 bg-gray-800 mx-auto flex items-center justify-center text-white p-2 rounded shadow-inner text-xs font-mono break-all">
-                  {{ paymentData[order.id].qrisPayload || 'Memuat QRIS...' }}
-                </div>
+              <div class="bg-white p-2 rounded-lg shadow-sm border mb-4 flex justify-center items-center">
+                <qr-code *ngIf="paymentData[order.id].qrisPayload" [value]="paymentData[order.id].qrisPayload" [size]="150"></qr-code>
+                <div *ngIf="!paymentData[order.id].qrisPayload" class="text-sm text-gray-400 py-8">Memuat QRIS...</div>
               </div>
 
               <div *ngIf="paymentData[order.id].expiredAt" class="text-xs text-red-500 mb-2">
@@ -134,10 +133,8 @@
             <h4 class="font-bold text-green-800 mb-2">QR Pengambilan Barang</h4>
             <div class="text-xs text-gray-500 mb-4">Tunjukkan QR ini ke PIC Area {{ order.distributionArea?.code }}.</div>
             
-            <div class="bg-white p-4 rounded-xl shadow border border-green-200 mb-2">
-              <div class="w-32 h-32 bg-gray-800 mx-auto flex flex-col items-center justify-center text-white p-2 rounded-lg shadow-inner break-all text-xs font-mono">
-                {{ tokenData[order.id].tokenCode }}
-              </div>
+            <div class="bg-white p-4 rounded-xl shadow border border-green-200 mb-2 flex justify-center items-center">
+              <qr-code [value]="tokenData[order.id].tokenCode" [size]="150"></qr-code>
             </div>
             
             <div class="text-sm font-bold text-green-600" *ngIf="tokenData[order.id].isUsed">SUDAH DIAMBIL</div>

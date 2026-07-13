@@ -6,11 +6,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { environment } from 'environments/environment';
+import { QrCodeComponent } from 'ng-qrcode';
+import { DialogFeedbackService } from 'app/shared/dialog-feedback/dialog-feedback.service';
 
 @Component({
   selector: 'bazaar-orders',
   templateUrl: './orders.component.html',
-  imports: [CommonModule, MatButtonModule, MatIconModule, MatCardModule, MatDialogModule],
+  imports: [CommonModule, MatButtonModule, MatIconModule, MatCardModule, MatDialogModule, QrCodeComponent],
   standalone: true
 })
 export class BazaarOrdersComponent implements OnInit {
@@ -21,7 +23,11 @@ export class BazaarOrdersComponent implements OnInit {
   paymentData: { [orderId: number]: any } = {};
   tokenData: { [orderId: number]: any } = {};
 
-  constructor(private http: HttpClient, private dialog: MatDialog) {}
+  constructor(
+    private http: HttpClient,
+    private dialog: MatDialog,
+    private feedback: DialogFeedbackService
+  ) {}
 
   ngOnInit() {
     this.loadOrders();
@@ -67,19 +73,25 @@ export class BazaarOrdersComponent implements OnInit {
   }
 
   cancelOrder(orderId: number) {
-    const confirmed = confirm('Yakin ingin membatalkan pesanan ini?');
-    if (!confirmed) return;
+    this.feedback.confirm({
+      title: 'Batalkan pesanan',
+      message: 'Yakin ingin membatalkan pesanan ini?',
+      confirmText: 'Batalkan pesanan',
+      tone: 'warn',
+    }).subscribe((confirmed) => {
+      if (!confirmed) return;
 
-    this.cancellingId = orderId;
-    this.http.patch(`${environment.apiUrl}/bazaar/orders/${orderId}/cancel`, {}).subscribe({
-      next: () => {
-        this.cancellingId = null;
-        this.loadOrders();
-      },
-      error: (err) => {
-        this.cancellingId = null;
-        alert('Gagal membatalkan: ' + (err.error?.message || err.message));
-      }
+      this.cancellingId = orderId;
+      this.http.patch(`${environment.apiUrl}/bazaar/orders/${orderId}/cancel`, {}).subscribe({
+        next: () => {
+          this.cancellingId = null;
+          this.loadOrders();
+        },
+        error: (err) => {
+          this.cancellingId = null;
+          this.feedback.error('Gagal membatalkan: ' + (err.error?.message || err.message));
+        }
+      });
     });
   }
 }

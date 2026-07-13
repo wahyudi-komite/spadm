@@ -16,6 +16,7 @@ import { OrderStatus, BazaarOrder } from '../orders/entities/order.entity';
 import { BatchStatus } from '../batches/entities/batch.entity';
 import { BazaarOrderStatusHistory } from '../orders/entities/order-status-history.entity';
 import { DistributionHistory } from './entities/distribution-history.entity';
+import { NotificationsService } from '../../notifications/notifications.service';
 
 @Injectable()
 export class DistributionsService {
@@ -34,6 +35,7 @@ export class DistributionsService {
     private ordersService: OrdersService,
     private auditLogService: AuditLogService,
     private configService: ConfigService,
+    private notificationsService: NotificationsService,
   ) {}
 
   async generatePickupToken(orderId: number) {
@@ -129,6 +131,7 @@ export class DistributionsService {
       entityId: distribution.id,
       description: `Order ${validated.order.orderNumber} diserahkan`,
     });
+    await this.notificationsService.notifyOrderDistributed(validated.order.id);
     return distribution;
   }
 

@@ -9,6 +9,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { environment } from 'environments/environment';
+import { DialogFeedbackService } from 'app/shared/dialog-feedback/dialog-feedback.service';
 
 @Component({
   selector: 'admin-bazaar-product-dialog',
@@ -80,7 +81,11 @@ export class AdminBazaarProductsComponent implements OnInit {
   products: any[] = [];
   displayedColumns = ['id', 'name', 'sku', 'sellingPrice', 'stock', 'actions'];
 
-  constructor(private http: HttpClient, private dialog: MatDialog) {}
+  constructor(
+    private http: HttpClient,
+    private dialog: MatDialog,
+    private feedback: DialogFeedbackService
+  ) {}
 
   ngOnInit() {
     this.loadProducts();
@@ -104,10 +109,17 @@ export class AdminBazaarProductsComponent implements OnInit {
   }
 
   deleteProduct(id: number) {
-    if (confirm('Hapus produk ini?')) {
+    this.feedback.confirm({
+      title: 'Hapus produk',
+      message: 'Hapus produk ini?',
+      confirmText: 'Hapus',
+      tone: 'warn',
+    }).subscribe((confirmed) => {
+      if (!confirmed) return;
+
       this.http.delete(`${environment.apiUrl}/bazaar/products/${id}`).subscribe(() => {
         this.loadProducts();
       });
-    }
+    });
   }
 }
