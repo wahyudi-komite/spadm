@@ -5,6 +5,7 @@ import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { JwtAuthGuard, PermissionsGuard } from '../../common/guards';
 import { CurrentUser, Permissions } from '../../common/decorators';
+import { AssignRoleDto } from './dto/assign-role.dto';
 
 @ApiTags('Roles')
 @Controller('roles')
@@ -82,10 +83,10 @@ export class RolesController {
   @ApiOperation({ summary: 'Assign role ke user' })
   async assignRole(
     @Param('userId') userId: number,
-    @Body() body: { roleId: number; reason?: string },
+    @Body() body: AssignRoleDto,
     @CurrentUser() currentUserId: number,
   ) {
-    return this.rolesService.assignRole(userId, body.roleId, currentUserId, undefined, body.reason);
+    return this.rolesService.assignRole(userId, body, currentUserId);
   }
 
   @Delete('users/:userId/roles/:roleId')

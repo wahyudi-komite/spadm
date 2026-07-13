@@ -1,7 +1,7 @@
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource, IsNull } from 'typeorm';
+import { DataSource } from 'typeorm';
 import { PERMISSIONS_KEY } from '../decorators/permissions.decorator';
 import { UserRole } from '../../modules/roles/user-role.entity';
 
@@ -28,10 +28,17 @@ export class PermissionsGuard implements CanActivate {
     if (!userId) return false;
 
     const userRoleRepo = this.dataSource.getRepository(UserRole);
-    const userRoles = await userRoleRepo.find({
-      where: { userId, revokedAt: IsNull() },
-      relations: { role: { permissions: true } },
-    });
+    const now = new Date();
+    const userRoles = await userRoleRepo
+      .createQueryBuilder('userRole')
+      .leftJoinAndSelect('userRole.role', 'role')
+      .leftJoinAndSelect('role.permissions', 'permission')
+      .where('userRole.userId = :userId', { userId })
+      .andWhere('userRole.status = :status', { status: 'ACTIVE' })
+      .andWhere('userRole.revokedAt IS NULL')
+      .andWhere('(userRole.startsAt IS NULL OR userRole.startsAt <= :now)', { now })
+      .andWhere('(userRole.endsAt IS NULL OR userRole.endsAt >= :now)', { now })
+      .getMany();
 
     const userPermissions = new Set<string>();
     for (const ur of userRoles) {

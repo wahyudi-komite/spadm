@@ -23,6 +23,12 @@ export class Payment {
   @Column({ name: 'reference_id', unique: true })
   referenceId: string;
 
+  @Column({ length: 50 })
+  provider: string;
+
+  @Column({ name: 'provider_reference', length: 255, nullable: true })
+  providerReference: string;
+
   @Column({ type: 'decimal', precision: 12, scale: 2 })
   amount: number;
 

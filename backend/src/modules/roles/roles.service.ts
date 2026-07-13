@@ -10,6 +10,7 @@ import { Permission } from '../permissions/permission.entity';
 import { AuditLogService } from '../audit-logs/audit-log.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
+import { AssignRoleDto } from './dto/assign-role.dto';
 
 @Injectable()
 export class RolesService {
@@ -79,24 +80,55 @@ export class RolesService {
     return userRoles;
   }
 
-  async assignRole(userId: number, roleId: number, assignedBy: number, areaId?: number, reason?: string) {
+  async assignRole(userId: number, dto: AssignRoleDto, assignedBy: number) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('User tidak ditemukan');
 
-    const role = await this.roleRepository.findOne({ where: { id: roleId } });
+    const role = await this.roleRepository.findOne({ where: { id: dto.roleId } });
     if (!role) throw new NotFoundException('Role tidak ditemukan');
 
-    const existing = await this.userRoleRepository.findOne({
-      where: { userId, roleId, revokedAt: IsNull() },
-    });
+    const startsAt = dto.startsAt ? new Date(dto.startsAt) : new Date();
+    const endsAt = dto.endsAt ? new Date(dto.endsAt) : undefined;
+    if (endsAt && endsAt <= startsAt) {
+      throw new BadRequestException('Tanggal selesai harus setelah tanggal mulai');
+    }
+
+    const existingQuery = this.userRoleRepository
+      .createQueryBuilder('userRole')
+      .where('userRole.userId = :userId', { userId })
+      .andWhere('userRole.roleId = :roleId', { roleId: dto.roleId })
+      .andWhere('userRole.revokedAt IS NULL');
+    if (dto.areaId === undefined) {
+      existingQuery.andWhere('userRole.areaId IS NULL');
+    } else {
+      existingQuery.andWhere('userRole.areaId = :areaId', { areaId: dto.areaId });
+    }
+    const existing = await existingQuery.getOne();
     if (existing) throw new BadRequestException('User sudah memiliki role ini');
 
     const saved = await this.userRoleRepository.save(
-      this.userRoleRepository.create({ userId, roleId, assignedBy }),
+      this.userRoleRepository.create({
+        userId,
+        roleId: dto.roleId,
+        assignedBy,
+        areaId: dto.areaId,
+        reason: dto.reason,
+        startsAt,
+        endsAt,
+        status: 'ACTIVE',
+      }),
     );
 
     await this.userRoleHistoryRepository.save({
-      userId, roleId, action: 'ASSIGN', changedBy: assignedBy,
+      userId,
+      roleId: dto.roleId,
+      areaId: dto.areaId,
+      startsAt,
+      endsAt,
+      status: 'ACTIVE',
+      action: 'ASSIGN',
+      changedBy: assignedBy,
+      reason: dto.reason,
     });
 
     await this.auditLogService.log({ userId, action: 'ASSIGN_ROLE', module: 'auth', entityType: 'user', entityId: userId, description: `Role ${role.name} assigned` });
@@ -110,10 +142,23 @@ export class RolesService {
     });
     if (!userRole) throw new NotFoundException('Role assignment tidak ditemukan');
 
-    await this.userRoleRepository.update(userRole.id, { revokedAt: new Date(), revokedBy, reason });
+    await this.userRoleRepository.update(userRole.id, {
+      revokedAt: new Date(),
+      revokedBy,
+      reason,
+      status: 'REVOKED',
+    });
 
     await this.userRoleHistoryRepository.save({
-      userId, roleId, action: 'REVOKE', changedBy: revokedBy, reason,
+      userId,
+      roleId,
+      areaId: userRole.areaId,
+      startsAt: userRole.startsAt,
+      endsAt: userRole.endsAt,
+      status: 'REVOKED',
+      action: 'REVOKE',
+      changedBy: revokedBy,
+      reason,
     });
 
     await this.auditLogService.log({ userId, action: 'REVOKE_ROLE', module: 'auth', entityType: 'user', entityId: userId, description: `Role revoked` });

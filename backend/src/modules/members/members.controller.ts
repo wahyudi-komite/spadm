@@ -3,16 +3,17 @@ import { Throttle } from '@nestjs/throttler';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
 import { MembersService } from './members.service';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { JwtAuthGuard, PermissionsGuard } from '../../common/guards';
+import { CurrentUser, Permissions } from '../../common/decorators';
 
 @ApiTags('Members')
 @Controller('members')
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class MembersController {
   constructor(private membersService: MembersService) {}
 
   @Get()
-  @UseGuards(JwtAuthGuard)
+  @Permissions('member.read')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Daftar anggota' })
   async findAll(
@@ -26,7 +27,7 @@ export class MembersController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
+  @Permissions('member.read')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Detail anggota' })
   async findOne(@Param('id') id: number) {
@@ -34,7 +35,7 @@ export class MembersController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
+  @Permissions('member.update')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update anggota' })
   async update(@Param('id') id: number, @Body() data: any, @CurrentUser() userId: number) {
@@ -42,22 +43,32 @@ export class MembersController {
   }
 
   @Post('import/preview')
-  @UseGuards(JwtAuthGuard)
+  @Permissions('member.import')
   @ApiBearerAuth()
   @Throttle({ default: { limit: 10, ttl: 60000 } })
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: 5 * 1024 * 1024 },
+    }),
+  )
   @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Preview import anggota dari Excel' })
-  async importPreview(@UploadedFile() file: Express.Multer.File) {
-    return this.membersService.previewImport(file);
+  async importPreview(
+    @UploadedFile() file: Express.Multer.File,
+    @CurrentUser() userId: number,
+  ) {
+    return this.membersService.previewImport(file, userId);
   }
 
   @Post('import')
-  @UseGuards(JwtAuthGuard)
+  @Permissions('member.import')
   @ApiBearerAuth()
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   @ApiOperation({ summary: 'Konfirmasi import anggota' })
-  async import(@Body() body: { rows: Array<{ npk: string; name: string; email?: string; workUnit?: string; phone?: string; plant?: string; status?: string }> }) {
-    return this.membersService.importFromExcel(body.rows);
+  async import(
+    @Body() body: { importId: number },
+    @CurrentUser() userId: number,
+  ) {
+    return this.membersService.confirmImport(body.importId, userId);
   }
 }

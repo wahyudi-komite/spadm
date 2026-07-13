@@ -1,4 +1,6 @@
 import { IsString, IsOptional, IsBoolean, IsNumber, IsDateString } from 'class-validator';
+import { IsEnum } from 'class-validator';
+import { BatchStatus } from '../entities/batch.entity';
 
 export class CreateBatchDto {
   @IsNumber()
@@ -27,7 +29,15 @@ export class CreateBatchDto {
   @IsOptional()
   distributionEndAt?: string;
 
-  @IsString()
+  @IsEnum(BatchStatus)
   @IsOptional()
-  status?: string;
+  status?: BatchStatus;
+
+  @IsBoolean()
+  @IsOptional()
+  isPurchaseEnabled?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  displayNextBatchInformation?: boolean;
 }

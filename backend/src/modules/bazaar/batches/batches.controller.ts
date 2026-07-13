@@ -1,10 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
 import { BatchesService } from './batches.service';
 import { CreateBatchDto } from './dto/create-batch.dto';
 import { UpdateBatchDto } from './dto/update-batch.dto';
 import { JwtAuthGuard, PermissionsGuard } from '../../../common/guards';
-import { Permissions } from '../../../common/decorators';
+import { CurrentUser, Permissions } from '../../../common/decorators';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { BatchStatus } from './entities/batch.entity';
 
 @ApiTags('Bazaar Batches')
 @ApiBearerAuth()
@@ -15,14 +16,20 @@ export class BatchesController {
 
   @Post()
   @Permissions('bazaar.batch.create')
-  create(@Body() createBatchDto: CreateBatchDto) {
-    return this.batchesService.create(createBatchDto);
+  create(@Body() createBatchDto: CreateBatchDto, @CurrentUser() userId: number) {
+    return this.batchesService.create(createBatchDto, userId);
   }
 
   @Get()
   @Permissions('bazaar.batch.read')
-  findAll() {
-    return this.batchesService.findAll();
+  findAll(@Query('eventId') eventId?: number) {
+    return this.batchesService.findAll(eventId ? Number(eventId) : undefined);
+  }
+
+  @Get('current/:eventId')
+  @Permissions('bazaar.batch.read')
+  findCurrent(@Param('eventId') eventId: string) {
+    return this.batchesService.findCurrent(+eventId);
   }
 
   @Get(':id')
@@ -33,13 +40,43 @@ export class BatchesController {
 
   @Patch(':id')
   @Permissions('bazaar.batch.update')
-  update(@Param('id') id: string, @Body() updateBatchDto: UpdateBatchDto) {
-    return this.batchesService.update(+id, updateBatchDto);
+  update(@Param('id') id: string, @Body() updateBatchDto: UpdateBatchDto, @CurrentUser() userId: number) {
+    return this.batchesService.update(+id, updateBatchDto, userId);
+  }
+
+  @Post(':id/open')
+  @Permissions('bazaar.batch.open')
+  open(@Param('id') id: string, @CurrentUser() userId: number) {
+    return this.batchesService.transition(+id, BatchStatus.OPEN, userId);
+  }
+
+  @Post(':id/close')
+  @Permissions('bazaar.batch.close')
+  close(@Param('id') id: string, @CurrentUser() userId: number) {
+    return this.batchesService.transition(+id, BatchStatus.CLOSED, userId);
+  }
+
+  @Post(':id/start-distribution')
+  @Permissions('bazaar.batch.distribute')
+  startDistribution(@Param('id') id: string, @CurrentUser() userId: number) {
+    return this.batchesService.transition(+id, BatchStatus.DISTRIBUTION, userId);
+  }
+
+  @Post(':id/complete')
+  @Permissions('bazaar.batch.distribute')
+  complete(@Param('id') id: string, @CurrentUser() userId: number) {
+    return this.batchesService.transition(+id, BatchStatus.COMPLETED, userId);
+  }
+
+  @Post(':id/cancel')
+  @Permissions('bazaar.batch.update')
+  cancel(@Param('id') id: string, @CurrentUser() userId: number) {
+    return this.batchesService.transition(+id, BatchStatus.CANCELLED, userId);
   }
 
   @Delete(':id')
   @Permissions('bazaar.batch.update')
-  remove(@Param('id') id: string) {
-    return this.batchesService.remove(+id);
+  remove(@Param('id') id: string, @CurrentUser() userId: number) {
+    return this.batchesService.remove(+id, userId);
   }
 }

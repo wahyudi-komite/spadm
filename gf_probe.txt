@@ -1,0 +1,7 @@
+[bash] ok
+python3 -> /c/Users/wahyudi.komite/AppData/Local/Microsoft/WindowsApps/python3
+python -> /c/Users/wahyudi.komite/AppData/Local/Programs/Python/Python312/python
+pip -> /c/Users/wahyudi.komite/AppData/Local/Programs/Python/Python312/Scripts/pip
+pip3 -> /c/Users/wahyudi.komite/AppData/Local/Programs/Python/Python312/Scripts/pip3
+uv -> /c/Users/wahyudi.komite/AppData/Local/Microsoft/WinGet/Packages/astral-sh.uv_Microsoft.Winget.Source_8wekyb3d8bbwe/uv
+done

@@ -1,6 +1,16 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { BazaarEvent } from '../../events/entities/event.entity';
 
+export enum BatchStatus {
+  DRAFT = 'DRAFT',
+  SCHEDULED = 'SCHEDULED',
+  OPEN = 'OPEN',
+  CLOSED = 'CLOSED',
+  DISTRIBUTION = 'DISTRIBUTION',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED',
+}
+
 @Entity('bazaar_batches')
 export class BazaarBatch {
   @PrimaryGeneratedColumn()
@@ -31,8 +41,8 @@ export class BazaarBatch {
   @Column({ name: 'distribution_end_at', type: 'timestamp', nullable: true })
   distributionEndAt: Date;
 
-  @Column({ type: 'varchar', length: 50, default: 'DRAFT' })
-  status: string;
+  @Column({ type: 'varchar', length: 50, default: BatchStatus.DRAFT })
+  status: BatchStatus;
 
   @Column({ name: 'is_purchase_enabled', type: 'boolean', default: false })
   isPurchaseEnabled: boolean;

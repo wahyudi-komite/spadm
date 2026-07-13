@@ -23,6 +23,15 @@ export class UserRole {
   assignedAt: Date;
 
   @Column({ nullable: true })
+  startsAt: Date;
+
+  @Column({ nullable: true })
+  endsAt: Date;
+
+  @Column({ length: 20, default: 'ACTIVE' })
+  status: string;
+
+  @Column({ nullable: true })
   revokedAt: Date;
 
   @Column({ nullable: true })

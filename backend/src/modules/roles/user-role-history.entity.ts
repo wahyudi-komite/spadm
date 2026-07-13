@@ -16,6 +16,15 @@ export class UserRoleHistory {
   @Column({ nullable: true })
   areaId: number;
 
+  @Column({ nullable: true })
+  startsAt: Date;
+
+  @Column({ nullable: true })
+  endsAt: Date;
+
+  @Column({ length: 20 })
+  status: string;
+
   @Column({ type: 'enum', enum: ['ASSIGN', 'REVOKE'] })
   action: 'ASSIGN' | 'REVOKE';
 

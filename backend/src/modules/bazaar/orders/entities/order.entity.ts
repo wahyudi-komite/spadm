@@ -2,19 +2,25 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { User } from '../../../auth/entities/user.entity';
 import { BazaarEvent } from '../../events/entities/event.entity';
 import { BazaarBatch } from '../../batches/entities/batch.entity';
+import { DistributionArea } from '../../distributions/entities/distribution-area.entity';
 import { BazaarOrderItem } from './order-item.entity';
 
 export enum OrderStatus {
   PENDING = 'PENDING',
+  CONFIRMED = 'CONFIRMED',
   PAID = 'PAID',
   CANCELLED = 'CANCELLED',
-  EXPIRED = 'EXPIRED'
+  EXPIRED = 'EXPIRED',
+  COMPLETED = 'COMPLETED'
 }
 
 @Entity('bazaar_orders')
 export class BazaarOrder {
   @PrimaryGeneratedColumn('increment')
   id: number;
+
+  @Column({ name: 'order_number', length: 40, unique: true })
+  orderNumber: string;
 
   // We link to User, but logically represents a Member. The requirement says members log in via NPK (which is User).
   @ManyToOne(() => User)
@@ -46,6 +52,25 @@ export class BazaarOrder {
 
   @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
   grandTotal: number;
+
+  @Column({ name: 'distribution_area_id', nullable: true })
+  distributionAreaId: number;
+
+  @ManyToOne(() => DistributionArea, { nullable: true })
+  @JoinColumn({ name: 'distribution_area_id' })
+  distributionArea: DistributionArea;
+
+  @Column({ name: 'terms_accepted', type: 'boolean', default: false })
+  termsAccepted: boolean;
+
+  @Column({ name: 'terms_version', length: 20, nullable: true })
+  termsVersion: string;
+
+  @Column({ name: 'terms_accepted_at', type: 'timestamp', nullable: true })
+  termsAcceptedAt: Date;
+
+  @Column({ name: 'cancel_reason', type: 'text', nullable: true })
+  cancelReason: string | null;
 
   @OneToMany(() => BazaarOrderItem, item => item.order, { cascade: true })
   items: BazaarOrderItem[];

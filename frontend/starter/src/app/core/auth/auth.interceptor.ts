@@ -1,7 +1,7 @@
-import { HttpErrorResponse, HttpEvent, HttpHandlerFn, HttpRequest } from '@angular/common/http';
+import { HttpErrorResponse, HttpEvent, HttpHandlerFn, HttpRequest, HttpResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { AuthService } from 'app/core/auth/auth.service';
-import { catchError, Observable, switchMap, throwError } from 'rxjs';
+import { catchError, map, Observable, switchMap, throwError } from 'rxjs';
 
 export const authInterceptor = (
     req: HttpRequest<unknown>,
@@ -46,6 +46,18 @@ export const authInterceptor = (
                 );
             }
             return throwError(() => error);
+        }),
+        map((event) => {
+            if (
+                event instanceof HttpResponse &&
+                event.body &&
+                typeof event.body === 'object' &&
+                'success' in event.body &&
+                'data' in event.body
+            ) {
+                return event.clone({ body: event.body.data });
+            }
+            return event;
         })
     );
 };

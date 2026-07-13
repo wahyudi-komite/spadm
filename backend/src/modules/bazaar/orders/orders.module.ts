@@ -8,6 +8,9 @@ import { BazaarOrderStatusHistory } from './entities/order-status-history.entity
 import { BazaarProduct } from '../products/entities/product.entity';
 import { BazaarEvent } from '../events/entities/event.entity';
 import { BazaarBatch } from '../batches/entities/batch.entity';
+import { OrganizationalUnitAreaMapping } from '../distributions/entities/ou-area-mapping.entity';
+import { DistributionArea } from '../distributions/entities/distribution-area.entity';
+import { Member } from '../../members/entities/member.entity';
 
 @Module({
   imports: [
@@ -17,7 +20,10 @@ import { BazaarBatch } from '../batches/entities/batch.entity';
       BazaarOrderStatusHistory,
       BazaarProduct,
       BazaarEvent,
-      BazaarBatch
+      BazaarBatch,
+      OrganizationalUnitAreaMapping,
+      DistributionArea,
+      Member
     ])
   ],
   controllers: [OrdersController],

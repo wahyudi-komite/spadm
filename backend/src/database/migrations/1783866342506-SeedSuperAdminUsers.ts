@@ -22,7 +22,7 @@ export class SeedSuperAdminUsers1783866342506 implements MigrationInterface {
       const memberId = memberResult.insertId;
 
       const userResult = await queryRunner.query(
-        `INSERT INTO users (npk, password, mustChangePassword, isActive, memberId) VALUES (?, ?, false, true, ?)`,
+        `INSERT INTO users (npk, password, mustChangePassword, isActive, memberId) VALUES (?, ?, true, true, ?)`,
         [u.npk, hash, memberId],
       );
       const userId = userResult.insertId;

@@ -4,23 +4,24 @@ import { HttpClient } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { environment } from 'environments/environment';
 
 @Component({
   selector: 'bazaar-orders',
   templateUrl: './orders.component.html',
-  imports: [CommonModule, MatButtonModule, MatIconModule, MatCardModule],
+  imports: [CommonModule, MatButtonModule, MatIconModule, MatCardModule, MatDialogModule],
   standalone: true
 })
 export class BazaarOrdersComponent implements OnInit {
   orders: any[] = [];
   loading = true;
+  cancellingId: number | null = null;
 
-  // Active payment and token data
   paymentData: { [orderId: number]: any } = {};
   tokenData: { [orderId: number]: any } = {};
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private dialog: MatDialog) {}
 
   ngOnInit() {
     this.loadOrders();
@@ -32,8 +33,7 @@ export class BazaarOrdersComponent implements OnInit {
       next: (res: any) => {
         this.orders = res;
         this.loading = false;
-        
-        // For each order, fetch payment or token if applicable
+
         this.orders.forEach(order => {
           if (order.status === 'PENDING') {
             this.loadPayment(order.id);
@@ -50,7 +50,6 @@ export class BazaarOrdersComponent implements OnInit {
     this.http.get(`${environment.apiUrl}/payments/order/${orderId}`).subscribe({
       next: (res: any) => {
         if (!res) {
-          // If no payment found, generate it
           this.http.post(`${environment.apiUrl}/payments/generate/${orderId}`, {}).subscribe(payRes => {
             this.paymentData[orderId] = payRes;
           });
@@ -67,15 +66,20 @@ export class BazaarOrdersComponent implements OnInit {
     });
   }
 
-  simulatePaymentSuccess(orderId: number) {
-    const payment = this.paymentData[orderId];
-    if (!payment) return;
-    
-    this.http.post(`${environment.apiUrl}/payments/webhook/simulate`, {
-      referenceId: payment.referenceId
-    }).subscribe(() => {
-      alert('Pembayaran berhasil disimulasikan!');
-      this.loadOrders(); // Reload to get new status and tokens
+  cancelOrder(orderId: number) {
+    const confirmed = confirm('Yakin ingin membatalkan pesanan ini?');
+    if (!confirmed) return;
+
+    this.cancellingId = orderId;
+    this.http.patch(`${environment.apiUrl}/bazaar/orders/${orderId}/cancel`, {}).subscribe({
+      next: () => {
+        this.cancellingId = null;
+        this.loadOrders();
+      },
+      error: (err) => {
+        this.cancellingId = null;
+        alert('Gagal membatalkan: ' + (err.error?.message || err.message));
+      }
     });
   }
 }

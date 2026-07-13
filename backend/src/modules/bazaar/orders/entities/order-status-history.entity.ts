@@ -10,8 +10,8 @@ export class BazaarOrderStatusHistory {
   @JoinColumn({ name: 'order_id' })
   order: BazaarOrder;
 
-  @Column({ type: 'enum', enum: OrderStatus })
-  status: OrderStatus;
+  @Column({ type: 'varchar', length: 20 })
+  status: string;
 
   @Column({ type: 'text', nullable: true })
   notes: string;

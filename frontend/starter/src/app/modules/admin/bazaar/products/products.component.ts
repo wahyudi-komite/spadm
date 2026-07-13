@@ -53,6 +53,7 @@ export class AdminBazaarProductDialogComponent {
       eventId: [null, Validators.required],
       name: ['', Validators.required],
       sku: [''],
+      normalPrice: [0, [Validators.required, Validators.min(0)]],
       sellingPrice: [0, Validators.required]
     });
   }

@@ -15,6 +15,7 @@ import { SignInDto } from './dto/sign-in.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { createHash, randomBytes } from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -78,7 +79,7 @@ export class AuthService {
 
     await this.sessionRepository.save({
       userId: user.id,
-      refreshToken: tokens.refreshToken,
+      refreshToken: this.hashToken(tokens.refreshToken),
       ipAddress,
       userAgent,
       expiresAt,
@@ -97,21 +98,30 @@ export class AuthService {
   }
 
   async refresh(refreshToken: string, ipAddress?: string, userAgent?: string) {
+    const refreshTokenHash = this.hashToken(refreshToken);
     const session = await this.sessionRepository.findOne({
-      where: { refreshToken, isActive: true },
+      where: { refreshToken: refreshTokenHash },
       relations: { user: { member: true } },
     });
 
     if (!session) {
-      const oldSession = await this.sessionRepository.findOne({
-        where: { isActive: true },
-        relations: { user: true },
-        order: { createdAt: 'DESC' },
-      });
-      if (oldSession) {
-        await this.sessionRepository.update({ userId: oldSession.userId }, { isActive: false });
-      }
       throw new UnauthorizedException({ message: 'Token tidak valid', code: 'INVALID_TOKEN' });
+    }
+
+    if (!session.isActive) {
+      await this.auditLogService.log({
+        userId: session.userId,
+        action: 'TOKEN_REUSE_DETECTED',
+        module: 'auth',
+        description: 'Refresh token yang sudah dirotasi digunakan kembali',
+        ipAddress,
+        userAgent,
+      });
+      await this.sessionRepository.update(
+        { userId: session.userId, isActive: true },
+        { isActive: false },
+      );
+      throw new UnauthorizedException({ message: 'Token reuse terdeteksi', code: 'INVALID_TOKEN' });
     }
 
     if (session.expiresAt < new Date()) {
@@ -123,20 +133,53 @@ export class AuthService {
       throw new UnauthorizedException({ message: 'Akun tidak aktif', code: 'ACCOUNT_INACTIVE' });
     }
 
-    if (session.refreshToken !== refreshToken) {
-      await this.auditLogService.log({ userId: session.userId, action: 'TOKEN_REUSE_DETECTED', module: 'auth', description: 'Refresh token reuse detected, all sessions invalidated', ipAddress, userAgent });
-      await this.sessionRepository.update({ userId: session.userId }, { isActive: false });
-      throw new UnauthorizedException({ message: 'Token reuse terdeteksi', code: 'INVALID_TOKEN' });
-    }
-
     const tokens = await this.generateTokens(session.user);
 
-    await this.sessionRepository.update(session.id, {
-      refreshToken: tokens.refreshToken,
-      ipAddress,
-      userAgent,
-      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-    });
+    try {
+      await this.sessionRepository.manager.transaction(async (manager) => {
+        const rotation = await manager.update(
+          Session,
+          { id: session.id, isActive: true },
+          { isActive: false },
+        );
+
+        if (rotation.affected !== 1) {
+          throw new UnauthorizedException({
+            message: 'Token reuse terdeteksi',
+            code: 'TOKEN_REUSE_DETECTED',
+          });
+        }
+
+        await manager.save(Session, {
+          userId: session.userId,
+          refreshToken: this.hashToken(tokens.refreshToken),
+          ipAddress,
+          userAgent,
+          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          isActive: true,
+        });
+      });
+    } catch (error) {
+      if (
+        error instanceof UnauthorizedException &&
+        (error.getResponse() as { code?: string }).code ===
+          'TOKEN_REUSE_DETECTED'
+      ) {
+        await this.sessionRepository.update(
+          { userId: session.userId, isActive: true },
+          { isActive: false },
+        );
+        await this.auditLogService.log({
+          userId: session.userId,
+          action: 'TOKEN_REUSE_DETECTED',
+          module: 'auth',
+          description: 'Refresh token digunakan secara bersamaan',
+          ipAddress,
+          userAgent,
+        });
+      }
+      throw error;
+    }
 
     return {
       accessToken: tokens.accessToken,
@@ -146,7 +189,11 @@ export class AuthService {
   }
 
   async signOut(userId: number, refreshToken: string) {
-    await this.sessionRepository.update({ refreshToken, userId }, { isActive: false });
+    if (!refreshToken) return;
+    await this.sessionRepository.update(
+      { refreshToken: this.hashToken(refreshToken), userId },
+      { isActive: false },
+    );
   }
 
   async signOutFromAllDevices(userId: number) {
@@ -180,13 +227,13 @@ export class AuthService {
       return { message: 'Jika NPK terdaftar, link reset password akan dikirim' };
     }
 
-    const token = Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+    const token = randomBytes(32).toString('hex');
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + 1);
 
     await this.passwordResetTokenRepository.save({
       userId: user.id,
-      token,
+      token: this.hashToken(token),
       expiresAt,
     });
 
@@ -196,7 +243,7 @@ export class AuthService {
 
   async resetPassword(dto: ResetPasswordDto) {
     const resetToken = await this.passwordResetTokenRepository.findOne({
-      where: { token: dto.token, isUsed: false },
+      where: { token: this.hashToken(dto.token), isUsed: false },
     });
 
     if (!resetToken || resetToken.expiresAt < new Date()) {
@@ -231,10 +278,17 @@ export class AuthService {
   }
 
   async getUserPermissions(userId: number) {
-    const userRoles = await this.userRoleRepository.find({
-      where: { userId, revokedAt: IsNull() },
-      relations: { role: { permissions: true } },
-    });
+    const now = new Date();
+    const userRoles = await this.userRoleRepository
+      .createQueryBuilder('userRole')
+      .leftJoinAndSelect('userRole.role', 'role')
+      .leftJoinAndSelect('role.permissions', 'permission')
+      .where('userRole.userId = :userId', { userId })
+      .andWhere('userRole.status = :status', { status: 'ACTIVE' })
+      .andWhere('userRole.revokedAt IS NULL')
+      .andWhere('(userRole.startsAt IS NULL OR userRole.startsAt <= :now)', { now })
+      .andWhere('(userRole.endsAt IS NULL OR userRole.endsAt >= :now)', { now })
+      .getMany();
 
     const permissions = new Set<string>();
     for (const ur of userRoles) {
@@ -250,16 +304,20 @@ export class AuthService {
     const payload = { sub: user.id, npk: user.npk };
 
     const accessToken = this.jwtService.sign(payload as object, {
-      secret: this.configService.get<string>('jwt.accessSecret'),
+      secret: this.configService.getOrThrow<string>('jwt.accessSecret'),
       expiresIn: '15m',
     });
 
     const refreshToken = this.jwtService.sign(payload as object, {
-      secret: this.configService.get<string>('jwt.refreshSecret'),
+      secret: this.configService.getOrThrow<string>('jwt.refreshSecret'),
       expiresIn: '30d',
     });
 
     return { accessToken, refreshToken };
+  }
+
+  private hashToken(token: string): string {
+    return createHash('sha256').update(token).digest('hex');
   }
 
   private sanitizeUser(user: User) {

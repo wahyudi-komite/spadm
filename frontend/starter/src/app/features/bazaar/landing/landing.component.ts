@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewEncapsulation, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -78,7 +79,7 @@ export class BazaarLandingComponent implements OnInit {
   
   checkingOut = false;
 
-  constructor(private http: HttpClient, private dialog: MatDialog) {}
+  constructor(private http: HttpClient, private dialog: MatDialog, private router: Router) {}
 
   ngOnInit() {
     this.loadData();
@@ -146,14 +147,14 @@ export class BazaarLandingComponent implements OnInit {
         this.checkingOut = true;
         this.http.post(`${environment.apiUrl}/bazaar/orders/checkout`, {
           eventId: this.activeEvent.id,
-          productIds: this.cartIds
+          productIds: this.cartIds,
+          termsAccepted: true
         }).subscribe({
           next: (res) => {
             this.checkingOut = false;
-            alert('Pesanan berhasil dibuat!');
             this.cartIds = [];
             this.calculateCart();
-            // TODO: Navigate to order detail page
+            this.router.navigate(['/bazaar/orders']);
           },
           error: (err) => {
             this.checkingOut = false;

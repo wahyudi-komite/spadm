@@ -1,27 +1,82 @@
-import { Controller, Post, Body, Get, Param, UseGuards, Request } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+import { CurrentUser, Permissions } from '../../../common/decorators';
+import { JwtAuthGuard, PermissionsGuard } from '../../../common/guards';
+import { CreateAreaMappingDto } from './dto/create-area-mapping.dto';
 import { DistributionsService } from './distributions.service';
-import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 
 @Controller('bazaar/distributions')
 export class DistributionsController {
   constructor(private readonly distributionsService: DistributionsService) {}
 
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions('bazaar.distribution.read')
+  @Get('areas')
+  findAreas() {
+    return this.distributionsService.findAreas();
+  }
+
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions('bazaar.distribution.read')
+  @Get('mappings')
+  findMappings() {
+    return this.distributionsService.findMappings();
+  }
+
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions('settings.manage')
+  @Post('mappings')
+  createMapping(
+    @Body() dto: CreateAreaMappingDto,
+    @CurrentUser() userId: number,
+  ) {
+    return this.distributionsService.createMapping(dto, userId);
+  }
+
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions('settings.manage')
+  @Delete('mappings/:id')
+  removeMapping(@Param('id') id: string, @CurrentUser() userId: number) {
+    return this.distributionsService.removeMapping(+id, userId);
+  }
+
   @UseGuards(JwtAuthGuard)
   @Get('token/:orderId')
-  getTokenByOrder(@Param('orderId') orderId: number) {
-    return this.distributionsService.getTokenByOrder(orderId);
+  getTokenByOrder(
+    @Param('orderId') orderId: number,
+    @CurrentUser() userId: number,
+  ) {
+    return this.distributionsService.getTokenByOrder(orderId, userId);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions('bazaar.distribution.scan')
   @Get('validate/:tokenCode')
-  validateToken(@Param('tokenCode') tokenCode: string) {
-    return this.distributionsService.validateToken(tokenCode);
+  validateToken(
+    @Param('tokenCode') tokenCode: string,
+    @CurrentUser() userId: number,
+  ) {
+    return this.distributionsService.validateToken(tokenCode, userId);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions('bazaar.distribution.confirm')
   @Post('confirm')
-  confirmDistribution(@Request() req: any, @Body() body: { tokenCode: string, notes?: string }) {
-    return this.distributionsService.confirmDistribution(body.tokenCode, req.user.id, body.notes);
+  confirmDistribution(
+    @CurrentUser() userId: number,
+    @Body() body: { tokenCode: string; notes?: string },
+  ) {
+    return this.distributionsService.confirmDistribution(
+      body.tokenCode,
+      userId,
+      body.notes,
+    );
   }
 }
-
