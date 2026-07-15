@@ -57,6 +57,12 @@ export default [
     loadComponent: () => import('./notifications/notifications-monitor.component').then(m => m.NotificationsMonitorComponent),
   },
   {
+    path: 'finance',
+    canActivate: [PermissionGuard],
+    data: { permissions: ['finance.dashboard.read'] },
+    loadChildren: () => import('../../features/finance/finance.routes'),
+  },
+  {
     path: 'reports',
     canActivate: [PermissionGuard],
     data: { permissions: ['bazaar.report.read'] },
