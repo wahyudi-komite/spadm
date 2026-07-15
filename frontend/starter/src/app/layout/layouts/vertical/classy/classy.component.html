@@ -68,9 +68,7 @@
     </ng-container>
 </app-vertical-navigation>
 
-<div
-    class="flex h-full min-h-0 w-full min-w-0 flex-auto flex-col overflow-hidden"
->
+<div class="flex w-full min-w-0 min-h-0 flex-auto flex-col">
     <div
         class="spadm-shell-header relative z-49 flex h-16 w-full flex-0 items-center px-4 shadow-sm dark:border-b md:px-6 print:hidden"
     >
@@ -90,11 +88,14 @@
             </div>
         </div>
         <div class="ml-auto flex items-center space-x-0.5 pl-2 sm:space-x-2">
+            <button mat-icon-button (click)="toggleScheme()" [matTooltip]="'Tema: ' + scheme">
+                <mat-icon [svgIcon]="schemeIcons[scheme]"></mat-icon>
+            </button>
             <app-fullscreen class="hidden md:block"></app-fullscreen>
         </div>
     </div>
 
-    <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
+    <div class="flex h-0 flex-1 flex-col overflow-y-auto">
         @if (true) {
             <router-outlet></router-outlet>
         }

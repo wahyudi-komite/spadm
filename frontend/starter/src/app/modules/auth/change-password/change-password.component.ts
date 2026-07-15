@@ -69,4 +69,9 @@ export class AuthChangePasswordComponent implements OnInit {
             },
         });
     }
+
+    close(): void {
+        if (this.changePasswordForm.disabled) return;
+        this._router.navigateByUrl('/dashboard');
+    }
 }

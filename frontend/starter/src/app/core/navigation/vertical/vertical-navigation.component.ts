@@ -6,15 +6,21 @@ import {
     EventEmitter,
     inject,
     Input,
+    OnChanges,
     OnDestroy,
     OnInit,
     Output,
+    SimpleChanges,
     ViewEncapsulation,
 } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter, Subject, takeUntil } from 'rxjs';
 import { AppNavigationService } from '../navigation.service';
-import { NavigationItem, VerticalNavigationMode, VerticalNavigationPosition } from '../navigation.types';
+import {
+    NavigationItem,
+    VerticalNavigationMode,
+    VerticalNavigationPosition,
+} from '../navigation.types';
 import { AppVerticalNavBasicItemComponent } from './components/basic/basic.component';
 import { AppVerticalNavCollapsableItemComponent } from './components/collapsable/collapsable.component';
 import { AppVerticalNavDividerItemComponent } from './components/divider/divider.component';
@@ -42,10 +48,13 @@ import { AppVerticalNavSpacerItemComponent } from './components/spacer/spacer.co
         '[class.fuse-vertical-navigation-mode-side]': 'mode === "side"',
         '[class.fuse-vertical-navigation-opened]': 'opened',
         '[class.fuse-vertical-navigation-position-left]': 'position === "left"',
-        '[class.fuse-vertical-navigation-position-right]': 'position === "right"',
+        '[class.fuse-vertical-navigation-position-right]':
+            'position === "right"',
     },
 })
-export class AppVerticalNavigationComponent implements OnInit, OnDestroy {
+export class AppVerticalNavigationComponent
+    implements OnInit, OnChanges, OnDestroy
+{
     private _changeDetectorRef = inject(ChangeDetectorRef);
     private _document = inject(DOCUMENT);
     private _router = inject(Router);
@@ -67,8 +76,8 @@ export class AppVerticalNavigationComponent implements OnInit, OnDestroy {
 
         this._router.events
             .pipe(
-                filter(event => event instanceof NavigationEnd),
-                takeUntil(this._unsubscribeAll),
+                filter((event) => event instanceof NavigationEnd),
+                takeUntil(this._unsubscribeAll)
             )
             .subscribe(() => {
                 if (this.mode === 'over' && this.opened) {
@@ -77,8 +86,14 @@ export class AppVerticalNavigationComponent implements OnInit, OnDestroy {
             });
     }
 
+    ngOnChanges(changes: SimpleChanges): void {
+        if (changes['mode'] || changes['opened']) {
+            this._syncBodyScrollLock();
+        }
+    }
+
     ngOnDestroy(): void {
-        this.close();
+        this._document.body.style.overflow = '';
         this._navigationService.deregisterComponent(this.name);
         this._unsubscribeAll.next();
         this._unsubscribeAll.complete();
@@ -108,14 +123,13 @@ export class AppVerticalNavigationComponent implements OnInit, OnDestroy {
 
     private _toggleOpened(open: boolean): void {
         this.opened = open;
-        if (this.mode === 'over') {
-            if (open) {
-                this._document.body.style.overflow = 'hidden';
-            } else {
-                this._document.body.style.overflow = '';
-            }
-        }
+        this._syncBodyScrollLock();
         this.openedChanged.emit(open);
         this._changeDetectorRef.markForCheck();
+    }
+
+    private _syncBodyScrollLock(): void {
+        this._document.body.style.overflow =
+            this.mode === 'over' && this.opened ? 'hidden' : '';
     }
 }

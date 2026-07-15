@@ -4,44 +4,44 @@
     Riwayat Pesanan Bazar
   </h1>
 
-  <div *ngIf="loading" class="text-gray-500">Memuat pesanan...</div>
+  <div *ngIf="loading" class="text-gray-500 dark:text-gray-400">Memuat pesanan...</div>
 
-  <div *ngIf="!loading && orders.length === 0" class="text-gray-500 bg-white rounded-xl p-8 shadow text-center">
+  <div *ngIf="!loading && orders.length === 0" class="text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 rounded-xl p-8 shadow text-center">
     Belum ada riwayat pesanan.
   </div>
 
   <div class="space-y-6">
-    <mat-card *ngFor="let order of orders" class="rounded-2xl overflow-hidden shadow-lg border border-gray-100">
+    <mat-card *ngFor="let order of orders" class="rounded-2xl overflow-hidden shadow-lg border border-gray-100 dark:border-gray-700">
       <!-- Order Header -->
-      <div class="bg-gray-50 p-4 border-b flex flex-wrap justify-between items-center gap-4">
+      <div class="bg-gray-50 dark:bg-gray-800 p-4 border-b dark:border-b-gray-700 flex flex-wrap justify-between items-center gap-4">
         <div>
-          <div class="text-sm text-gray-500">ID Pesanan</div>
-          <div class="font-bold">#{{ order.id }}</div>
+          <div class="text-sm text-gray-500 dark:text-gray-400">ID Pesanan</div>
+          <div class="font-bold dark:text-white">#{{ order.id }}</div>
         </div>
         <div>
-          <div class="text-sm text-gray-500">Tanggal</div>
-          <div class="font-bold">{{ order.createdAt | date:'short' }}</div>
+          <div class="text-sm text-gray-500 dark:text-gray-400">Tanggal</div>
+          <div class="font-bold dark:text-white">{{ order.createdAt | date:'short' }}</div>
         </div>
         <div>
-          <div class="text-sm text-gray-500">Batch</div>
-          <div class="font-bold">{{ order.batch?.name || '-' }}</div>
+          <div class="text-sm text-gray-500 dark:text-gray-400">Batch</div>
+          <div class="font-bold dark:text-white">{{ order.batch?.name || '-' }}</div>
         </div>
         <div>
-          <div class="text-sm text-gray-500">Status</div>
+          <div class="text-sm text-gray-500 dark:text-gray-400">Status</div>
           <div class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide"
                [ngClass]="{
-                 'bg-yellow-100 text-yellow-800': order.status === 'PENDING',
-                 'bg-blue-100 text-blue-800': order.status === 'PAID' || order.status === 'CONFIRMED',
-                 'bg-green-100 text-green-800': order.status === 'COMPLETED',
-                 'bg-red-100 text-red-800': order.status === 'CANCELLED',
-                 'bg-gray-100 text-gray-600': order.status === 'EXPIRED'
+                 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300': order.status === 'PENDING',
+                 'bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300': order.status === 'PAID' || order.status === 'CONFIRMED',
+                 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300': order.status === 'COMPLETED',
+                 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300': order.status === 'CANCELLED',
+                 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300': order.status === 'EXPIRED'
                }">
             {{ order.status }}
           </div>
         </div>
         <div class="text-right">
-          <div class="text-sm text-gray-500">Total Tagihan</div>
-          <div class="font-bold text-xl text-blue-600">Rp {{ order.grandTotal | number }}</div>
+          <div class="text-sm text-gray-500 dark:text-gray-400">Total Tagihan</div>
+          <div class="font-bold text-xl text-blue-600 dark:text-blue-400">Rp {{ order.grandTotal | number }}</div>
         </div>
       </div>
 
@@ -52,40 +52,40 @@
           <div *ngFor="let item of order.items" class="flex justify-between items-center mb-2">
             <div>
               <div class="font-semibold">{{ item.productNameSnapshot }}</div>
-              <div class="text-xs text-gray-500">{{ item.quantity }}x &#64; Rp {{ item.productPriceSnapshot | number }}</div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">{{ item.quantity }}x &#64; Rp {{ item.productPriceSnapshot | number }}</div>
             </div>
             <div class="font-bold">Rp {{ item.subtotal | number }}</div>
           </div>
 
           <div class="mt-4 border-t pt-4 space-y-1 text-sm">
             <div class="flex justify-between">
-              <span class="text-gray-500">Subtotal</span>
-              <span>Rp {{ order.productSubtotal | number }}</span>
+              <span class="text-gray-500 dark:text-gray-400">Subtotal</span>
+              <span class="dark:text-gray-200">Rp {{ order.productSubtotal | number }}</span>
             </div>
             <div class="flex justify-between">
-              <span class="text-gray-500">Goodie Bag</span>
-              <span>Rp {{ order.goodieBagFee | number }}</span>
+              <span class="text-gray-500 dark:text-gray-400">Goodie Bag</span>
+              <span class="dark:text-gray-200">Rp {{ order.goodieBagFee | number }}</span>
             </div>
             <div class="flex justify-between">
-              <span class="text-gray-500">Biaya Aplikasi</span>
-              <span>Rp {{ order.applicationFee | number }}</span>
+              <span class="text-gray-500 dark:text-gray-400">Biaya Aplikasi</span>
+              <span class="dark:text-gray-200">Rp {{ order.applicationFee | number }}</span>
             </div>
-            <div class="flex justify-between text-green-600">
+            <div class="flex justify-between text-green-600 dark:text-green-400">
               <span>Subsidi SPADM</span>
               <span>-Rp {{ order.subsidy | number }}</span>
             </div>
-            <div class="flex justify-between font-bold text-lg pt-2 border-t">
-              <span>Total</span>
-              <span>Rp {{ order.grandTotal | number }}</span>
+            <div class="flex justify-between font-bold text-lg pt-2 border-t dark:border-t-gray-700">
+              <span class="dark:text-white">Total</span>
+              <span class="dark:text-white">Rp {{ order.grandTotal | number }}</span>
             </div>
           </div>
 
           <div *ngIf="order.distributionArea" class="mt-3 text-sm">
-            <span class="text-gray-500">Area Pengambilan:</span>
-            <span class="font-bold ml-2">{{ order.distributionArea?.code || order.distributionAreaId }}</span>
+            <span class="text-gray-500 dark:text-gray-400">Area Pengambilan:</span>
+            <span class="font-bold ml-2 dark:text-white">{{ order.distributionArea?.code || order.distributionAreaId }}</span>
           </div>
 
-          <div *ngIf="order.cancelReason" class="mt-3 p-2 bg-red-50 text-red-700 rounded text-sm">
+          <div *ngIf="order.cancelReason" class="mt-3 p-2 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded text-sm">
             Alasan batal: {{ order.cancelReason }}
           </div>
         </div>
@@ -93,27 +93,27 @@
         <!-- Payment / Token / Action Area -->
         <div class="md:w-1/3 rounded-xl p-4 border flex flex-col items-center justify-center text-center"
              [ngClass]="{
-               'bg-blue-50/50 border-blue-100': order.status === 'PENDING',
-               'bg-green-50/50 border-green-100': order.status === 'PAID' || order.status === 'CONFIRMED',
-               'bg-gray-50 border-gray-200': order.status === 'CANCELLED' || order.status === 'EXPIRED'
+               'bg-blue-50/50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800': order.status === 'PENDING',
+               'bg-green-50/50 dark:bg-green-900/20 border-green-100 dark:border-green-800': order.status === 'PAID' || order.status === 'CONFIRMED',
+               'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700': order.status === 'CANCELLED' || order.status === 'EXPIRED'
              }">
           
           <!-- PENDING STATE (SHOW QRIS + CANCEL) -->
           <ng-container *ngIf="order.status === 'PENDING'">
             <ng-container *ngIf="paymentData[order.id]; else generatingPayment">
-              <h4 class="font-bold text-blue-800 mb-2">Segera Lakukan Pembayaran</h4>
-              <div class="text-xs text-blue-600 mb-4">Ref: {{ paymentData[order.id].referenceId }}</div>
+              <h4 class="font-bold text-blue-800 dark:text-blue-300 mb-2">Segera Lakukan Pembayaran</h4>
+              <div class="text-xs text-blue-600 dark:text-blue-400 mb-4">Ref: {{ paymentData[order.id].referenceId }}</div>
               
-              <div class="bg-white p-2 rounded-lg shadow-sm border mb-4 flex justify-center items-center">
+              <div class="bg-white dark:bg-gray-800 p-2 rounded-lg shadow-sm border dark:border-gray-600 mb-4 flex justify-center items-center">
                 <qr-code *ngIf="paymentData[order.id].qrisPayload" [value]="paymentData[order.id].qrisPayload" [size]="150"></qr-code>
-                <div *ngIf="!paymentData[order.id].qrisPayload" class="text-sm text-gray-400 py-8">Memuat QRIS...</div>
+                <div *ngIf="!paymentData[order.id].qrisPayload" class="text-sm text-gray-400 dark:text-gray-500 py-8">Memuat QRIS...</div>
               </div>
 
-              <div *ngIf="paymentData[order.id].expiredAt" class="text-xs text-red-500 mb-2">
+              <div *ngIf="paymentData[order.id].expiredAt" class="text-xs text-red-500 dark:text-red-400 mb-2">
                 Berlaku hingga: {{ paymentData[order.id].expiredAt | date:'short' }}
               </div>
 
-              <div class="text-xs text-gray-500 mb-4">
+              <div class="text-xs text-gray-500 dark:text-gray-400 mb-4">
         Status pembayaran akan diperbarui otomatis setelah pembayaran berhasil.
               </div>
 
@@ -124,41 +124,41 @@
               </button>
             </ng-container>
             <ng-template #generatingPayment>
-              <div class="text-sm text-gray-500">Menyiapkan pembayaran...</div>
+              <div class="text-sm text-gray-500 dark:text-gray-400">Menyiapkan pembayaran...</div>
             </ng-template>
           </ng-container>
 
           <!-- PAID/CONFIRMED STATE (SHOW PICKUP TOKEN) -->
           <ng-container *ngIf="(order.status === 'PAID' || order.status === 'CONFIRMED') && tokenData[order.id]">
-            <h4 class="font-bold text-green-800 mb-2">QR Pengambilan Barang</h4>
-            <div class="text-xs text-gray-500 mb-4">Tunjukkan QR ini ke PIC Area {{ order.distributionArea?.code }}.</div>
+            <h4 class="font-bold text-green-800 dark:text-green-300 mb-2">QR Pengambilan Barang</h4>
+            <div class="text-xs text-gray-500 dark:text-gray-400 mb-4">Tunjukkan QR ini ke PIC Area {{ order.distributionArea?.code }}.</div>
             
-            <div class="bg-white p-4 rounded-xl shadow border border-green-200 mb-2 flex justify-center items-center">
+            <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow border border-green-200 dark:border-green-800 mb-2 flex justify-center items-center">
               <qr-code [value]="tokenData[order.id].tokenCode" [size]="150"></qr-code>
             </div>
             
-            <div class="text-sm font-bold text-green-600" *ngIf="tokenData[order.id].isUsed">SUDAH DIAMBIL</div>
-            <div class="text-sm font-bold text-yellow-600" *ngIf="!tokenData[order.id].isUsed">MENUNGGU PENGAMBILAN</div>
+            <div class="text-sm font-bold text-green-600 dark:text-green-400" *ngIf="tokenData[order.id].isUsed">SUDAH DIAMBIL</div>
+            <div class="text-sm font-bold text-yellow-600 dark:text-yellow-400" *ngIf="!tokenData[order.id].isUsed">MENUNGGU PENGAMBILAN</div>
           </ng-container>
 
           <!-- COMPLETED STATE -->
           <ng-container *ngIf="order.status === 'COMPLETED'">
-            <mat-icon class="text-green-500 text-6xl mb-2" style="height: 64px; width: 64px;">check_circle</mat-icon>
-            <h4 class="font-bold text-green-800">Transaksi Selesai</h4>
-            <div class="text-xs text-gray-500">Barang telah berhasil diambil.</div>
+            <mat-icon class="text-green-500 dark:text-green-400 text-6xl mb-2" style="height: 64px; width: 64px;">check_circle</mat-icon>
+            <h4 class="font-bold text-green-800 dark:text-green-300">Transaksi Selesai</h4>
+            <div class="text-xs text-gray-500 dark:text-gray-400">Barang telah berhasil diambil.</div>
           </ng-container>
 
           <!-- CANCELLED/EXPIRED STATE -->
           <ng-container *ngIf="order.status === 'CANCELLED'">
-            <mat-icon class="text-red-400 text-6xl mb-2" style="height: 64px; width: 64px;">cancel</mat-icon>
-            <h4 class="font-bold text-red-700">Pesanan Dibatalkan</h4>
-            <div class="text-xs text-gray-500">Pesanan ini telah dibatalkan.</div>
+            <mat-icon class="text-red-400 dark:text-red-300 text-6xl mb-2" style="height: 64px; width: 64px;">cancel</mat-icon>
+            <h4 class="font-bold text-red-700 dark:text-red-300">Pesanan Dibatalkan</h4>
+            <div class="text-xs text-gray-500 dark:text-gray-400">Pesanan ini telah dibatalkan.</div>
           </ng-container>
 
           <ng-container *ngIf="order.status === 'EXPIRED'">
-            <mat-icon class="text-gray-400 text-6xl mb-2" style="height: 64px; width: 64px;">timer_off</mat-icon>
-            <h4 class="font-bold text-gray-600">Pembayaran Kedaluwarsa</h4>
-            <div class="text-xs text-gray-500">Waktu pembayaran telah habis.</div>
+            <mat-icon class="text-gray-400 dark:text-gray-500 text-6xl mb-2" style="height: 64px; width: 64px;">timer_off</mat-icon>
+            <h4 class="font-bold text-gray-600 dark:text-gray-300">Pembayaran Kedaluwarsa</h4>
+            <div class="text-xs text-gray-500 dark:text-gray-400">Waktu pembayaran telah habis.</div>
           </ng-container>
 
         </div>

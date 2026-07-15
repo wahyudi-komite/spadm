@@ -1,7 +1,7 @@
-import { Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -19,6 +19,7 @@ import { environment } from 'environments/environment';
 export class AdminMemberDetailComponent implements OnInit {
   member: any = { npk: '', name: '', email: '', phone: '', workUnit: '', organizationalPosition: '', plant: '', status: 'active' };
   loading = false;
+  @ViewChild('memberForm') memberForm!: NgForm;
 
   constructor(private http: HttpClient, private route: ActivatedRoute, private router: Router) {}
 
@@ -34,6 +35,7 @@ export class AdminMemberDetailComponent implements OnInit {
   }
 
   save() {
+    if (!this.memberForm.valid) return;
     this.loading = true;
     this.http.patch(`${environment.apiUrl}/members/${this.member.id}`, this.member).subscribe(() => {
       this.loading = false;

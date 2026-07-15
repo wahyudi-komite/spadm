@@ -34,9 +34,17 @@ import { DialogFeedbackService } from 'app/shared/dialog-feedback/dialog-feedbac
     </mat-dialog-content>
     <mat-dialog-actions align="end">
       <button mat-button mat-dialog-close>Batal</button>
-      <button mat-flat-button color="primary" [disabled]="form.invalid" (click)="confirm()">Setuju & Buat Pesanan</button>
+      <button class="spadm-checkout-confirm" mat-flat-button color="primary" [disabled]="form.invalid" (click)="confirm()">Setuju & Buat Pesanan</button>
     </mat-dialog-actions>
   `,
+  styles: [`
+    button.spadm-checkout-confirm:disabled {
+      background: #cbd5e1 !important;
+      color: #64748b !important;
+      box-shadow: none !important;
+      opacity: 1;
+    }
+  `],
   imports: [CommonModule, MatDialogModule, MatButtonModule, MatCheckboxModule, ReactiveFormsModule],
   standalone: true
 })

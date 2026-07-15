@@ -6,7 +6,7 @@
 
   @if (!data) {
     <div class="flex justify-center py-16">
-      <p class="text-hint">Memuat data dashboard...</p>
+      <p class="text-hint dark:text-gray-400">Memuat data dashboard...</p>
     </div>
   } @else {
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -16,11 +16,11 @@
       </div>
       <div class="bg-card rounded-2xl shadow p-5">
         <p class="text-secondary text-sm font-medium">Pembayaran Berhasil</p>
-        <p class="text-3xl font-bold mt-1 text-green-600">{{ data.kpis.paidOrders }}</p>
+        <p class="text-3xl font-bold mt-1 text-green-600 dark:text-green-400">{{ data.kpis.paidOrders }}</p>
       </div>
       <div class="bg-card rounded-2xl shadow p-5">
         <p class="text-secondary text-sm font-medium">Payment Pending</p>
-        <p class="text-3xl font-bold mt-1 text-amber-600">{{ data.kpis.pendingPayments }}</p>
+        <p class="text-3xl font-bold mt-1 text-amber-600 dark:text-amber-400">{{ data.kpis.pendingPayments }}</p>
       </div>
       <div class="bg-card rounded-2xl shadow p-5">
         <p class="text-secondary text-sm font-medium">Partisipasi</p>
@@ -56,7 +56,7 @@
     </div>
 
     <div class="bg-card rounded-2xl shadow overflow-hidden">
-      <div class="p-5 border-b">
+      <div class="p-5 border-b dark:border-b-gray-700">
         <h2 class="text-lg font-semibold">Rekap per Area</h2>
       </div>
       <div class="overflow-x-auto">
@@ -70,7 +70,7 @@
           </thead>
           <tbody>
             @for (area of data.byArea; track area.label) {
-              <tr class="border-b last:border-0 hover:bg-gray-50">
+              <tr class="border-b last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800">
                 <td class="p-3">{{ area.label || '-' }}</td>
                 <td class="p-3">{{ area.total }}</td>
                 <td class="p-3">{{ area.paid }}</td>
