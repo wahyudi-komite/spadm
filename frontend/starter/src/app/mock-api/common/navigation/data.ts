@@ -25,9 +25,46 @@ const menu: NavigationItem[] = [
     {
         id: 'admin',
         title: 'Admin',
-        type: 'basic',
+        type: 'collapsable',
         icon: 'heroicons_outline:shield-check',
-        link: '/admin/roles',
+        children: [
+            {
+                id: 'admin_roles',
+                title: 'Role Management',
+                type: 'basic',
+                link: '/admin/roles'
+            },
+            {
+                id: 'admin_members',
+                title: 'Anggota',
+                type: 'basic',
+                link: '/admin/members'
+            },
+            {
+                id: 'admin_notifications',
+                title: 'Notification Monitor',
+                type: 'basic',
+                link: '/admin/notifications'
+            },
+            {
+                id: 'admin_reports',
+                title: 'Laporan',
+                type: 'basic',
+                link: '/admin/reports'
+            },
+            {
+                id: 'admin_finance',
+                title: 'Finance',
+                type: 'basic',
+                link: '/admin/finance'
+            },
+            {
+                id: 'admin_leadership',
+                title: 'Leadership',
+                type: 'basic',
+                link: '/admin/leadership'
+            }
+        ]
     },
     {
         id: 'admin_bazaar',

@@ -1,0 +1,84 @@
+<div class="p-8">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold">Dashboard Bazar</h1>
+    <div></div>
+  </div>
+
+  @if (!data) {
+    <div class="flex justify-center py-16">
+      <p class="text-hint">Memuat data dashboard...</p>
+    </div>
+  } @else {
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div class="bg-card rounded-2xl shadow p-5">
+        <p class="text-secondary text-sm font-medium">Total Transaksi</p>
+        <p class="text-3xl font-bold mt-1">{{ data.kpis.totalOrders }}</p>
+      </div>
+      <div class="bg-card rounded-2xl shadow p-5">
+        <p class="text-secondary text-sm font-medium">Pembayaran Berhasil</p>
+        <p class="text-3xl font-bold mt-1 text-green-600">{{ data.kpis.paidOrders }}</p>
+      </div>
+      <div class="bg-card rounded-2xl shadow p-5">
+        <p class="text-secondary text-sm font-medium">Payment Pending</p>
+        <p class="text-3xl font-bold mt-1 text-amber-600">{{ data.kpis.pendingPayments }}</p>
+      </div>
+      <div class="bg-card rounded-2xl shadow p-5">
+        <p class="text-secondary text-sm font-medium">Partisipasi</p>
+        <p class="text-3xl font-bold mt-1">{{ data.kpis.participationPercentage }}%</p>
+      </div>
+      <div class="bg-card rounded-2xl shadow p-5">
+        <p class="text-secondary text-sm font-medium">Penerimaan</p>
+        <p class="text-3xl font-bold mt-1">{{ formatCurrency(data.kpis.receivedAmount) }}</p>
+      </div>
+      <div class="bg-card rounded-2xl shadow p-5">
+        <p class="text-secondary text-sm font-medium">Subsidi</p>
+        <p class="text-3xl font-bold mt-1">{{ formatCurrency(data.kpis.totalSubsidy) }}</p>
+      </div>
+      <div class="bg-card rounded-2xl shadow p-5">
+        <p class="text-secondary text-sm font-medium">Goodie Bag</p>
+        <p class="text-3xl font-bold mt-1">{{ formatCurrency(data.kpis.totalGoodieBag) }}</p>
+      </div>
+      <div class="bg-card rounded-2xl shadow p-5">
+        <p class="text-secondary text-sm font-medium">Sudah Distribusi</p>
+        <p class="text-3xl font-bold mt-1">{{ data.kpis.distributedOrders }}</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div class="bg-card rounded-2xl shadow p-5">
+        <h2 class="text-lg font-semibold mb-4">Per Area</h2>
+        <apx-chart [chart]="areaChart.chart!" [series]="areaChart.series!" [xaxis]="areaChart.xaxis!" [colors]="areaChart.colors!"></apx-chart>
+      </div>
+      <div class="bg-card rounded-2xl shadow p-5">
+        <h2 class="text-lg font-semibold mb-4">Per Produk</h2>
+        <apx-chart [chart]="productChart.chart!" [series]="productChart.series!" [labels]="productChart.labels!" [colors]="productChart.colors!"></apx-chart>
+      </div>
+    </div>
+
+    <div class="bg-card rounded-2xl shadow overflow-hidden">
+      <div class="p-5 border-b">
+        <h2 class="text-lg font-semibold">Rekap per Area</h2>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="text-left text-sm text-secondary border-b">
+              <th class="p-3 font-medium">Area</th>
+              <th class="p-3 font-medium">Total</th>
+              <th class="p-3 font-medium">Dibayar</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (area of data.byArea; track area.label) {
+              <tr class="border-b last:border-0 hover:bg-gray-50">
+                <td class="p-3">{{ area.label || '-' }}</td>
+                <td class="p-3">{{ area.total }}</td>
+                <td class="p-3">{{ area.paid }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+</div>

@@ -9,6 +9,26 @@
       </div>
     </div>
 
+    <section class="mb-8">
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div class="rounded-2xl bg-slate-900 p-5 text-white shadow-lg">
+          <div class="text-xs font-bold uppercase tracking-wider text-cyan-300">Siap Diambil</div>
+          <div class="mt-2 text-4xl font-black">{{ dashboard?.stats?.readyForPickup || 0 }}</div>
+        </div>
+        <div class="rounded-2xl bg-emerald-600 p-5 text-white shadow-lg">
+          <div class="text-xs font-bold uppercase tracking-wider text-emerald-100">Selesai Hari Ini</div>
+          <div class="mt-2 text-4xl font-black">{{ dashboard?.stats?.distributedToday || 0 }}</div>
+        </div>
+      </div>
+
+      <div *ngIf="dashboard?.areas?.length" class="flex flex-wrap gap-2">
+        <button mat-stroked-button type="button" (click)="selectArea(null)" [class.bg-cyan-50]="selectedAreaId === null">Semua Area</button>
+        <button *ngFor="let area of dashboard?.areas" mat-stroked-button type="button" (click)="selectArea(area.id)" [class.bg-cyan-50]="selectedAreaId === area.id">
+          {{ area.code }} - {{ area.name }}
+        </button>
+      </div>
+    </section>
+
     <!-- Scanner Input Box -->
     <mat-card class="p-6 mb-8 shadow rounded-2xl border-0">
       <form (ngSubmit)="scanToken()" class="flex gap-4 items-center">
@@ -22,11 +42,65 @@
         </button>
       </form>
 
+      <div class="mt-4 flex items-center gap-3">
+        <button *ngIf="cameraSupported && !cameraActive" mat-stroked-button type="button" (click)="startCamera()">
+          <mat-icon>photo_camera</mat-icon>
+          Scan dengan kamera
+        </button>
+        <button *ngIf="cameraActive" mat-stroked-button color="warn" type="button" (click)="stopCamera()">
+          <mat-icon>videocam_off</mat-icon>
+          Tutup kamera
+        </button>
+        <span *ngIf="!cameraSupported" class="text-xs text-gray-500">Kamera QR tidak tersedia; gunakan scanner USB atau input manual.</span>
+      </div>
+
+      <div [class.hidden]="!cameraActive" class="relative mt-4 overflow-hidden rounded-2xl bg-black aspect-video">
+        <video #cameraVideo class="h-full w-full object-cover" muted playsinline></video>
+        <div class="pointer-events-none absolute inset-8 rounded-2xl border-2 border-cyan-300 shadow-[0_0_0_999px_rgba(0,0,0,0.35)]"></div>
+      </div>
+
       <div *ngIf="error" class="mt-4 p-4 bg-red-50 text-red-700 rounded-lg flex items-center">
         <mat-icon class="mr-2">error_outline</mat-icon>
         {{ error }}
       </div>
     </mat-card>
+
+    <section *ngIf="!scannedToken" class="mb-8 grid gap-6 lg:grid-cols-2">
+      <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+        <div class="border-b border-gray-100 p-5">
+          <h2 class="text-lg font-black">Antrean Siap Diambil</h2>
+          <p class="text-sm text-gray-500">Maksimal 100 order terlama ditampilkan.</p>
+        </div>
+        <div *ngIf="dashboardLoading" class="p-6 text-center text-gray-500">Memuat antrean...</div>
+        <div *ngIf="!dashboardLoading && !dashboard?.orders?.length" class="p-6 text-center text-gray-500">Tidak ada order yang menunggu.</div>
+        <div class="max-h-96 divide-y divide-gray-100 overflow-y-auto">
+          <div *ngFor="let order of dashboard?.orders" class="flex items-center justify-between gap-4 p-4">
+            <div class="min-w-0">
+              <div class="truncate font-bold">{{ order.member.name }} <span class="font-normal text-gray-400">({{ order.member.npk }})</span></div>
+              <div class="text-xs text-gray-500">{{ order.orderNumber }} - {{ order.totalItems }} barang</div>
+            </div>
+            <span class="rounded-full bg-cyan-50 px-3 py-1 text-xs font-bold text-cyan-700">{{ order.area.code }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+        <div class="border-b border-gray-100 p-5">
+          <h2 class="text-lg font-black">Selesai Hari Ini</h2>
+          <p class="text-sm text-gray-500">20 penyerahan terbaru.</p>
+        </div>
+        <div *ngIf="!dashboard?.recentDistributions?.length" class="p-6 text-center text-gray-500">Belum ada penyerahan hari ini.</div>
+        <div class="max-h-96 divide-y divide-gray-100 overflow-y-auto">
+          <div *ngFor="let item of dashboard?.recentDistributions" class="flex items-center justify-between gap-4 p-4">
+            <div class="min-w-0">
+              <div class="truncate font-bold">{{ item.memberName }}</div>
+              <div class="text-xs text-gray-500">{{ item.orderNumber }} - {{ item.distributedAt | date:'shortTime' }}</div>
+            </div>
+            <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">{{ item.area.code }}</span>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- Scanned Result -->
     <div *ngIf="scannedToken" class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">

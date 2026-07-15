@@ -9,6 +9,7 @@ import { JwtAuthGuard, PermissionsGuard } from '../../common/guards';
 describe('NotificationsController', () => {
   let controller: NotificationsController;
   let service: jest.Mocked<NotificationsService>;
+  let whatsappProvider: { getStatus: jest.Mock };
 
   const mockNotification = {
     id: 1, userId: 1, type: NotificationType.PAYMENT_SUCCESS,
@@ -24,14 +25,16 @@ describe('NotificationsController', () => {
       markRead: jest.fn(),
       markAllRead: jest.fn(),
       listDeliveries: jest.fn(),
+      deliverySummary: jest.fn(),
       retryDelivery: jest.fn(),
     };
+    const mockWhatsAppProvider = { getStatus: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [NotificationsController],
       providers: [
         { provide: NotificationsService, useValue: mockService },
-        { provide: WHATSAPP_PROVIDER, useValue: { getStatus: jest.fn() } },
+        { provide: WHATSAPP_PROVIDER, useValue: mockWhatsAppProvider },
       ],
     })
       .overrideGuard(JwtAuthGuard)
@@ -42,6 +45,7 @@ describe('NotificationsController', () => {
 
     controller = module.get(NotificationsController);
     service = module.get(NotificationsService);
+    whatsappProvider = module.get(WHATSAPP_PROVIDER);
   });
 
   it('should be defined', () => {
@@ -116,6 +120,18 @@ describe('NotificationsController', () => {
 
       expect(response).toEqual(delivery);
       expect(service.retryDelivery).toHaveBeenCalledWith(1);
+    });
+  });
+
+  describe('deliverySummary', () => {
+    it('should return provider and delivery status', async () => {
+      const deliveries = { total: 3, pendingWork: 1, byStatus: {} as any };
+      whatsappProvider.getStatus.mockReturnValue({ connected: true });
+      service.deliverySummary.mockResolvedValue(deliveries);
+
+      const response = await controller.deliverySummary();
+
+      expect(response).toEqual({ whatsapp: { connected: true }, deliveries });
     });
   });
 });

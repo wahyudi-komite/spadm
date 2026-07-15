@@ -9,6 +9,12 @@ export default [
     loadChildren: () => import('./roles/roles.routes'),
   },
   {
+    path: 'members',
+    canActivate: [PermissionGuard],
+    data: { permissions: ['member.read'] },
+    loadChildren: () => import('./members/members.routes'),
+  },
+  {
     path: 'users/:id/roles',
     canActivate: [PermissionGuard],
     data: { permissions: ['role.assign'] },
@@ -43,5 +49,29 @@ export default [
     canActivate: [PermissionGuard],
     data: { permissions: ['bazaar.distribution.scan'] },
     loadComponent: () => import('./bazaar/distribution/distribution.component').then(m => m.AdminBazaarDistributionComponent)
-  }
+  },
+  {
+    path: 'notifications',
+    canActivate: [PermissionGuard],
+    data: { permissions: ['settings.manage'] },
+    loadComponent: () => import('./notifications/notifications-monitor.component').then(m => m.NotificationsMonitorComponent),
+  },
+  {
+    path: 'finance',
+    canActivate: [PermissionGuard],
+    data: { permissions: ['finance.dashboard.read'] },
+    loadChildren: () => import('../../features/finance/finance.routes'),
+  },
+  {
+    path: 'reports',
+    canActivate: [PermissionGuard],
+    data: { permissions: ['bazaar.report.read'] },
+    loadChildren: () => import('../../features/reports/reports.routes'),
+  },
+  {
+    path: 'leadership',
+    canActivate: [PermissionGuard],
+    data: { permissions: ['finance.dashboard.read'] },
+    loadChildren: () => import('../../features/leadership/leadership.routes'),
+  },
 ] as Routes;

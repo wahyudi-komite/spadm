@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException, BadRequestException, forwardRef, Inject } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException, forwardRef, Inject, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, IsNull, Repository } from 'typeorm';
 import { Distribution } from './entities/distribution.entity';
 import { PickupToken } from './entities/pickup-token.entity';
 import { OrdersService } from '../orders/orders.service';
@@ -8,18 +8,20 @@ import { DistributionArea } from './entities/distribution-area.entity';
 import { OrganizationalUnitAreaMapping } from './entities/ou-area-mapping.entity';
 import { CreateAreaMappingDto } from './dto/create-area-mapping.dto';
 import { AuditLogService } from '../../audit-logs/audit-log.service';
-import { IsNull } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
-import { createHmac, randomUUID, timingSafeEqual } from 'crypto';
+import { randomUUID } from 'crypto';
 import { UserRole } from '../../roles/user-role.entity';
 import { OrderStatus, BazaarOrder } from '../orders/entities/order.entity';
 import { BatchStatus } from '../batches/entities/batch.entity';
 import { BazaarOrderStatusHistory } from '../orders/entities/order-status-history.entity';
 import { DistributionHistory } from './entities/distribution-history.entity';
 import { NotificationsService } from '../../notifications/notifications.service';
+import { signPickupToken, verifyPickupToken } from './pickup-token.util';
 
 @Injectable()
 export class DistributionsService {
+  private readonly logger = new Logger(DistributionsService.name);
+
   constructor(
     @InjectRepository(Distribution)
     private distributionRepo: Repository<Distribution>,
@@ -80,7 +82,7 @@ export class DistributionsService {
 
     await this.assertPicAreaAccess(picUserId, token.order.distributionAreaId);
 
-    return this.presentToken(token);
+    return this.presentValidatedToken(token);
   }
 
   async confirmDistribution(qrToken: string, picUserId: number, notes?: string) {
@@ -123,15 +125,26 @@ export class DistributionsService {
         return saved;
       },
     );
-    await this.auditLogService.log({
-      userId: picUserId,
-      action: 'CONFIRM_DISTRIBUTION',
-      module: 'bazaar',
-      entityType: 'distribution',
-      entityId: distribution.id,
-      description: `Order ${validated.order.orderNumber} diserahkan`,
+    const sideEffects = await Promise.allSettled([
+      this.auditLogService.log({
+        userId: picUserId,
+        action: 'CONFIRM_DISTRIBUTION',
+        module: 'bazaar',
+        entityType: 'distribution',
+        entityId: distribution.id,
+        description: `Order ${validated.order.orderNumber} diserahkan`,
+      }),
+      this.notificationsService.notifyOrderDistributed(validated.order.id),
+    ]);
+    sideEffects.forEach((result, index) => {
+      if (result.status === 'rejected') {
+        const task = index === 0 ? 'audit log' : 'notification';
+        this.logger.error(
+          `Distribusi #${distribution.id} berhasil, tetapi ${task} gagal`,
+          result.reason instanceof Error ? result.reason.stack : String(result.reason),
+        );
+      }
     });
-    await this.notificationsService.notifyOrderDistributed(validated.order.id);
     return distribution;
   }
 
@@ -141,6 +154,99 @@ export class DistributionsService {
       where: { order: { id: orderId } },
     });
     return token ? this.presentToken(token) : null;
+  }
+
+  async getPicDashboard(userId: number, requestedAreaId?: number) {
+    const access = await this.getPicAreaAccess(userId);
+    if (
+      requestedAreaId &&
+      !access.unrestricted &&
+      !access.areaIds.includes(requestedAreaId)
+    ) {
+      throw new ForbiddenException('Anda tidak memiliki akses ke area ini');
+    }
+
+    const areaIds = requestedAreaId
+      ? [requestedAreaId]
+      : access.unrestricted
+        ? undefined
+        : access.areaIds;
+    const areas = await this.distributionAreaRepo.find({
+      where: {
+        isActive: true,
+        deletedAt: IsNull(),
+        ...(areaIds ? { id: In(areaIds) } : {}),
+      },
+      order: { code: 'ASC' },
+    });
+
+    const readyQuery = this.pickupTokenRepo.manager
+      .getRepository(BazaarOrder)
+      .createQueryBuilder('order')
+      .innerJoin(PickupToken, 'token', 'token.order_id = order.id')
+      .leftJoinAndSelect('order.user', 'user')
+      .leftJoinAndSelect('user.member', 'member')
+      .leftJoinAndSelect('order.event', 'event')
+      .leftJoinAndSelect('order.batch', 'batch')
+      .leftJoinAndSelect('order.distributionArea', 'area')
+      .leftJoinAndSelect('order.items', 'items')
+      .where('token.is_used = :isUsed', { isUsed: false })
+      .andWhere('order.status IN (:...statuses)', {
+        statuses: [OrderStatus.CONFIRMED, OrderStatus.PAID],
+      })
+      .andWhere('batch.status = :batchStatus', {
+        batchStatus: BatchStatus.DISTRIBUTION,
+      });
+    if (areaIds) readyQuery.andWhere('order.distributionAreaId IN (:...areaIds)', { areaIds });
+
+    const readyForPickup = await readyQuery.getCount();
+    const orders = await readyQuery
+      .orderBy('order.createdAt', 'ASC')
+      .take(100)
+      .getMany();
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const distributedQuery = this.distributionRepo
+      .createQueryBuilder('distribution')
+      .leftJoinAndSelect('distribution.order', 'order')
+      .leftJoinAndSelect('order.user', 'user')
+      .leftJoinAndSelect('user.member', 'member')
+      .leftJoinAndSelect('order.distributionArea', 'area')
+      .leftJoinAndSelect('distribution.distributedBy', 'distributedBy')
+      .where('distribution.distributedAt >= :startOfDay', { startOfDay });
+    if (areaIds) distributedQuery.andWhere('order.distributionAreaId IN (:...areaIds)', { areaIds });
+
+    const distributedToday = await distributedQuery.getCount();
+    const recentDistributions = await distributedQuery
+      .orderBy('distribution.distributedAt', 'DESC')
+      .take(20)
+      .getMany();
+
+    return {
+      areas,
+      stats: { readyForPickup, distributedToday },
+      orders: orders.map((order) => ({
+        id: order.id,
+        orderNumber: order.orderNumber,
+        member: {
+          npk: order.user?.npk,
+          name: order.user?.member?.name,
+        },
+        event: order.event?.name,
+        batch: order.batch?.name,
+        area: order.distributionArea,
+        totalItems: order.items?.reduce((sum, item) => sum + item.quantity, 0) || 0,
+        createdAt: order.createdAt,
+      })),
+      recentDistributions: recentDistributions.map((distribution) => ({
+        id: distribution.id,
+        orderNumber: distribution.order?.orderNumber,
+        memberName: distribution.order?.user?.member?.name,
+        area: distribution.order?.distributionArea,
+        distributedBy: distribution.distributedBy?.npk,
+        distributedAt: distribution.distributedAt,
+      })),
+    };
   }
 
   findAreas() {
@@ -209,7 +315,7 @@ export class DistributionsService {
     });
   }
 
-  private async assertPicAreaAccess(userId: number, areaId: number): Promise<void> {
+  private async getPicAreaAccess(userId: number) {
     const now = new Date();
     const assignments = await this.userRoleRepo
       .createQueryBuilder('assignment')
@@ -222,43 +328,71 @@ export class DistributionsService {
       .getMany();
 
     const unrestricted = assignments.some((assignment) =>
-      ['SUPER_ADMIN', 'BAZAAR_ADMIN'].includes(assignment.role.name),
+      ['SUPER_ADMIN', 'BAZAAR_ADMIN'].includes(assignment.role?.name),
     );
-    const matchingArea = assignments.some(
-      (assignment) =>
-        assignment.role.name === 'AREA_PIC' && assignment.areaId === areaId,
-    );
-    if (!unrestricted && !matchingArea) {
+    const areaIds = assignments
+      .filter((assignment) => assignment.role?.name === 'AREA_PIC' && assignment.areaId)
+      .map((assignment) => assignment.areaId);
+    if (!unrestricted && areaIds.length === 0) {
+      throw new ForbiddenException('Akun PIC belum memiliki penugasan area aktif');
+    }
+    return { unrestricted, areaIds };
+  }
+
+  private async assertPicAreaAccess(userId: number, areaId: number): Promise<void> {
+    const access = await this.getPicAreaAccess(userId);
+    if (!access.unrestricted && !access.areaIds.includes(areaId)) {
       throw new BadRequestException('PIC tidak memiliki akses ke area order ini');
     }
   }
 
   private presentToken(token: PickupToken) {
     return {
-      ...token,
-      tokenCode: `${token.tokenCode}.${this.signToken(token.tokenCode)}`,
+      id: token.id,
+      tokenCode: signPickupToken(token.tokenCode, this.pickupTokenSecret),
+      isUsed: token.isUsed,
+      createdAt: token.createdAt,
+      updatedAt: token.updatedAt,
+    };
+  }
+
+  private presentValidatedToken(token: PickupToken) {
+    const order = token.order;
+    return {
+      ...this.presentToken(token),
+      order: {
+        id: order.id,
+        orderNumber: order.orderNumber,
+        status: order.status,
+        distributionAreaId: order.distributionAreaId,
+        user: {
+          npk: order.user?.npk,
+          member: order.user?.member ? {
+            name: order.user.member.name,
+            status: order.user.member.status,
+          } : null,
+        },
+        event: order.event ? { id: order.event.id, name: order.event.name } : null,
+        batch: order.batch ? { id: order.batch.id, name: order.batch.name, status: order.batch.status } : null,
+        distributionArea: order.distributionArea ? {
+          id: order.distributionArea.id,
+          code: order.distributionArea.code,
+          name: order.distributionArea.name,
+        } : null,
+        items: (order.items || []).map((item) => ({
+          id: item.id,
+          productNameSnapshot: item.productNameSnapshot,
+          quantity: item.quantity,
+        })),
+      },
     };
   }
 
   private verifyAndExtractToken(value: string): string {
-    const separator = value.lastIndexOf('.');
-    if (separator < 1) throw new BadRequestException('Format QR tidak valid');
-    const tokenCode = value.slice(0, separator);
-    const signature = value.slice(separator + 1);
-    const expected = this.signToken(tokenCode);
-    const actualBuffer = Buffer.from(signature);
-    const expectedBuffer = Buffer.from(expected);
-    if (
-      actualBuffer.length !== expectedBuffer.length ||
-      !timingSafeEqual(actualBuffer, expectedBuffer)
-    ) {
-      throw new BadRequestException('Signature QR tidak valid');
-    }
-    return tokenCode;
+    return verifyPickupToken(value, this.pickupTokenSecret);
   }
 
-  private signToken(tokenCode: string): string {
-    const secret = this.configService.getOrThrow<string>('PICKUP_TOKEN_SECRET');
-    return createHmac('sha256', secret).update(tokenCode).digest('base64url');
+  private get pickupTokenSecret(): string {
+    return this.configService.getOrThrow<string>('PICKUP_TOKEN_SECRET');
   }
 }

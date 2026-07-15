@@ -1,12 +1,18 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotificationsGateway } from './notifications.gateway';
+import { JwtService } from '@nestjs/jwt';
 
 describe('NotificationsGateway', () => {
   let gateway: NotificationsGateway;
+  let jwtService: { verifyAsync: jest.Mock };
 
   beforeEach(async () => {
+    jwtService = { verifyAsync: jest.fn().mockResolvedValue({ sub: 1 }) };
     const module: TestingModule = await Test.createTestingModule({
-      providers: [NotificationsGateway],
+      providers: [
+        NotificationsGateway,
+        { provide: JwtService, useValue: jwtService },
+      ],
     }).compile();
 
     gateway = module.get(NotificationsGateway);
@@ -17,39 +23,44 @@ describe('NotificationsGateway', () => {
   });
 
   describe('handleConnection', () => {
-    it('should join user room when userId is provided', () => {
+    it('should join the authenticated user room', async () => {
       const client = {
-        handshake: { query: { userId: '1' } },
+        handshake: { auth: { token: 'valid-token' }, headers: {} },
         id: 'socket-1',
         join: jest.fn(),
+        disconnect: jest.fn(),
       } as any;
 
-      gateway.handleConnection(client);
+      await gateway.handleConnection(client);
 
+      expect(jwtService.verifyAsync).toHaveBeenCalledWith('valid-token');
       expect(client.join).toHaveBeenCalledWith('user-1');
     });
 
-    it('should not join when userId is missing', () => {
+    it('should disconnect when token is missing', async () => {
       const client = {
-        handshake: { query: {} },
+        handshake: { auth: {}, headers: {} },
         id: 'socket-1',
         join: jest.fn(),
+        disconnect: jest.fn(),
       } as any;
 
-      gateway.handleConnection(client);
+      await gateway.handleConnection(client);
 
       expect(client.join).not.toHaveBeenCalled();
+      expect(client.disconnect).toHaveBeenCalledWith(true);
     });
   });
 
   describe('handleDisconnect', () => {
-    it('should remove socket from tracking', () => {
+    it('should remove socket from tracking', async () => {
       const client = { id: 'socket-1' } as any;
 
-      gateway.handleConnection({
-        handshake: { query: { userId: '1' } },
+      await gateway.handleConnection({
+        handshake: { auth: { token: 'valid-token' }, headers: {} },
         id: 'socket-1',
         join: jest.fn(),
+        disconnect: jest.fn(),
       } as any);
 
       gateway.handleDisconnect(client);

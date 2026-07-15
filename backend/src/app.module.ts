@@ -21,6 +21,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ReportsModule } from './modules/bazaar/reports/reports.module';
+import { FinanceModule } from './modules/finance/finance.module';
 
 @Module({
   imports: [
@@ -68,6 +69,7 @@ import { ReportsModule } from './modules/bazaar/reports/reports.module';
     PaymentsModule,
     NotificationsModule
     ,ReportsModule
+    ,FinanceModule
   ],
   controllers: [AppController],
   providers: [

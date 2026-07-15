@@ -10,6 +10,7 @@ import { OrganizationalUnitAreaMapping } from './entities/ou-area-mapping.entity
 import { DistributionHistory } from './entities/distribution-history.entity';
 import { UserRole } from '../../roles/user-role.entity';
 import { NotificationsModule } from '../../notifications/notifications.module';
+import { AreaAccessGuard } from '../../../common/guards';
 
 @Module({
   imports: [
@@ -25,7 +26,7 @@ import { NotificationsModule } from '../../notifications/notifications.module';
     NotificationsModule,
   ],
   controllers: [DistributionsController],
-  providers: [DistributionsService],
+  providers: [DistributionsService, AreaAccessGuard],
   exports: [DistributionsService]
 })
 export class DistributionsModule {}

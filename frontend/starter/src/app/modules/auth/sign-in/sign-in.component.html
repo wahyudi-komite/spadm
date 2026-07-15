@@ -1,24 +1,28 @@
-<div class="flex min-w-0 flex-auto flex-col items-center bg-[radial-gradient(circle_at_50%_0%,rgba(0,159,227,0.18),transparent_32rem),linear-gradient(180deg,#f8fbff_0%,#edf5fb_100%)] sm:justify-center">
+<div
+    class="flex min-w-0 flex-auto flex-col items-center bg-[radial-gradient(circle_at_50%_0%,rgba(0,159,227,0.18),transparent_32rem),linear-gradient(180deg,#f8fbff_0%,#edf5fb_100%)] sm:justify-center">
     <div class="w-full px-4 py-8 sm:bg-card sm:w-auto sm:rounded-xl sm:border sm:border-blue-100 sm:p-12 sm:shadow-xl">
         <div class="mx-auto w-full max-w-80 sm:mx-0 sm:w-80">
             <div class="flex w-full justify-center">
-                <div class="spadm-brand-mark"></div>
+                <img src="images/logo/logo-spadm.png" class="h-40 w-40" />
             </div>
 
-            <h4 class="mt-5 text-center font-sans text-4xl font-black leading-snug tracking-normal text-[var(--spadm-navy)] antialiased">
+            <h4 class=" mt-5 text-center font-sans text-4xl font-black leading-snug tracking-normal
+                    text-[var(--spadm-navy)] antialiased">
                 SPADM
             </h4>
             <h3 class="mt-1 text-center font-sans text-md font-semibold text-slate-600">
                 Serikat Pekerja Astra Daihatsu Motor
             </h3>
-            <div class="mx-auto mt-4 h-1 w-20 rounded-full bg-[linear-gradient(90deg,var(--spadm-blue),var(--spadm-sky),var(--spadm-red))]"></div>
-
-            <div class="mt-6 text-lg font-extrabold leading-tight tracking-tight text-[var(--spadm-ink)]">
-                Masuk
+            <div
+                class="mx-auto mt-4 h-1 w-20 rounded-full bg-[linear-gradient(90deg,var(--spadm-blue),var(--spadm-sky),var(--spadm-red))]">
             </div>
 
+            <!-- <div class="mt-6 text-lg font-extrabold leading-tight tracking-tight text-[var(--spadm-ink)]">
+                Masuk
+            </div> -->
+
             @if (showAlert) {
-                <p-message class="mt-8" [severity]="alert.type" [text]="alert.message"></p-message>
+            <p-message class="mt-8" [severity]="alert.type" [text]="alert.message"></p-message>
             }
 
             <form class="mt-8" [formGroup]="signInForm" #signInNgForm="ngForm" novalidate>
@@ -26,7 +30,7 @@
                     <mat-label>NPK</mat-label>
                     <input id="npk" matInput placeholder="Masukkan NPK" [formControlName]="'npk'" />
                     @if (signInForm.get('npk').hasError('required')) {
-                        <mat-error> NPK wajib diisi </mat-error>
+                    <mat-error> NPK wajib diisi </mat-error>
                     }
                 </mat-form-field>
 
@@ -37,33 +41,36 @@
                         (click)="passwordField.type === 'password' ? (passwordField.type = 'text') : (passwordField.type = 'password')"
                         matSuffix>
                         @if (passwordField.type === 'password') {
-                            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:eye'"></mat-icon>
+                        <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:eye'"></mat-icon>
                         }
                         @if (passwordField.type === 'text') {
-                            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:eye-slash'"></mat-icon>
+                        <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:eye-slash'"></mat-icon>
                         }
                     </button>
                     <mat-error> Password wajib diisi </mat-error>
                 </mat-form-field>
 
-                <button class="fuse-mat-button-large mt-6 w-full" mat-flat-button [color]="'primary'"
+                <button class="fuse-mat-button-large mt-4 w-full" mat-flat-button [color]="'primary'"
                     [disabled]="signInForm.disabled" (click)="signIn()">
                     @if (!signInForm.disabled) {
-                        <span> Masuk </span>
+                    <span> Masuk </span>
                     }
                     @if (signInForm.disabled) {
-                        <mat-progress-spinner [diameter]="24" [mode]="'indeterminate'"></mat-progress-spinner>
+                    <mat-progress-spinner [diameter]="24" [mode]="'indeterminate'"></mat-progress-spinner>
                     }
                 </button>
             </form>
 
             <div class="mt-6 border-t border-blue-100 pt-4">
-                <div class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Quick Login (Development)</div>
+                <div class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Quick Login
+                    (Development)
+                </div>
                 <div class="flex flex-wrap gap-1.5">
                     @for (user of quickUsers; track user.npk) {
-                        <button mat-stroked-button [color]="user.color" (click)="quickLogin(user.npk)" class="!text-xs !min-w-0 !px-2 !py-0.5 !h-7">
-                            {{ user.label }}
-                        </button>
+                    <button mat-stroked-button [color]="user.color" (click)="quickLogin(user.npk)"
+                        class="!text-xs !min-w-0 !px-2 !py-0.5 !h-7">
+                        {{ user.label }}
+                    </button>
                     }
                 </div>
             </div>

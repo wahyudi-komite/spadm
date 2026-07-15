@@ -4,12 +4,17 @@ import {
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Post,
+  Query,
   UseGuards,
+  ValidationPipe,
 } from '@nestjs/common';
 import { CurrentUser, Permissions } from '../../../common/decorators';
-import { JwtAuthGuard, PermissionsGuard } from '../../../common/guards';
+import { AreaAccessGuard, JwtAuthGuard, PermissionsGuard } from '../../../common/guards';
 import { CreateAreaMappingDto } from './dto/create-area-mapping.dto';
+import { PicDashboardQueryDto } from './dto/pic-dashboard-query.dto';
+import { ConfirmDistributionDto } from './dto/confirm-distribution.dto';
 import { DistributionsService } from './distributions.service';
 
 @Controller('bazaar/distributions')
@@ -30,6 +35,17 @@ export class DistributionsController {
     return this.distributionsService.findMappings();
   }
 
+  @UseGuards(JwtAuthGuard, PermissionsGuard, AreaAccessGuard)
+  @Permissions('bazaar.distribution.scan')
+  @Get('pic-dashboard')
+  picDashboard(
+    @CurrentUser() userId: number,
+    @Query(new ValidationPipe({ transform: true, whitelist: true }))
+    query: PicDashboardQueryDto,
+  ) {
+    return this.distributionsService.getPicDashboard(userId, query.areaId);
+  }
+
   @UseGuards(JwtAuthGuard, PermissionsGuard)
   @Permissions('settings.manage')
   @Post('mappings')
@@ -43,14 +59,14 @@ export class DistributionsController {
   @UseGuards(JwtAuthGuard, PermissionsGuard)
   @Permissions('settings.manage')
   @Delete('mappings/:id')
-  removeMapping(@Param('id') id: string, @CurrentUser() userId: number) {
-    return this.distributionsService.removeMapping(+id, userId);
+  removeMapping(@Param('id', ParseIntPipe) id: number, @CurrentUser() userId: number) {
+    return this.distributionsService.removeMapping(id, userId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('token/:orderId')
   getTokenByOrder(
-    @Param('orderId') orderId: number,
+    @Param('orderId', ParseIntPipe) orderId: number,
     @CurrentUser() userId: number,
   ) {
     return this.distributionsService.getTokenByOrder(orderId, userId);
@@ -71,7 +87,8 @@ export class DistributionsController {
   @Post('confirm')
   confirmDistribution(
     @CurrentUser() userId: number,
-    @Body() body: { tokenCode: string; notes?: string },
+    @Body(new ValidationPipe({ transform: true, whitelist: true }))
+    body: ConfirmDistributionDto,
   ) {
     return this.distributionsService.confirmDistribution(
       body.tokenCode,
