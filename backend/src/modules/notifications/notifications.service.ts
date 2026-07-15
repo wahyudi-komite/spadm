@@ -195,16 +195,21 @@ export class NotificationsService {
   }
 
   async retryDelivery(id: number) {
-    const delivery = await this.deliveryRepository.findOne({ where: { id } });
-    if (!delivery) throw new NotFoundException('Histori pengiriman tidak ditemukan');
-    if ([DeliveryStatus.SENT, DeliveryStatus.DELIVERED].includes(delivery.status)) {
-      throw new BadRequestException('Pengiriman yang berhasil tidak dapat diulang');
+    const retried = await this.deliveryRepository.update(
+      { id, status: DeliveryStatus.FAILED },
+      {
+        status: DeliveryStatus.RETRY,
+        attempts: 0,
+        nextAttemptAt: new Date(),
+        lastError: null,
+      },
+    );
+    if (!retried.affected) {
+      const delivery = await this.deliveryRepository.findOne({ where: { id } });
+      if (!delivery) throw new NotFoundException('Histori pengiriman tidak ditemukan');
+      throw new BadRequestException('Hanya pengiriman berstatus gagal yang dapat diulang');
     }
-    delivery.status = DeliveryStatus.RETRY;
-    delivery.attempts = 0;
-    delivery.nextAttemptAt = new Date();
-    delivery.lastError = null;
-    return this.deliveryRepository.save(delivery);
+    return this.deliveryRepository.findOne({ where: { id } });
   }
 
   private async getOrder(id: number): Promise<BazaarOrder> {

@@ -9,6 +9,9 @@ export function signPickupToken(tokenCode: string, secret: string): string {
 }
 
 export function verifyPickupToken(value: string, secret: string): string {
+  if (typeof value !== 'string' || !value.trim()) {
+    throw new BadRequestException('Format QR tidak valid');
+  }
   const normalized = value.startsWith('SPADM:PICKUP:')
     ? value.slice('SPADM:PICKUP:'.length)
     : value;

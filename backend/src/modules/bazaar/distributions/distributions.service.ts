@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException, forwardRef, Inject } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException, forwardRef, Inject, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, IsNull, Repository } from 'typeorm';
 import { Distribution } from './entities/distribution.entity';
@@ -20,6 +20,8 @@ import { signPickupToken, verifyPickupToken } from './pickup-token.util';
 
 @Injectable()
 export class DistributionsService {
+  private readonly logger = new Logger(DistributionsService.name);
+
   constructor(
     @InjectRepository(Distribution)
     private distributionRepo: Repository<Distribution>,
@@ -80,7 +82,7 @@ export class DistributionsService {
 
     await this.assertPicAreaAccess(picUserId, token.order.distributionAreaId);
 
-    return this.presentToken(token);
+    return this.presentValidatedToken(token);
   }
 
   async confirmDistribution(qrToken: string, picUserId: number, notes?: string) {
@@ -123,15 +125,26 @@ export class DistributionsService {
         return saved;
       },
     );
-    await this.auditLogService.log({
-      userId: picUserId,
-      action: 'CONFIRM_DISTRIBUTION',
-      module: 'bazaar',
-      entityType: 'distribution',
-      entityId: distribution.id,
-      description: `Order ${validated.order.orderNumber} diserahkan`,
+    const sideEffects = await Promise.allSettled([
+      this.auditLogService.log({
+        userId: picUserId,
+        action: 'CONFIRM_DISTRIBUTION',
+        module: 'bazaar',
+        entityType: 'distribution',
+        entityId: distribution.id,
+        description: `Order ${validated.order.orderNumber} diserahkan`,
+      }),
+      this.notificationsService.notifyOrderDistributed(validated.order.id),
+    ]);
+    sideEffects.forEach((result, index) => {
+      if (result.status === 'rejected') {
+        const task = index === 0 ? 'audit log' : 'notification';
+        this.logger.error(
+          `Distribusi #${distribution.id} berhasil, tetapi ${task} gagal`,
+          result.reason instanceof Error ? result.reason.stack : String(result.reason),
+        );
+      }
     });
-    await this.notificationsService.notifyOrderDistributed(validated.order.id);
     return distribution;
   }
 
@@ -335,8 +348,43 @@ export class DistributionsService {
 
   private presentToken(token: PickupToken) {
     return {
-      ...token,
+      id: token.id,
       tokenCode: signPickupToken(token.tokenCode, this.pickupTokenSecret),
+      isUsed: token.isUsed,
+      createdAt: token.createdAt,
+      updatedAt: token.updatedAt,
+    };
+  }
+
+  private presentValidatedToken(token: PickupToken) {
+    const order = token.order;
+    return {
+      ...this.presentToken(token),
+      order: {
+        id: order.id,
+        orderNumber: order.orderNumber,
+        status: order.status,
+        distributionAreaId: order.distributionAreaId,
+        user: {
+          npk: order.user?.npk,
+          member: order.user?.member ? {
+            name: order.user.member.name,
+            status: order.user.member.status,
+          } : null,
+        },
+        event: order.event ? { id: order.event.id, name: order.event.name } : null,
+        batch: order.batch ? { id: order.batch.id, name: order.batch.name, status: order.batch.status } : null,
+        distributionArea: order.distributionArea ? {
+          id: order.distributionArea.id,
+          code: order.distributionArea.code,
+          name: order.distributionArea.name,
+        } : null,
+        items: (order.items || []).map((item) => ({
+          id: item.id,
+          productNameSnapshot: item.productNameSnapshot,
+          quantity: item.quantity,
+        })),
+      },
     };
   }
 

@@ -172,6 +172,10 @@ export class AdminBazaarDistributionComponent implements OnInit, OnDestroy {
           this.scanToken();
           return;
         }
+      } catch {
+        this.stopCamera();
+        this.feedback.error('Pemindaian kamera terhenti. Silakan buka kamera kembali.');
+        return;
       } finally {
         this.detecting = false;
       }

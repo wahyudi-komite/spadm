@@ -19,6 +19,25 @@ interface Delivery {
   createdAt: string;
 }
 
+interface WhatsAppStatus {
+  provider: string;
+  state: 'CONNECTED' | 'CONNECTING' | 'DISCONNECTED' | 'QR_REQUIRED' | 'DISABLED';
+  qrCode: string | null;
+  lastConnectedAt: string | null;
+  lastError: string | null;
+}
+
+interface DeliverySummary {
+  total: number;
+  pendingWork: number;
+  byStatus: Record<string, number>;
+}
+
+interface MonitorSummary {
+  whatsapp: WhatsAppStatus;
+  deliveries: DeliverySummary;
+}
+
 @Component({
   selector: 'admin-notifications-monitor',
   standalone: true,
@@ -35,7 +54,7 @@ export class NotificationsMonitorComponent implements OnInit {
   private readonly http = inject(HttpClient);
   private readonly feedback = inject(DialogFeedbackService);
 
-  summary: any = null;
+  summary: MonitorSummary | null = null;
   deliveries: Delivery[] = [];
   loading = true;
   connecting = false;
@@ -50,7 +69,7 @@ export class NotificationsMonitorComponent implements OnInit {
   load() {
     this.loading = true;
     forkJoin({
-      summary: this.http.get(`${environment.apiUrl}/notifications/deliveries-summary`),
+      summary: this.http.get<MonitorSummary>(`${environment.apiUrl}/notifications/deliveries-summary`),
       deliveries: this.http.get<any>(`${environment.apiUrl}/notifications/deliveries?limit=50`),
     }).pipe(
       finalize(() => this.loading = false),
@@ -67,7 +86,7 @@ export class NotificationsMonitorComponent implements OnInit {
 
   connectWhatsApp() {
     this.connecting = true;
-    this.http.post(`${environment.apiUrl}/notifications/whatsapp/connect`, {}).pipe(
+    this.http.post<WhatsAppStatus>(`${environment.apiUrl}/notifications/whatsapp/connect`, {}).pipe(
       finalize(() => this.connecting = false),
     ).subscribe({
       next: (whatsapp) => {

@@ -20,14 +20,16 @@
       <section>
         <article class="rounded-3xl bg-slate-900 p-6 text-white">
           <p class="text-xs font-bold uppercase text-cyan-300">WhatsApp Gateway</p>
-          <h2 class="mt-3 text-2xl font-black">{{ summary?.whatsapp?.connected ? 'Terhubung' : 'Belum terhubung' }}</h2>
-          <p class="mt-2 text-sm text-slate-300">{{ summary?.whatsapp?.phone || 'Hubungkan perangkat untuk mulai mengirim pesan.' }}</p>
-          @if (summary?.whatsapp?.qr) {
+          <h2 class="mt-3 text-2xl font-black">{{ summary?.whatsapp?.state === 'CONNECTED' ? 'Terhubung' : 'Belum terhubung' }}</h2>
+          <p class="mt-2 text-sm text-slate-300">
+            {{ summary?.whatsapp?.lastError || (summary?.whatsapp?.lastConnectedAt ? 'Terakhir terhubung ' + (summary?.whatsapp?.lastConnectedAt | date:'medium') : 'Hubungkan perangkat untuk mulai mengirim pesan.') }}
+          </p>
+          @if (summary?.whatsapp?.qrCode) {
             <div class="mt-6 inline-block rounded-2xl bg-white p-3">
-              <qr-code [value]="summary.whatsapp.qr" [size]="180"></qr-code>
+              <qr-code [value]="summary!.whatsapp.qrCode!" [size]="180"></qr-code>
             </div>
           }
-          @if (!summary?.whatsapp?.connected) {
+          @if (summary?.whatsapp?.state !== 'CONNECTED') {
             <button mat-flat-button class="mt-6" type="button" (click)="connectWhatsApp()" [disabled]="connecting">
               {{ connecting ? 'Menghubungkan...' : 'Hubungkan WhatsApp' }}
             </button>

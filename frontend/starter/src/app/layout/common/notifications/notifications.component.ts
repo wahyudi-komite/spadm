@@ -131,22 +131,13 @@ export class NotificationsComponent implements OnInit, OnDestroy {
     /**
      * Toggle read status of the given notification
      */
-    toggleRead(notification: Notification): void {
-        // Toggle the read status
-        notification.read = !notification.read;
-
-        // Update the notification
+    markAsRead(notification: Notification): void {
+        if (notification.read) {
+            return;
+        }
         this._notificationsService
-            .update(notification.id, notification)
+            .update(notification.id, { ...notification, read: true })
             .subscribe();
-    }
-
-    /**
-     * Delete the given notification
-     */
-    delete(notification: Notification): void {
-        // Delete the notification
-        this._notificationsService.delete(notification.id).subscribe();
     }
 
     /**

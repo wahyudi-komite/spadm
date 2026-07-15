@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Notification } from 'app/layout/common/notifications/notifications.types';
 import { environment } from 'environments/environment';
-import { forkJoin, map, Observable, of, ReplaySubject, switchMap, take, tap } from 'rxjs';
+import { forkJoin, map, Observable, ReplaySubject, switchMap, take, tap } from 'rxjs';
 
 interface ApiNotification {
     id: number;
@@ -63,7 +63,6 @@ export class NotificationsService {
     }
 
     update(id: string, notification: Notification): Observable<Notification> {
-        if (!notification.read) return of(notification);
         return this._httpClient
             .patch<ApiNotification>(
                 `${environment.apiUrl}/notifications/${id}/read`,
@@ -73,18 +72,6 @@ export class NotificationsService {
                 map((updated) => this._map(updated)),
                 tap((updated) => this._replace(updated))
             );
-    }
-
-    delete(id: string): Observable<boolean> {
-        return this.notifications$.pipe(
-            take(1),
-            map((notifications) => {
-                this._notifications.next(
-                    notifications.filter((notification) => notification.id !== id)
-                );
-                return true;
-            })
-        );
     }
 
     markAllAsRead(): Observable<boolean> {
