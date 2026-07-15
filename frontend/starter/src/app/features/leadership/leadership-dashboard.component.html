@@ -1,0 +1,83 @@
+<div class="p-8">
+  <h1 class="text-2xl font-bold mb-2">Leadership Dashboard</h1>
+  <p class="text-secondary mb-6">Ringkasan level tinggi aktivitas Bazar SPADM</p>
+
+  @if (!data) {
+    <div class="flex justify-center py-16">
+      <p class="text-hint">Memuat data...</p>
+    </div>
+  } @else {
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div class="bg-card rounded-2xl shadow p-5">
+        <p class="text-secondary text-sm font-medium">Anggota Aktif</p>
+        <p class="text-3xl font-bold mt-1">{{ data.kpis.activeMembers }}</p>
+      </div>
+      <div class="bg-card rounded-2xl shadow p-5">
+        <p class="text-secondary text-sm font-medium">Partisipasi</p>
+        <p class="text-3xl font-bold mt-1">{{ data.kpis.participationPercentage }}%</p>
+      </div>
+      <div class="bg-card rounded-2xl shadow p-5">
+        <p class="text-secondary text-sm font-medium">Total Transaksi</p>
+        <p class="text-3xl font-bold mt-1">{{ data.kpis.totalOrders }}</p>
+      </div>
+      <div class="bg-card rounded-2xl shadow p-5">
+        <p class="text-secondary text-sm font-medium">Penerimaan</p>
+        <p class="text-3xl font-bold mt-1 text-green-600">{{ formatCurrency(data.kpis.receivedAmount) }}</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div class="bg-card rounded-2xl shadow p-5">
+        <h2 class="text-lg font-semibold mb-4">Per Area</h2>
+        <apx-chart [chart]="areaChart.chart!" [series]="areaChart.series!" [xaxis]="areaChart.xaxis!" [colors]="areaChart.colors!"></apx-chart>
+      </div>
+      <div class="bg-card rounded-2xl shadow p-5">
+        <h2 class="text-lg font-semibold mb-4">Ringkasan Keuangan</h2>
+        <div class="space-y-3">
+          <div class="flex justify-between">
+            <span class="text-secondary">Penerimaan</span>
+            <span class="font-semibold">{{ formatCurrency(data.kpis.receivedAmount) }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-secondary">Subsidi</span>
+            <span class="font-semibold">{{ formatCurrency(data.kpis.totalSubsidy) }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-secondary">Goodie Bag</span>
+            <span class="font-semibold">{{ formatCurrency(data.kpis.totalGoodieBag) }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-secondary">Biaya Aplikasi</span>
+            <span class="font-semibold">{{ formatCurrency(data.kpis.totalApplicationFee) }}</span>
+          </div>
+          <div class="flex justify-between pt-2 border-t">
+            <span class="font-semibold">Total Order Dibayar</span>
+            <span class="font-semibold text-green-600">{{ data.kpis.paidOrders }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-card rounded-2xl shadow p-5">
+      <h2 class="text-lg font-semibold mb-4">Status Order</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <div>
+          <p class="text-sm text-secondary">Pending</p>
+          <p class="text-xl font-bold text-amber-600">{{ data.kpis.pendingPayments }}</p>
+        </div>
+        <div>
+          <p class="text-sm text-secondary">Expired</p>
+          <p class="text-xl font-bold text-red-600">{{ data.kpis.expiredPayments }}</p>
+        </div>
+        <div>
+          <p class="text-sm text-secondary">Sudah Distribusi</p>
+          <p class="text-xl font-bold">{{ data.kpis.distributedOrders }}</p>
+        </div>
+        <div>
+          <p class="text-sm text-secondary">Subsidi Total</p>
+          <p class="text-xl font-bold">{{ formatCurrency(data.kpis.totalSubsidy) }}</p>
+        </div>
+      </div>
+    </div>
+  }
+</div>
