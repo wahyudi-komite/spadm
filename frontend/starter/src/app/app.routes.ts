@@ -44,7 +44,14 @@ export const appRoutes: Route[] = [
     },
 
     // Public sign-out route (no AuthGuard)
-    { path: 'sign-out', loadChildren: () => import('app/modules/auth/sign-out/sign-out.routes'), },
+    {
+        path: 'sign-out',
+        component: LayoutComponent,
+        data: { layout: 'empty' },
+        children: [
+            { path: '', loadChildren: () => import('app/modules/auth/sign-out/sign-out.routes'), },
+        ],
+    },
 
     {
         path: '',
