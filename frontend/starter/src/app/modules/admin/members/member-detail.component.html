@@ -1,0 +1,62 @@
+<div class="p-8 max-w-2xl">
+  <div class="flex items-center gap-2 mb-6">
+    <button mat-icon-button [routerLink]="['/admin/members']">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1 class="text-2xl font-bold">Detail Anggota</h1>
+  </div>
+
+  <div class="bg-card rounded-2xl shadow p-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <mat-form-field appearance="outline">
+        <mat-label>NPK</mat-label>
+        <input matInput [(ngModel)]="member.npk" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Nama</mat-label>
+        <input matInput [(ngModel)]="member.name" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Email</mat-label>
+        <input matInput [(ngModel)]="member.email" type="email" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Telepon</mat-label>
+        <input matInput [(ngModel)]="member.phone" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Unit Kerja</mat-label>
+        <input matInput [(ngModel)]="member.workUnit" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Jabatan Organisasi</mat-label>
+        <input matInput [(ngModel)]="member.organizationalPosition" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Plant</mat-label>
+        <input matInput [(ngModel)]="member.plant" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Status</mat-label>
+        <mat-select [(ngModel)]="member.status">
+          <mat-option value="active">Aktif</mat-option>
+          <mat-option value="inactive">Nonaktif</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="flex justify-end gap-3 mt-6">
+      <button mat-stroked-button [routerLink]="['/admin/members']">Batal</button>
+      <button mat-flat-button color="primary" (click)="save()" [disabled]="loading">
+        <mat-icon>save</mat-icon> Simpan
+      </button>
+    </div>
+  </div>
+</div>

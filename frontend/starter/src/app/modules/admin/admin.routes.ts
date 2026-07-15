@@ -9,6 +9,12 @@ export default [
     loadChildren: () => import('./roles/roles.routes'),
   },
   {
+    path: 'members',
+    canActivate: [PermissionGuard],
+    data: { permissions: ['member.read'] },
+    loadChildren: () => import('./members/members.routes'),
+  },
+  {
     path: 'users/:id/roles',
     canActivate: [PermissionGuard],
     data: { permissions: ['role.assign'] },
