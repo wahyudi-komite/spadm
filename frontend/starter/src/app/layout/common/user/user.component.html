@@ -2,10 +2,14 @@
 <button mat-icon-button [matMenuTriggerFor]="userActions">
     <span class="relative">
         @if (showAvatar && user?.avatar) {
-            <img class="h-7 w-7 rounded-full" [src]="user?.avatar" />
+            <img class="h-8 w-8 rounded-full" [src]="user?.avatar" />
         }
         @if (!showAvatar || !user?.avatar) {
-            <mat-icon [svgIcon]="'heroicons_outline:user-circle'"></mat-icon>
+            <span
+                class="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[var(--spadm-blue)] to-[var(--spadm-sky)] text-xs font-bold text-white"
+            >
+                {{ user?.name ? getInitials(user.name) : '?' }}
+            </span>
         }
         <span
             class="absolute bottom-0 right-0 h-2 w-2 rounded-full"

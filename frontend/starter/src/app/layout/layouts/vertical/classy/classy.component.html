@@ -92,6 +92,19 @@
                 <mat-icon [svgIcon]="schemeIcons[scheme]"></mat-icon>
             </button>
             <app-fullscreen class="hidden md:block"></app-fullscreen>
+
+            <!-- User info + avatar -->
+            <div class="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-gray-700 ml-1">
+                <div class="hidden sm:flex flex-col items-end min-w-0">
+                    <span class="text-sm font-bold leading-tight text-[var(--spadm-navy)] dark:text-white truncate max-w-32">
+                        {{ user?.name }}
+                    </span>
+                    <span class="text-xs font-medium leading-tight text-slate-500 dark:text-gray-400 truncate max-w-32">
+                        {{ user?.role?.name || '-' }}
+                    </span>
+                </div>
+                <user [showAvatar]="true"></user>
+            </div>
         </div>
     </div>
 

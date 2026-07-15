@@ -110,4 +110,16 @@ export class UserComponent implements OnInit, OnDestroy {
     signOut(): void {
         this._router.navigate(['/sign-out']);
     }
+
+    /**
+     * Get user initials from name (up to 2 characters)
+     */
+    getInitials(name: string): string {
+        return name
+            .split(/\s+/)
+            .filter(Boolean)
+            .slice(0, 2)
+            .map((w) => w[0].toUpperCase())
+            .join('');
+    }
 }

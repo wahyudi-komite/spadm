@@ -16,3 +16,9 @@
 .search-input:focus {
     border-color: #007bff;
 }
+
+:host-context(.dark) .search-input {
+    border-color: #4b5563;
+    background-color: #1f2937;
+    color: #e5e7eb;
+}

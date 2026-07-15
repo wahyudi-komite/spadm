@@ -28,7 +28,7 @@
       <div class="flex flex-wrap gap-3">
         <label
           *ngFor="let perm of allPermissions[group]"
-          class="flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer hover:bg-gray-50"
+          class="flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
           [class.bg-primary-50]="hasPermission(perm.id)"
         >
           <mat-checkbox

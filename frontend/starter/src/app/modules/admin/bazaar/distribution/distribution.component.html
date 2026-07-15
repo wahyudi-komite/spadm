@@ -5,7 +5,7 @@
       <mat-icon class="text-4xl mr-4" style="height: 36px; width: 36px;">qr_code_scanner</mat-icon>
       <div>
         <h1 class="text-3xl font-bold tracking-tight">Scanner Pengambilan Barang</h1>
-        <p class="text-gray-500">Gunakan scanner QR atau masukkan kode manual untuk memvalidasi pengambilan barang.</p>
+        <p class="text-gray-500 dark:text-gray-400">Gunakan scanner QR atau masukkan kode manual untuk memvalidasi pengambilan barang.</p>
       </div>
     </div>
 
@@ -51,7 +51,7 @@
           <mat-icon>videocam_off</mat-icon>
           Tutup kamera
         </button>
-        <span *ngIf="!cameraSupported" class="text-xs text-gray-500">Kamera QR tidak tersedia; gunakan scanner USB atau input manual.</span>
+        <span *ngIf="!cameraSupported" class="text-xs text-gray-500 dark:text-gray-400">Kamera QR tidak tersedia; gunakan scanner USB atau input manual.</span>
       </div>
 
       <div [class.hidden]="!cameraActive" class="relative mt-4 overflow-hidden rounded-2xl bg-black aspect-video">
@@ -59,21 +59,21 @@
         <div class="pointer-events-none absolute inset-8 rounded-2xl border-2 border-cyan-300 shadow-[0_0_0_999px_rgba(0,0,0,0.35)]"></div>
       </div>
 
-      <div *ngIf="error" class="mt-4 p-4 bg-red-50 text-red-700 rounded-lg flex items-center">
+      <div *ngIf="error" class="mt-4 p-4 bg-red-50 text-red-700 rounded-lg flex items-center dark:bg-red-950/40 dark:text-red-300">
         <mat-icon class="mr-2">error_outline</mat-icon>
         {{ error }}
       </div>
     </mat-card>
 
     <section *ngIf="!scannedToken" class="mb-8 grid gap-6 lg:grid-cols-2">
-      <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-        <div class="border-b border-gray-100 p-5">
+      <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <div class="border-b border-gray-100 p-5 dark:border-gray-700">
           <h2 class="text-lg font-black">Antrean Siap Diambil</h2>
           <p class="text-sm text-gray-500">Maksimal 100 order terlama ditampilkan.</p>
         </div>
         <div *ngIf="dashboardLoading" class="p-6 text-center text-gray-500">Memuat antrean...</div>
         <div *ngIf="!dashboardLoading && !dashboard?.orders?.length" class="p-6 text-center text-gray-500">Tidak ada order yang menunggu.</div>
-        <div class="max-h-96 divide-y divide-gray-100 overflow-y-auto">
+        <div class="max-h-96 divide-y divide-gray-100 overflow-y-auto dark:divide-gray-700">
           <div *ngFor="let order of dashboard?.orders" class="flex items-center justify-between gap-4 p-4">
             <div class="min-w-0">
               <div class="truncate font-bold">{{ order.member.name }} <span class="font-normal text-gray-400">({{ order.member.npk }})</span></div>
@@ -84,13 +84,13 @@
         </div>
       </div>
 
-      <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-        <div class="border-b border-gray-100 p-5">
+      <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <div class="border-b border-gray-100 p-5 dark:border-gray-700">
           <h2 class="text-lg font-black">Selesai Hari Ini</h2>
           <p class="text-sm text-gray-500">20 penyerahan terbaru.</p>
         </div>
         <div *ngIf="!dashboard?.recentDistributions?.length" class="p-6 text-center text-gray-500">Belum ada penyerahan hari ini.</div>
-        <div class="max-h-96 divide-y divide-gray-100 overflow-y-auto">
+        <div class="max-h-96 divide-y divide-gray-100 overflow-y-auto dark:divide-gray-700">
           <div *ngFor="let item of dashboard?.recentDistributions" class="flex items-center justify-between gap-4 p-4">
             <div class="min-w-0">
               <div class="truncate font-bold">{{ item.memberName }}</div>
@@ -103,7 +103,7 @@
     </section>
 
     <!-- Scanned Result -->
-    <div *ngIf="scannedToken" class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
+    <div *ngIf="scannedToken" class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700 dark:bg-gray-800">
       <div class="bg-blue-600 text-white p-6 flex justify-between items-center">
         <div>
           <div class="text-sm text-blue-200 font-semibold uppercase tracking-wider mb-1">Token Valid</div>
@@ -136,9 +136,9 @@
 
         <h3 class="font-bold text-gray-500 text-sm mb-4 uppercase tracking-wide border-b pb-2">Daftar Barang (Harus Diserahkan)</h3>
         <div class="space-y-3 mb-8">
-          <div *ngFor="let item of scannedToken.order.items" class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+          <div *ngFor="let item of scannedToken.order.items" class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100 dark:border-gray-700 dark:bg-gray-900">
             <div class="flex items-center">
-              <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center font-bold mr-4">
+              <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center font-bold mr-4 dark:bg-blue-900/50 dark:text-blue-300">
                 {{ item.quantity }}x
               </div>
               <span class="font-bold text-lg">{{ item.productNameSnapshot }}</span>
@@ -147,9 +147,9 @@
           </div>
         </div>
 
-        <div class="bg-yellow-50 p-4 rounded-xl border border-yellow-200 mb-6 flex items-start">
-          <mat-icon class="text-yellow-600 mr-3">warning</mat-icon>
-          <div class="text-sm text-yellow-800">
+        <div class="bg-yellow-50 p-4 rounded-xl border border-yellow-200 mb-6 flex items-start dark:border-yellow-800 dark:bg-yellow-950/40">
+          <mat-icon class="text-yellow-600 mr-3 dark:text-yellow-400">warning</mat-icon>
+          <div class="text-sm text-yellow-800 dark:text-yellow-200">
             <strong>Peringatan PIC:</strong> Pastikan Anda telah memeriksa NPK dan identitas fisik anggota pengambil. Pengambilan tidak boleh diwakilkan!
           </div>
         </div>

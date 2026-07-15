@@ -4,7 +4,7 @@
     <!-- Main Content Area -->
     <div class="w-full flex-auto p-6 sm:p-10 md:w-2/3 lg:w-3/4">
         <div *ngIf="loading" class="flex h-64 items-center justify-center">
-            <div class="text-lg text-gray-500">Memuat data bazar...</div>
+            <div class="text-lg text-gray-500 dark:text-gray-400">Memuat data bazar...</div>
         </div>
 
         <div
@@ -19,7 +19,7 @@
             <h2 class="mb-2 text-3xl font-bold tracking-tight">
                 Tidak Ada Bazar Aktif
             </h2>
-            <p class="text-lg text-gray-500">
+            <p class="text-lg text-gray-500 dark:text-gray-400">
                 Saat ini sedang tidak ada event bazar yang berlangsung. Silakan
                 periksa kembali nanti.
             </p>
@@ -77,7 +77,7 @@
 
             <div
                 *ngIf="products.length === 0"
-                class="rounded-2xl bg-white p-8 text-center text-gray-500 shadow dark:bg-gray-800"
+                class="rounded-2xl bg-white p-8 text-center text-gray-500 shadow dark:bg-gray-800 dark:text-gray-400"
             >
                 Belum ada produk yang ditambahkan.
             </div>
@@ -131,7 +131,7 @@
                         <h3 class="mb-1 text-lg font-bold leading-tight">
                             {{ product.name }}
                         </h3>
-                        <div class="mb-3 flex-auto text-xs text-gray-500">
+                        <div class="mb-3 flex-auto text-xs text-gray-500 dark:text-gray-400">
                             {{ product.description || 'Tidak ada deskripsi.' }}
                         </div>
                         <div class="mt-auto">
@@ -162,7 +162,7 @@
         <div class="flex-auto p-6">
             <div
                 *ngIf="cartIds.length === 0"
-                class="mt-10 text-center text-gray-500"
+                class="mt-10 text-center text-gray-500 dark:text-gray-400"
             >
                 <mat-icon
                     class="mb-4 text-6xl opacity-50"
@@ -176,7 +176,7 @@
             <div *ngIf="cartIds.length > 0" class="space-y-4">
                 <div
                     *ngFor="let id of cartIds"
-                    class="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 p-3 dark:bg-gray-900"
+                    class="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-900"
                 >
                     <div class="flex-auto">
                         <div class="text-sm font-semibold">
@@ -214,14 +214,14 @@
                 >
                     {{ calculationError }}
                 </div>
-                <div class="flex justify-between text-gray-600">
+                <div class="flex justify-between text-gray-600 dark:text-gray-300">
                     <span>Subtotal Produk</span>
                     <span class="font-semibold"
                         >Rp {{ cartSubtotal | number }}</span
                     >
                 </div>
                 <div
-                    class="flex justify-between text-gray-600"
+                    class="flex justify-between text-gray-600 dark:text-gray-300"
                     *ngIf="cartIds.length > 0"
                 >
                     <span>Goodie Bag</span>
@@ -230,14 +230,14 @@
                     >
                 </div>
                 <div
-                    class="flex justify-between text-gray-600"
+                    class="flex justify-between text-gray-600 dark:text-gray-300"
                     *ngIf="cartIds.length > 0"
                 >
                     <span>Biaya Aplikasi</span>
                     <span class="font-semibold">Rp {{ appFee | number }}</span>
                 </div>
                 <div
-                    class="flex justify-between text-green-600"
+                    class="flex justify-between text-green-600 dark:text-green-400"
                     *ngIf="cartIds.length > 0"
                 >
                     <span>Subsidy SPADM</span>
@@ -246,7 +246,7 @@
                     >
                 </div>
                 <div
-                    class="mt-2 flex justify-between border-t border-gray-200 pt-2 text-xl font-bold"
+                    class="mt-2 flex justify-between border-t border-gray-200 pt-2 text-xl font-bold dark:border-gray-700"
                 >
                     <span>Total</span>
                     <span>Rp {{ grandTotal | number }}</span>

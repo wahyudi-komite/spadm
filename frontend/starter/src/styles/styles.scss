@@ -43,6 +43,13 @@ body {
     color: var(--spadm-ink);
 }
 
+body.dark {
+    background:
+        radial-gradient(circle at 8% 0%, rgba(0, 159, 227, 0.12), transparent 28rem),
+        linear-gradient(180deg, #111827 0%, #0f172a 100%);
+    color: var(--fuse-text-default);
+}
+
 .spadm-brand-mark {
     display: inline-flex;
     align-items: center;
@@ -88,6 +95,44 @@ body {
 
 .mat-mdc-row:hover {
     background: rgba(0, 159, 227, 0.06);
+}
+
+.dark {
+    .mat-mdc-table {
+        border-color: var(--fuse-border);
+    }
+
+    .mat-mdc-row:hover {
+        background: rgba(0, 159, 227, 0.1);
+    }
+
+    .apexcharts-canvas {
+        .apexcharts-text,
+        .apexcharts-legend-text {
+            fill: var(--fuse-text-secondary) !important;
+            color: var(--fuse-text-secondary) !important;
+        }
+
+        .apexcharts-gridline,
+        .apexcharts-xaxis-tick,
+        .apexcharts-xaxis line,
+        .apexcharts-yaxis line {
+            stroke: var(--fuse-border) !important;
+        }
+    }
+
+    .apexcharts-tooltip,
+    .apexcharts-xaxistooltip,
+    .apexcharts-yaxistooltip {
+        border-color: var(--fuse-border) !important;
+        background: var(--fuse-bg-card) !important;
+        color: var(--fuse-text-default) !important;
+    }
+
+    .apexcharts-tooltip-title {
+        border-color: var(--fuse-border) !important;
+        background: var(--fuse-bg-default) !important;
+    }
 }
 
 .mat-mdc-form-field.mat-focused .mat-mdc-floating-label,
