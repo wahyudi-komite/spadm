@@ -1,9 +1,23 @@
-import { WebSocketGateway, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
+import {
+  WebSocketGateway,
+  WebSocketServer,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+} from '@nestjs/websockets';
 import { JwtService } from '@nestjs/jwt';
 import { Server, Socket } from 'socket.io';
+import { isAllowedOrigin } from '../../config';
 
-@WebSocketGateway({ namespace: '/notifications', cors: { origin: '*' } })
-export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisconnect {
+@WebSocketGateway({
+  namespace: '/notifications',
+  cors: {
+    credentials: true,
+    origin: (origin, callback) => callback(null, isAllowedOrigin(origin)),
+  },
+})
+export class NotificationsGateway
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   server: Server;
 
@@ -12,13 +26,14 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
   constructor(private readonly jwtService: JwtService) {}
 
   async handleConnection(client: Socket) {
-    const authToken = client.handshake.auth?.token;
+    const authToken: unknown = client.handshake.auth?.token;
     const authorization = client.handshake.headers.authorization;
-    const token = typeof authToken === 'string'
-      ? authToken
-      : typeof authorization === 'string'
-        ? authorization.replace(/^Bearer\s+/i, '')
-        : null;
+    const token =
+      typeof authToken === 'string'
+        ? authToken
+        : typeof authorization === 'string'
+          ? authorization.replace(/^Bearer\s+/i, '')
+          : null;
 
     try {
       if (!token) throw new Error('Missing access token');
@@ -28,9 +43,10 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
         throw new Error('Invalid access token');
       }
 
-      if (!this.userSockets.has(userId)) this.userSockets.set(userId, new Set());
+      if (!this.userSockets.has(userId))
+        this.userSockets.set(userId, new Set());
       this.userSockets.get(userId)!.add(client.id);
-      client.join(`user-${userId}`);
+      await client.join(`user-${userId}`);
     } catch {
       client.disconnect(true);
     }

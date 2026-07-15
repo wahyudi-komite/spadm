@@ -1,14 +1,24 @@
-import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
-import { Response } from 'express';
+import {
+  ExceptionFilter,
+  Catch,
+  ArgumentsHost,
+  HttpException,
+  HttpStatus,
+  Logger,
+} from '@nestjs/common';
+import type { Request, Response } from 'express';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
-  catch(exception: unknown, host: ArgumentsHost) {
+  private readonly logger = new Logger(AllExceptionsFilter.name);
+
+  catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
+    const request = ctx.getRequest<Request>();
 
-    let status = HttpStatus.INTERNAL_SERVER_ERROR;
-    let message = 'Terjadi kesalahan internal server';
+    let status: number = HttpStatus.INTERNAL_SERVER_ERROR;
+    let message: string | string[] = 'Terjadi kesalahan internal server';
     let code: string | undefined;
 
     if (exception instanceof HttpException) {
@@ -18,13 +28,30 @@ export class AllExceptionsFilter implements ExceptionFilter {
       if (typeof exceptionResponse === 'string') {
         message = exceptionResponse;
       } else if (typeof exceptionResponse === 'object') {
-        const resp = exceptionResponse as any;
-        message = resp.message || exception.message;
-        code = resp.code;
+        const exceptionBody = exceptionResponse as Record<string, unknown>;
+        if (
+          typeof exceptionBody.message === 'string' ||
+          (Array.isArray(exceptionBody.message) &&
+            exceptionBody.message.every((item) => typeof item === 'string'))
+        ) {
+          message = exceptionBody.message;
+        } else {
+          message = exception.message;
+        }
+        if (typeof exceptionBody.code === 'string') {
+          code = exceptionBody.code;
+        }
       }
     }
 
-    (response as any).status(status).json({
+    if (!(exception instanceof HttpException) || status >= 500) {
+      const context = `${request.method} ${request.originalUrl || request.url}`;
+      const details =
+        exception instanceof Error ? exception.stack : String(exception);
+      this.logger.error(`Unhandled HTTP error [${status}] ${context}`, details);
+    }
+
+    response.status(status).json({
       success: false,
       message,
       code,

@@ -3,7 +3,12 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
-import { appConfig, databaseConfig, jwtConfig, validateEnvironment } from './config';
+import {
+  appConfig,
+  databaseConfig,
+  jwtConfig,
+  validateEnvironment,
+} from './config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
@@ -46,13 +51,18 @@ import { FinanceModule } from './modules/finance/finance.module';
         synchronize: false,
         logging: process.env.NODE_ENV === 'development',
         timezone: '+07:00',
+        extra: {
+          connectionLimit: configService.get<number>('database.poolSize', 10),
+        },
       }),
     }),
 
-    ThrottlerModule.forRoot([{
-      ttl: 60000,
-      limit: 60,
-    }]),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 60,
+      },
+    ]),
     ScheduleModule.forRoot(),
 
     AuthModule,
@@ -67,9 +77,9 @@ import { FinanceModule } from './modules/finance/finance.module';
     DistributionsModule,
     OrdersModule,
     PaymentsModule,
-    NotificationsModule
-    ,ReportsModule
-    ,FinanceModule
+    NotificationsModule,
+    ReportsModule,
+    FinanceModule,
   ],
   controllers: [AppController],
   providers: [

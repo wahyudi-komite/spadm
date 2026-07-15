@@ -12,4 +12,6 @@ npm --prefix frontend/starter run build
 npm --prefix backend run migration:run
 pm2 startOrReload ecosystem.config.cjs --env production
 pm2 save
-curl --fail --silent http://127.0.0.1:3000/api/health >/dev/null
+curl --fail --silent --show-error \
+  --retry 10 --retry-delay 3 \
+  http://127.0.0.1:3000/api/health/ready >/dev/null

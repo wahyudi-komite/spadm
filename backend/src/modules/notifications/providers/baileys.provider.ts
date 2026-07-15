@@ -1,4 +1,9 @@
-import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type {
   WhatsAppConnectionStatus,
@@ -17,12 +22,16 @@ interface BaileysSocket {
 }
 
 @Injectable()
-export class BaileysProvider implements WhatsAppProvider, OnModuleInit, OnModuleDestroy {
+export class BaileysProvider
+  implements WhatsAppProvider, OnModuleInit, OnModuleDestroy
+{
   readonly name = 'baileys';
   private readonly logger = new Logger(BaileysProvider.name);
   private socket: BaileysSocket | null = null;
   private saveCredentials: (() => Promise<void>) | null = null;
   private connecting: Promise<void> | null = null;
+  private reconnectTimer: NodeJS.Timeout | null = null;
+  private shuttingDown = false;
   private status: WhatsAppConnectionStatus = {
     provider: this.name,
     state: 'DISCONNECTED',
@@ -39,12 +48,14 @@ export class BaileysProvider implements WhatsAppProvider, OnModuleInit, OnModule
     try {
       await this.connect();
     } catch (error) {
-      this.logger.error(`Initial connection error: ${error instanceof Error ? error.message : String(error)}`);
+      this.logger.error(
+        `Initial connection error: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   }
 
   async connect(): Promise<void> {
-    if (!this.enabled || this.socket || this.connecting) {
+    if (this.shuttingDown || !this.enabled || this.socket || this.connecting) {
       return this.connecting ?? Promise.resolve();
     }
     this.connecting = this.createSocket();
@@ -76,7 +87,11 @@ export class BaileysProvider implements WhatsAppProvider, OnModuleInit, OnModule
   }
 
   onModuleDestroy(): void {
+    this.shuttingDown = true;
+    if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
+    this.reconnectTimer = null;
     this.socket?.end(new Error('Application shutdown'));
+    this.socket = null;
   }
 
   private get enabled(): boolean {
@@ -113,7 +128,11 @@ export class BaileysProvider implements WhatsAppProvider, OnModuleInit, OnModule
           lastDisconnect?: { error?: unknown };
         };
         if (update.qr) {
-          this.status = { ...this.status, state: 'QR_REQUIRED', qrCode: update.qr };
+          this.status = {
+            ...this.status,
+            state: 'QR_REQUIRED',
+            qrCode: update.qr,
+          };
         }
         if (update.connection === 'open') {
           this.status = {
@@ -131,7 +150,13 @@ export class BaileysProvider implements WhatsAppProvider, OnModuleInit, OnModule
             state: 'DISCONNECTED',
             lastError: 'Koneksi WhatsApp terputus',
           };
-          setTimeout(() => void this.connect(), 5000);
+          if (!this.shuttingDown) {
+            if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
+            this.reconnectTimer = setTimeout(() => {
+              this.reconnectTimer = null;
+              void this.connect();
+            }, 5000);
+          }
         }
       });
     } catch (error) {
@@ -141,7 +166,9 @@ export class BaileysProvider implements WhatsAppProvider, OnModuleInit, OnModule
         state: 'DISCONNECTED',
         lastError: error instanceof Error ? error.message : String(error),
       };
-      this.logger.error(`Gagal menghubungkan Baileys: ${this.status.lastError}`);
+      this.logger.error(
+        `Gagal menghubungkan Baileys: ${this.status.lastError}`,
+      );
       throw error;
     }
   }

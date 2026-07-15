@@ -1,68 +1,145 @@
-<div class="flex flex-col md:flex-row flex-auto min-w-0 bg-gray-50 dark:bg-gray-900 min-h-screen">
-    
+<div
+    class="flex min-h-full w-full min-w-0 flex-col bg-gray-50 dark:bg-gray-900 md:flex-row"
+>
     <!-- Main Content Area -->
-    <div class="flex-auto p-6 sm:p-10 w-full md:w-2/3 lg:w-3/4">
-        <div *ngIf="loading" class="flex justify-center items-center h-64">
+    <div class="w-full flex-auto p-6 sm:p-10 md:w-2/3 lg:w-3/4">
+        <div *ngIf="loading" class="flex h-64 items-center justify-center">
             <div class="text-lg text-gray-500">Memuat data bazar...</div>
         </div>
 
-        <div *ngIf="!loading && !activeEvent" class="bg-white dark:bg-gray-800 rounded-2xl shadow p-12 text-center">
-            <mat-icon class="text-6xl text-gray-400 mb-4" style="height: 64px; width: 64px;">event_busy</mat-icon>
-            <h2 class="text-3xl font-bold tracking-tight mb-2">Tidak Ada Bazar Aktif</h2>
-            <p class="text-gray-500 text-lg">Saat ini sedang tidak ada event bazar yang berlangsung. Silakan periksa kembali nanti.</p>
+        <div
+            *ngIf="!loading && !activeEvent"
+            class="rounded-2xl bg-white p-12 text-center shadow dark:bg-gray-800"
+        >
+            <mat-icon
+                class="mb-4 text-6xl text-gray-400"
+                style="height: 64px; width: 64px"
+                >event_busy</mat-icon
+            >
+            <h2 class="mb-2 text-3xl font-bold tracking-tight">
+                Tidak Ada Bazar Aktif
+            </h2>
+            <p class="text-lg text-gray-500">
+                Saat ini sedang tidak ada event bazar yang berlangsung. Silakan
+                periksa kembali nanti.
+            </p>
         </div>
 
-        <div *ngIf="!loading && activeEvent" class="max-w-5xl mx-auto w-full">
+        <div *ngIf="!loading && activeEvent" class="mx-auto w-full max-w-5xl">
             <!-- Banner / Header -->
-            <div class="bg-blue-600 text-white rounded-3xl p-8 sm:p-12 mb-8 shadow-lg relative overflow-hidden">
+            <div
+                class="relative mb-8 overflow-hidden rounded-3xl bg-blue-600 p-8 text-white shadow-lg sm:p-12"
+            >
                 <div class="relative z-10">
-                    <div class="inline-block px-3 py-1 bg-blue-800 text-blue-100 text-sm font-semibold rounded-full mb-4">
+                    <div
+                        class="mb-4 inline-block rounded-full bg-blue-800 px-3 py-1 text-sm font-semibold text-blue-100"
+                    >
                         Event Spesial
                     </div>
-                    <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4">{{activeEvent.name}}</h1>
-                    
-                    <div class="mt-6 bg-white/10 backdrop-blur inline-block p-4 rounded-2xl border border-white/20">
+                    <h1
+                        class="mb-4 text-4xl font-extrabold tracking-tight sm:text-5xl"
+                    >
+                        {{ activeEvent.name }}
+                    </h1>
+
+                    <div
+                        class="mt-6 inline-block rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur"
+                    >
                         <div class="flex items-center space-x-3">
-                            <span *ngIf="activeBatch" class="text-xl font-bold">{{activeBatch.name}}</span>
-                            <span *ngIf="activeBatch" class="px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full uppercase tracking-wider">BUKA</span>
-                            <span *ngIf="!activeBatch" class="text-lg font-bold">Belum Ada Batch Terbuka</span>
+                            <span
+                                *ngIf="activeBatch"
+                                class="text-xl font-bold"
+                                >{{ activeBatch.name }}</span
+                            >
+                            <span
+                                *ngIf="activeBatch"
+                                class="rounded-full bg-green-500 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white"
+                                >BUKA</span
+                            >
+                            <span *ngIf="!activeBatch" class="text-lg font-bold"
+                                >Belum Ada Batch Terbuka</span
+                            >
                         </div>
                     </div>
                 </div>
                 <!-- Decorative circle -->
-                <div class="absolute -bottom-24 -right-24 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-70"></div>
+                <div
+                    class="absolute -bottom-24 -right-24 h-96 w-96 rounded-full bg-blue-500 opacity-70 mix-blend-multiply blur-3xl filter"
+                ></div>
             </div>
 
             <!-- Products -->
-            <h2 class="text-3xl font-bold tracking-tight mb-6 text-gray-900 dark:text-gray-100">Katalog Produk</h2>
-            
-            <div *ngIf="products.length === 0" class="text-gray-500 p-8 text-center bg-white dark:bg-gray-800 rounded-2xl shadow">
+            <h2
+                class="mb-6 text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100"
+            >
+                Katalog Produk
+            </h2>
+
+            <div
+                *ngIf="products.length === 0"
+                class="rounded-2xl bg-white p-8 text-center text-gray-500 shadow dark:bg-gray-800"
+            >
                 Belum ada produk yang ditambahkan.
             </div>
-            
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div *ngFor="let product of products" 
-                     class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border-2 flex flex-col cursor-pointer"
-                     [ngClass]="isInCart(product.id) ? 'border-blue-500 transform -translate-y-1' : 'border-transparent border-gray-100'"
-                     (click)="toggleCart(product)">
-                     
-                    <div class="h-40 bg-gray-200 dark:bg-gray-700 relative flex items-center justify-center">
-                        <mat-icon class="text-gray-400 text-6xl" style="height: 64px; width: 64px;">shopping_bag</mat-icon>
-                        
+
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <div
+                    *ngFor="let product of products"
+                    class="flex cursor-pointer flex-col overflow-hidden rounded-2xl border-2 bg-white shadow-sm transition-all duration-300 hover:shadow-xl dark:bg-gray-800"
+                    [ngClass]="
+                        isInCart(product.id)
+                            ? '-translate-y-1 transform border-blue-500'
+                            : 'border-gray-100 border-transparent'
+                    "
+                    (click)="toggleCart(product)"
+                >
+                    <div
+                        class="relative flex h-40 items-center justify-center bg-gray-200 dark:bg-gray-700"
+                    >
+                        <mat-icon
+                            class="text-6xl text-gray-400"
+                            style="height: 64px; width: 64px"
+                            >shopping_bag</mat-icon
+                        >
+
                         <!-- Selected Overlay -->
-                        <div *ngIf="isInCart(product.id)" class="absolute top-3 right-3 bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center shadow-lg">
-                            <mat-icon class="text-white text-sm" style="height: 20px; width: 20px;">check</mat-icon>
+                        <div
+                            *ngIf="isInCart(product.id)"
+                            class="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-blue-500 text-white shadow-lg"
+                        >
+                            <mat-icon
+                                class="text-sm text-white"
+                                style="height: 20px; width: 20px"
+                                >check</mat-icon
+                            >
                         </div>
 
-                        <div *ngIf="product.inventoryMode !== 'UNLIMITED' && product.stock <= 0" class="absolute inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm">
-                            <span class="text-white font-bold text-xl tracking-widest uppercase">Habis</span>
+                        <div
+                            *ngIf="
+                                product.inventoryMode !== 'UNLIMITED' &&
+                                product.stock <= 0
+                            "
+                            class="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+                        >
+                            <span
+                                class="text-xl font-bold uppercase tracking-widest text-white"
+                                >Habis</span
+                            >
                         </div>
                     </div>
-                    <div class="p-5 flex flex-col flex-auto">
-                        <h3 class="text-lg font-bold leading-tight mb-1">{{product.name}}</h3>
-                        <div class="text-gray-500 text-xs mb-3 flex-auto">{{product.description || 'Tidak ada deskripsi.'}}</div>
+                    <div class="flex flex-auto flex-col p-5">
+                        <h3 class="mb-1 text-lg font-bold leading-tight">
+                            {{ product.name }}
+                        </h3>
+                        <div class="mb-3 flex-auto text-xs text-gray-500">
+                            {{ product.description || 'Tidak ada deskripsi.' }}
+                        </div>
                         <div class="mt-auto">
-                            <div class="text-xl font-bold text-blue-600 dark:text-blue-400">Rp {{product.sellingPrice | number}}</div>
+                            <div
+                                class="text-xl font-bold text-blue-600 dark:text-blue-400"
+                            >
+                                Rp {{ product.sellingPrice | number }}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -71,70 +148,130 @@
     </div>
 
     <!-- Right Sidebar Cart Panel -->
-    <div *ngIf="!loading && activeEvent" class="w-full md:w-1/3 lg:w-1/4 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 shadow-xl flex flex-col sticky top-0 h-screen overflow-y-auto">
-        <div class="p-6 border-b border-gray-200 dark:border-gray-700">
-            <h2 class="text-2xl font-bold flex items-center">
+    <div
+        *ngIf="!loading && activeEvent"
+        class="flex w-full flex-col border-t border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800 md:sticky md:top-0 md:max-h-[calc(100vh-4rem)] md:w-1/3 md:overflow-y-auto md:border-l md:border-t-0 lg:w-1/4"
+    >
+        <div class="border-b border-gray-200 p-6 dark:border-gray-700">
+            <h2 class="flex items-center text-2xl font-bold">
                 <mat-icon class="mr-2">shopping_cart</mat-icon>
                 Keranjang
             </h2>
         </div>
-        
-        <div class="p-6 flex-auto">
-            <div *ngIf="cartIds.length === 0" class="text-center text-gray-500 mt-10">
-                <mat-icon class="text-6xl mb-4 opacity-50" style="height: 64px; width: 64px;">add_shopping_cart</mat-icon>
+
+        <div class="flex-auto p-6">
+            <div
+                *ngIf="cartIds.length === 0"
+                class="mt-10 text-center text-gray-500"
+            >
+                <mat-icon
+                    class="mb-4 text-6xl opacity-50"
+                    style="height: 64px; width: 64px"
+                    >add_shopping_cart</mat-icon
+                >
                 <p>Belum ada produk yang dipilih.</p>
-                <p class="text-sm mt-2">Pilih maksimal 1 unit per produk.</p>
+                <p class="mt-2 text-sm">Pilih maksimal 1 unit per produk.</p>
             </div>
 
             <div *ngIf="cartIds.length > 0" class="space-y-4">
-                <div *ngFor="let id of cartIds" class="flex justify-between items-center bg-gray-50 dark:bg-gray-900 p-3 rounded-lg border border-gray-100">
+                <div
+                    *ngFor="let id of cartIds"
+                    class="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 p-3 dark:bg-gray-900"
+                >
                     <div class="flex-auto">
-                        <div class="font-semibold text-sm">{{ getProduct(id)?.name }}</div>
-                        <div class="text-blue-600 font-bold text-sm">Rp {{ getProduct(id)?.sellingPrice | number }}</div>
+                        <div class="text-sm font-semibold">
+                            {{ getProduct(id)?.name }}
+                        </div>
+                        <div class="text-sm font-bold text-blue-600">
+                            Rp {{ getProduct(id)?.sellingPrice | number }}
+                        </div>
                     </div>
-                    <button mat-icon-button color="warn" (click)="toggleCart(getProduct(id))">
+                    <button
+                        mat-icon-button
+                        color="warn"
+                        (click)="toggleCart(getProduct(id))"
+                    >
                         <mat-icon class="text-sm">delete</mat-icon>
                     </button>
                 </div>
             </div>
         </div>
 
-        <div class="p-6 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
-            <div class="space-y-2 mb-4 text-sm">
-                <div *ngIf="calculating" class="flex items-center gap-2 rounded-lg bg-blue-50 p-3 text-blue-700">
+        <div
+            class="border-t border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-900"
+        >
+            <div class="mb-4 space-y-2 text-sm">
+                <div
+                    *ngIf="calculating"
+                    class="flex items-center gap-2 rounded-lg bg-blue-50 p-3 text-blue-700"
+                >
                     <mat-spinner diameter="18"></mat-spinner>
                     Menghitung harga terbaru...
                 </div>
-                <div *ngIf="calculationError" class="rounded-lg bg-red-50 p-3 text-red-700">
+                <div
+                    *ngIf="calculationError"
+                    class="rounded-lg bg-red-50 p-3 text-red-700"
+                >
                     {{ calculationError }}
                 </div>
                 <div class="flex justify-between text-gray-600">
                     <span>Subtotal Produk</span>
-                    <span class="font-semibold">Rp {{ cartSubtotal | number }}</span>
+                    <span class="font-semibold"
+                        >Rp {{ cartSubtotal | number }}</span
+                    >
                 </div>
-                <div class="flex justify-between text-gray-600" *ngIf="cartIds.length > 0">
+                <div
+                    class="flex justify-between text-gray-600"
+                    *ngIf="cartIds.length > 0"
+                >
                     <span>Goodie Bag</span>
-                    <span class="font-semibold">Rp {{ goodieBagFee | number }}</span>
+                    <span class="font-semibold"
+                        >Rp {{ goodieBagFee | number }}</span
+                    >
                 </div>
-                <div class="flex justify-between text-gray-600" *ngIf="cartIds.length > 0">
+                <div
+                    class="flex justify-between text-gray-600"
+                    *ngIf="cartIds.length > 0"
+                >
                     <span>Biaya Aplikasi</span>
                     <span class="font-semibold">Rp {{ appFee | number }}</span>
                 </div>
-                <div class="flex justify-between text-green-600" *ngIf="cartIds.length > 0">
+                <div
+                    class="flex justify-between text-green-600"
+                    *ngIf="cartIds.length > 0"
+                >
                     <span>Subsidy SPADM</span>
-                    <span class="font-semibold">- Rp {{ subsidy | number }}</span>
+                    <span class="font-semibold"
+                        >- Rp {{ subsidy | number }}</span
+                    >
                 </div>
-                <div class="border-t border-gray-200 pt-2 mt-2 flex justify-between font-bold text-xl">
+                <div
+                    class="mt-2 flex justify-between border-t border-gray-200 pt-2 text-xl font-bold"
+                >
                     <span>Total</span>
                     <span>Rp {{ grandTotal | number }}</span>
                 </div>
             </div>
 
-            <button mat-flat-button color="primary" class="w-full h-14 text-lg rounded-xl shadow-lg" 
-                    [disabled]="cartIds.length === 0 || !activeBatch || calculating || !!calculationError || checkingOut"
-                    (click)="checkout()">
+            <button
+                mat-flat-button
+                color="primary"
+                class="h-14 w-full rounded-xl text-lg shadow-lg"
+                [disabled]="
+                    cartIds.length === 0 ||
+                    !activeBatch ||
+                    calculating ||
+                    !!calculationError ||
+                    checkingOut
+                "
+                (click)="checkout()"
+            >
                 <mat-icon *ngIf="!checkingOut">check_circle</mat-icon>
-                <mat-spinner *ngIf="checkingOut" diameter="24" class="mr-2"></mat-spinner>
+                <mat-spinner
+                    *ngIf="checkingOut"
+                    diameter="24"
+                    class="mr-2"
+                ></mat-spinner>
                 {{ checkingOut ? 'Memproses...' : 'Checkout Sekarang' }}
             </button>
         </div>

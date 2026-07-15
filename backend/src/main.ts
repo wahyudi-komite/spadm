@@ -7,29 +7,34 @@ import compression from 'compression';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters';
 import { ResponseTransformInterceptor } from './common/interceptors';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { getAllowedOrigins } from './config';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.setGlobalPrefix('api');
   app.enableShutdownHooks();
+  app.set('trust proxy', Number(process.env.TRUST_PROXY_HOPS || 1));
 
   app.use(helmet());
   app.use(compression());
   app.use(cookieParser());
 
   app.enableCors({
-    origin: process.env.APP_URL || 'http://localhost:4200',
+    origin: getAllowedOrigins(),
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
   });
 
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
-    forbidNonWhitelisted: true,
-    transform: true,
-  }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
 
   app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalInterceptors(new ResponseTransformInterceptor());
@@ -41,7 +46,10 @@ async function bootstrap() {
     .addBearerAuth()
     .build();
 
-  if (process.env.NODE_ENV !== 'production' || process.env.SWAGGER_ENABLED === 'true') {
+  const swaggerEnabled =
+    process.env.NODE_ENV !== 'production' ||
+    process.env.SWAGGER_ENABLED === 'true';
+  if (swaggerEnabled) {
     const document = SwaggerModule.createDocument(app, swaggerConfig);
     SwaggerModule.setup('api/docs', app, document);
   }
@@ -49,6 +57,12 @@ async function bootstrap() {
   const port = process.env.PORT || 3000;
   await app.listen(port);
   console.log(`SPADM API running on http://localhost:${port}`);
-  console.log(`Swagger docs: http://localhost:${port}/api/docs`);
+  if (swaggerEnabled) {
+    console.log(`Swagger docs: http://localhost:${port}/api/docs`);
+  }
 }
-bootstrap();
+bootstrap().catch((error: unknown) => {
+  const message = error instanceof Error ? error.stack : String(error);
+  console.error('SPADM API gagal dijalankan', message);
+  process.exitCode = 1;
+});

@@ -77,11 +77,11 @@ body {
 }
 
 .mat-mdc-header-row {
-    background: linear-gradient(90deg, rgba(0, 31, 78, 0.96), rgba(0, 87, 184, 0.96));
     color: #ffffff;
 }
 
 .mat-mdc-header-cell {
+    background: linear-gradient(90deg, rgba(0, 31, 78, 0.96), rgba(0, 87, 184, 0.96)) !important;
     color: #ffffff !important;
     font-weight: 700;
 }

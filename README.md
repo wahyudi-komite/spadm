@@ -56,7 +56,7 @@ npm --prefix backend run migration:run
 pm2 startOrReload ecosystem.config.cjs --env production
 ```
 
-Pasang [konfigurasi Nginx](deployment/nginx/spadm.conf), aktifkan TLS, lalu cek `GET /api/health`. Detail tersedia di [deployment](docs/deployment.md) dan [backup/restore](docs/backup-restore.md).
+Pasang [konfigurasi Nginx](deployment/nginx/spadm.conf), aktifkan TLS, lalu cek `GET /api/health/ready`. Detail tersedia di [deployment](docs/deployment.md), [backup/restore](docs/backup-restore.md), dan [production readiness](docs/production-readiness.md).
 
 ## Troubleshooting
 

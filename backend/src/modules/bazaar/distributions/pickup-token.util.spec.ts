@@ -28,4 +28,13 @@ describe('pickup token utilities', () => {
       'Format QR tidak valid',
     );
   });
+
+  it('rejects an empty or missing token', () => {
+    expect(() => verifyPickupToken('', secret)).toThrow(
+      'Format QR tidak valid',
+    );
+    expect(() =>
+      verifyPickupToken(undefined as unknown as string, secret),
+    ).toThrow('Format QR tidak valid');
+  });
 });

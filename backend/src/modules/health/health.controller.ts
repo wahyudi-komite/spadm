@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, ServiceUnavailableException } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { DataSource } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
@@ -15,19 +15,38 @@ export class HealthController {
     @Inject(WHATSAPP_PROVIDER) private whatsapp: WhatsAppProvider,
   ) {}
 
-  @Get()
-  @ApiOperation({ summary: 'Check API health status' })
-  async check() {
-    const dbStatus = await this.checkDatabase();
-
+  @Get('live')
+  @ApiOperation({ summary: 'Check whether the API process is alive' })
+  live() {
     return {
       status: 'ok',
       timestamp: new Date().toISOString(),
-      database: dbStatus ? 'connected' : 'disconnected',
-      payment: this.config.get<string>('PAYMENT_PROVIDER') ? 'configured' : 'not_configured',
-      whatsapp: this.whatsapp.getStatus().state,
-      storage: this.config.get<string>('STORAGE_PATH') ? 'configured' : 'not_configured',
     };
+  }
+
+  @Get(['', 'ready'])
+  @ApiOperation({
+    summary: 'Check whether the API is ready to receive traffic',
+  })
+  async ready() {
+    const dbStatus = await this.checkDatabase();
+
+    const result = {
+      status: dbStatus ? 'ready' : 'not_ready',
+      timestamp: new Date().toISOString(),
+      database: dbStatus ? 'connected' : 'disconnected',
+      payment: this.config.get<string>('PAYMENT_PROVIDER')
+        ? 'configured'
+        : 'not_configured',
+      whatsapp: this.whatsapp.getStatus().state,
+      storage: this.config.get<string>('STORAGE_PATH')
+        ? 'configured'
+        : 'not_configured',
+    };
+    if (!dbStatus) {
+      throw new ServiceUnavailableException(result);
+    }
+    return result;
   }
 
   private async checkDatabase(): Promise<boolean> {

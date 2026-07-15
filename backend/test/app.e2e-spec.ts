@@ -4,6 +4,11 @@ import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
 
+interface HealthResponse {
+  status: string;
+  database?: string;
+}
+
 describe('AppController (e2e)', () => {
   let app: INestApplication<App>;
 
@@ -13,14 +18,29 @@ describe('AppController (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    app.setGlobalPrefix('api');
     await app.init();
   });
 
-  it('/ (GET)', () => {
+  it('/api/health/live (GET)', () => {
     return request(app.getHttpServer())
-      .get('/')
+      .get('/api/health/live')
       .expect(200)
-      .expect('Hello World!');
+      .expect(({ text }) => {
+        const body = JSON.parse(text) as HealthResponse;
+        expect(body.status).toBe('ok');
+      });
+  });
+
+  it('/api/health/ready (GET)', () => {
+    return request(app.getHttpServer())
+      .get('/api/health/ready')
+      .expect(200)
+      .expect(({ text }) => {
+        const body = JSON.parse(text) as HealthResponse;
+        expect(body.status).toBe('ready');
+        expect(body.database).toBe('connected');
+      });
   });
 
   afterEach(async () => {

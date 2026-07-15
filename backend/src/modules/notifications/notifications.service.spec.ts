@@ -3,7 +3,10 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { NotificationsService } from './notifications.service';
 import { Notification, NotificationType } from './entities/notification.entity';
-import { DeliveryStatus, NotificationDelivery } from './entities/notification-delivery.entity';
+import {
+  DeliveryStatus,
+  NotificationDelivery,
+} from './entities/notification-delivery.entity';
 import { BazaarOrder } from '../bazaar/orders/entities/order.entity';
 import { NotificationsGateway } from './notifications.gateway';
 
@@ -15,18 +18,23 @@ describe('NotificationsService', () => {
   let gateway: jest.Mocked<NotificationsGateway>;
 
   const mockNotification = {
-    id: 1, userId: 1, type: NotificationType.PAYMENT_SUCCESS,
-    title: 'Test', message: 'Test', deepLink: null,
-    metadata: null, isRead: false, readAt: null,
-    createdAt: new Date(), updatedAt: new Date(),
+    id: 1,
+    userId: 1,
+    type: NotificationType.PAYMENT_SUCCESS,
+    title: 'Test',
+    message: 'Test',
+    deepLink: null,
+    metadata: null,
+    isRead: false,
+    readAt: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   } as Notification;
 
   beforeEach(async () => {
     const mockManager = {
       save: jest.fn(),
-      transaction: jest.fn((cb: (m: any) => Promise<any>) =>
-        cb(mockManager),
-      ),
+      transaction: jest.fn((cb: (m: any) => Promise<any>) => cb(mockManager)),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -57,6 +65,7 @@ describe('NotificationsService', () => {
             findAndCount: jest.fn(),
             count: jest.fn(),
             save: jest.fn(),
+            update: jest.fn(),
           },
         },
         {
@@ -86,7 +95,11 @@ describe('NotificationsService', () => {
         type: NotificationType.PAYMENT_SUCCESS,
         title: 'Test',
         message: 'Test message',
-        whatsapp: { phone: '628123456789', template: 'TEST', message: 'WA message' },
+        whatsapp: {
+          phone: '628123456789',
+          template: 'TEST',
+          message: 'WA message',
+        },
       };
 
       notifRepo.manager.save
@@ -142,7 +155,11 @@ describe('NotificationsService', () => {
     it('should mark notification as read', async () => {
       const unread = { ...mockNotification, isRead: false };
       notifRepo.findOne.mockResolvedValue(unread);
-      notifRepo.save.mockResolvedValue({ ...unread, isRead: true, readAt: new Date() });
+      notifRepo.save.mockResolvedValue({
+        ...unread,
+        isRead: true,
+        readAt: new Date(),
+      });
 
       const result = await service.markRead(1, 1);
 
@@ -153,7 +170,9 @@ describe('NotificationsService', () => {
     it('should throw when notification not found', async () => {
       notifRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.markRead(999, 1)).rejects.toThrow('Notifikasi tidak ditemukan');
+      await expect(service.markRead(999, 1)).rejects.toThrow(
+        'Notifikasi tidak ditemukan',
+      );
     });
   });
 
@@ -169,20 +188,47 @@ describe('NotificationsService', () => {
 
   describe('retryDelivery', () => {
     it('should set delivery status to RETRY', async () => {
-      const delivery = { id: 1, status: DeliveryStatus.FAILED, attempts: 5 } as NotificationDelivery;
+      const delivery = {
+        id: 1,
+        status: DeliveryStatus.RETRY,
+        attempts: 0,
+      } as NotificationDelivery;
+      deliveryRepo.update.mockResolvedValue({ affected: 1, raw: [] } as any);
       deliveryRepo.findOne.mockResolvedValue(delivery);
-      deliveryRepo.save.mockResolvedValue({ ...delivery, status: DeliveryStatus.RETRY });
 
       const result = await service.retryDelivery(1);
 
-      expect(result.status).toBe(DeliveryStatus.RETRY);
-      expect(delivery.attempts).toBe(0);
+      expect(result?.status).toBe(DeliveryStatus.RETRY);
+      expect(deliveryRepo.update).toHaveBeenCalledWith(
+        { id: 1, status: DeliveryStatus.FAILED },
+        {
+          status: DeliveryStatus.RETRY,
+          attempts: 0,
+          nextAttemptAt: expect.any(Date),
+          lastError: null,
+        },
+      );
     });
 
     it('should throw when delivery not found', async () => {
+      deliveryRepo.update.mockResolvedValue({ affected: 0, raw: [] } as any);
       deliveryRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.retryDelivery(999)).rejects.toThrow('Histori pengiriman tidak ditemukan');
+      await expect(service.retryDelivery(999)).rejects.toThrow(
+        'Histori pengiriman tidak ditemukan',
+      );
+    });
+
+    it('should reject retry while a delivery is not failed', async () => {
+      deliveryRepo.update.mockResolvedValue({ affected: 0, raw: [] } as any);
+      deliveryRepo.findOne.mockResolvedValue({
+        id: 1,
+        status: DeliveryStatus.PROCESSING,
+      } as NotificationDelivery);
+
+      await expect(service.retryDelivery(1)).rejects.toThrow(
+        'Hanya pengiriman berstatus gagal yang dapat diulang',
+      );
     });
   });
 

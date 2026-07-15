@@ -6,4 +6,5 @@ export default registerAs('database', () => ({
   username: process.env.DB_USERNAME || 'root',
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_DATABASE || 'spadm',
+  poolSize: parseInt(process.env.DB_POOL_SIZE || '10', 10),
 }));
