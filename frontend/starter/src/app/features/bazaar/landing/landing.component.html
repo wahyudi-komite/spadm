@@ -101,6 +101,13 @@
 
         <div class="p-6 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
             <div class="space-y-2 mb-4 text-sm">
+                <div *ngIf="calculating" class="flex items-center gap-2 rounded-lg bg-blue-50 p-3 text-blue-700">
+                    <mat-spinner diameter="18"></mat-spinner>
+                    Menghitung harga terbaru...
+                </div>
+                <div *ngIf="calculationError" class="rounded-lg bg-red-50 p-3 text-red-700">
+                    {{ calculationError }}
+                </div>
                 <div class="flex justify-between text-gray-600">
                     <span>Subtotal Produk</span>
                     <span class="font-semibold">Rp {{ cartSubtotal | number }}</span>
@@ -124,7 +131,7 @@
             </div>
 
             <button mat-flat-button color="primary" class="w-full h-14 text-lg rounded-xl shadow-lg" 
-                    [disabled]="cartIds.length === 0 || !activeBatch || checkingOut"
+                    [disabled]="cartIds.length === 0 || !activeBatch || calculating || !!calculationError || checkingOut"
                     (click)="checkout()">
                 <mat-icon *ngIf="!checkingOut">check_circle</mat-icon>
                 <mat-spinner *ngIf="checkingOut" diameter="24" class="mr-2"></mat-spinner>

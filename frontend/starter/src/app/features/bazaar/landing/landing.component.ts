@@ -4,8 +4,9 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatDialog, MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { environment } from 'environments/environment';
 import { DialogFeedbackService } from 'app/shared/dialog-feedback/dialog-feedback.service';
@@ -62,7 +63,7 @@ export class BazaarCheckoutDialogComponent {
   selector: 'bazaar-landing',
   templateUrl: './landing.component.html',
   encapsulation: ViewEncapsulation.None,
-  imports: [CommonModule, MatButtonModule, MatIconModule, MatDialogModule],
+  imports: [CommonModule, MatButtonModule, MatIconModule, MatDialogModule, MatProgressSpinnerModule],
   standalone: true
 })
 export class BazaarLandingComponent implements OnInit {
@@ -77,8 +78,11 @@ export class BazaarLandingComponent implements OnInit {
   appFee = 1000;
   subsidy = 20000;
   grandTotal = 0;
-  
+
+  calculating = false;
+  calculationError = '';
   checkingOut = false;
+  private calculationVersion = 0;
 
   constructor(
     private http: HttpClient,
@@ -131,17 +135,40 @@ export class BazaarLandingComponent implements OnInit {
   }
 
   calculateCart() {
-    this.cartSubtotal = this.cartIds.reduce((sum, id) => {
-      const p = this.products.find(x => x.id === id);
-      return sum + (p ? Number(p.sellingPrice) : 0);
-    }, 0);
-
     if (this.cartIds.length === 0) {
-      this.grandTotal = 0;
-    } else {
-      let t = this.cartSubtotal + this.goodieBagFee + this.appFee - this.subsidy;
-      this.grandTotal = t < 0 ? 0 : t;
+      this.calculationVersion++;
+      this.calculating = false;
+      this.calculationError = '';
+      this.resetBreakdown();
+      return;
     }
+
+    const version = ++this.calculationVersion;
+    this.calculating = true;
+    this.calculationError = '';
+
+    this.http.post(`${environment.apiUrl}/bazaar/orders/calculate`, {
+      productIds: this.cartIds,
+    }).subscribe({
+      next: (result: any) => {
+        if (version !== this.calculationVersion) return;
+
+        const breakdown = result.breakdown;
+        this.cartSubtotal = Number(breakdown.productSubtotal);
+        this.goodieBagFee = Number(breakdown.goodieBagFee);
+        this.appFee = Number(breakdown.applicationFee);
+        this.subsidy = Number(breakdown.subsidy);
+        this.grandTotal = Number(breakdown.grandTotal);
+        this.calculating = false;
+      },
+      error: (error) => {
+        if (version !== this.calculationVersion) return;
+
+        this.calculating = false;
+        this.calculationError = error.error?.message || 'Rincian harga tidak dapat dihitung.';
+        this.resetBreakdown();
+      },
+    });
   }
 
   checkout() {
@@ -156,11 +183,11 @@ export class BazaarLandingComponent implements OnInit {
           productIds: this.cartIds,
           termsAccepted: true
         }).subscribe({
-          next: (res) => {
+          next: (order: any) => {
             this.checkingOut = false;
             this.cartIds = [];
             this.calculateCart();
-            this.router.navigate(['/bazaar/orders']);
+            this.router.navigate(['/bazaar/orders', order.id, 'payment']);
           },
           error: (err) => {
             this.checkingOut = false;
@@ -173,6 +200,14 @@ export class BazaarLandingComponent implements OnInit {
 
   getProduct(id: number): any {
     return this.products.find(p => p.id === id);
+  }
+
+  private resetBreakdown() {
+    this.cartSubtotal = 0;
+    this.goodieBagFee = 0;
+    this.appFee = 0;
+    this.subsidy = 0;
+    this.grandTotal = 0;
   }
 }
 

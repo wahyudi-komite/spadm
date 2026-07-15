@@ -13,6 +13,10 @@ export default [
         component: BazaarOrdersComponent,
     },
     {
+        path: 'orders/:id/payment',
+        loadComponent: () => import('./payment/payment.component').then(component => component.BazaarPaymentComponent),
+    },
+    {
         path     : 'payments',
         component: BazaarPaymentHistoryComponent,
     },
