@@ -40,7 +40,12 @@ export class AuthService {
   async signIn(dto: SignInDto, ipAddress?: string, userAgent?: string) {
     const user = await this.userRepository.findOne({
       where: { npk: dto.npk },
-      relations: { member: true },
+      relations: {
+        member: true,
+        userRoles: {
+          role: true,
+        },
+      },
     });
 
     if (!user) {
@@ -101,7 +106,14 @@ export class AuthService {
     const refreshTokenHash = this.hashToken(refreshToken);
     const session = await this.sessionRepository.findOne({
       where: { refreshToken: refreshTokenHash },
-      relations: { user: { member: true } },
+      relations: {
+        user: {
+          member: true,
+          userRoles: {
+            role: true,
+          },
+        },
+      },
     });
 
     if (!session) {
@@ -264,7 +276,12 @@ export class AuthService {
   async getProfile(userId: number) {
     const user = await this.userRepository.findOne({
       where: { id: userId },
-      relations: { member: true },
+      relations: {
+        member: true,
+        userRoles: {
+          role: true,
+        },
+      },
     });
     if (!user) throw new UnauthorizedException('User tidak ditemukan');
     return this.sanitizeUser(user);
@@ -322,8 +339,39 @@ export class AuthService {
   }
 
   private sanitizeUser(user: User) {
-    const { password, ...rest } = user;
-    return rest;
+    const now = new Date();
+    const isActiveRole = (userRole: User['userRoles'][number]) =>
+      userRole.status === 'ACTIVE' &&
+      (!userRole.startsAt || userRole.startsAt <= now) &&
+      (!userRole.endsAt || userRole.endsAt >= now);
+
+    const activeUserRole = user.userRoles?.find(
+      isActiveRole,
+    );
+    const role = activeUserRole?.role
+      ? {
+          id: activeUserRole.role.id.toString(),
+          name: activeUserRole.role.name,
+        }
+      : null;
+
+    const roles =
+      user.userRoles
+        ?.filter(isActiveRole)
+        .map((ur) => ur.role?.name)
+        .filter(Boolean) || [];
+
+    return {
+      id: user.id.toString(),
+      npk: user.npk,
+      isActive: user.isActive,
+      mustChangePassword: user.mustChangePassword,
+      name: user.member?.name || '',
+      email: user.member?.email || '',
+      avatar: '',
+      role,
+      roles,
+    };
   }
 
   private async saveLoginHistory(userId: number, ipAddress?: string, userAgent?: string, isSuccess = false, failureReason?: string) {

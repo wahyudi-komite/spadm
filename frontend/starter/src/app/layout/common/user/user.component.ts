@@ -114,7 +114,10 @@ export class UserComponent implements OnInit, OnDestroy {
     /**
      * Get user initials from name (up to 2 characters)
      */
-    getInitials(name: string): string {
+    getInitials(name: string | null | undefined): string {
+        if (!name || typeof name !== 'string') {
+            return '?';
+        }
         return name
             .split(/\s+/)
             .filter(Boolean)
