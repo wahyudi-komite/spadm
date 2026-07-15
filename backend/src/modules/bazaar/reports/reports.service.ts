@@ -1,7 +1,6 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { createHmac } from 'crypto';
 import PDFDocument from 'pdfkit';
 import QRCode from 'qrcode';
 import { Repository } from 'typeorm';
@@ -9,6 +8,7 @@ import ExcelJS from 'exceljs';
 import { BazaarOrder } from '../orders/entities/order.entity';
 import { Payment } from '../../payments/entities/payment.entity';
 import { PickupToken } from '../distributions/entities/pickup-token.entity';
+import { signPickupToken } from '../distributions/pickup-token.util';
 
 export interface ReportFilters {
   eventId?: number;
@@ -224,8 +224,7 @@ export class ReportsService {
 
   private signPickupToken(tokenCode: string): string {
     const secret = this.config.getOrThrow<string>('PICKUP_TOKEN_SECRET');
-    const signature = createHmac('sha256', secret).update(tokenCode).digest('base64url');
-    return `SPADM:PICKUP:${tokenCode}.${signature}`;
+    return signPickupToken(tokenCode, secret);
   }
 
   private createPdf(render: (document: PDFKit.PDFDocument) => void): Promise<Buffer> {

@@ -7,14 +7,14 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { ActivatedRoute, Router } from '@angular/router';
+import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { environment } from 'environments/environment';
 
 @Component({
   selector: 'admin-member-detail',
   templateUrl: './member-detail.component.html',
   encapsulation: ViewEncapsulation.None,
-  imports: [CommonModule, FormsModule, MatButtonModule, MatIconModule, MatFormFieldModule, MatInputModule, MatSelectModule],
+  imports: [CommonModule, FormsModule, MatButtonModule, MatIconModule, MatFormFieldModule, MatInputModule, MatSelectModule, RouterLink],
 })
 export class AdminMemberDetailComponent implements OnInit {
   member: any = { npk: '', name: '', email: '', phone: '', workUnit: '', organizationalPosition: '', plant: '', status: 'active' };

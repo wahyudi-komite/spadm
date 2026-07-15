@@ -292,6 +292,7 @@ export class AuthService {
 
     const permissions = new Set<string>();
     for (const ur of userRoles) {
+      if (!ur.role) continue;
       for (const p of ur.role.permissions) {
         permissions.add(p.name);
       }

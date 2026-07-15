@@ -30,6 +30,12 @@ app-vertical-navigation {
 
     &.fuse-vertical-navigation-mode-side {
         position: relative;
+
+        &:not(.fuse-vertical-navigation-opened) {
+            width: 0;
+            min-width: 0;
+            overflow: hidden;
+        }
     }
 }
 

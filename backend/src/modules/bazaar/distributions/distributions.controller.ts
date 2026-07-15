@@ -5,11 +5,14 @@ import {
   Get,
   Param,
   Post,
+  Query,
   UseGuards,
+  ValidationPipe,
 } from '@nestjs/common';
 import { CurrentUser, Permissions } from '../../../common/decorators';
-import { JwtAuthGuard, PermissionsGuard } from '../../../common/guards';
+import { AreaAccessGuard, JwtAuthGuard, PermissionsGuard } from '../../../common/guards';
 import { CreateAreaMappingDto } from './dto/create-area-mapping.dto';
+import { PicDashboardQueryDto } from './dto/pic-dashboard-query.dto';
 import { DistributionsService } from './distributions.service';
 
 @Controller('bazaar/distributions')
@@ -28,6 +31,17 @@ export class DistributionsController {
   @Get('mappings')
   findMappings() {
     return this.distributionsService.findMappings();
+  }
+
+  @UseGuards(JwtAuthGuard, PermissionsGuard, AreaAccessGuard)
+  @Permissions('bazaar.distribution.scan')
+  @Get('pic-dashboard')
+  picDashboard(
+    @CurrentUser() userId: number,
+    @Query(new ValidationPipe({ transform: true, whitelist: true }))
+    query: PicDashboardQueryDto,
+  ) {
+    return this.distributionsService.getPicDashboard(userId, query.areaId);
   }
 
   @UseGuards(JwtAuthGuard, PermissionsGuard)
