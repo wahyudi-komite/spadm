@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Notification } from 'app/layout/common/notifications/notifications.types';
 import { environment } from 'environments/environment';
-import { map, Observable, of, ReplaySubject, switchMap, take, tap } from 'rxjs';
+import { forkJoin, map, Observable, of, ReplaySubject, switchMap, take, tap } from 'rxjs';
 
 interface ApiNotification {
     id: number;
@@ -33,21 +33,30 @@ export class NotificationsService {
     }
 
     getAll(): Observable<Notification[]> {
-        return this._httpClient
-            .get<{ data: ApiNotification[] }>(
+        return forkJoin({
+            page: this._httpClient.get<{ data: ApiNotification[] }>(
                 `${environment.apiUrl}/notifications`
-            )
-            .pipe(
-                map((response) => response.data.map((item) => this._map(item))),
-                tap((notifications) => this._notifications.next(notifications))
-            );
+            ),
+            unread: this._httpClient.get<{ count: number }>(
+                `${environment.apiUrl}/notifications/unread-count`
+            ),
+        }).pipe(
+            map(({ page, unread }) => {
+                this._unreadCount.next(unread.count);
+                return page.data.map((item) => this._map(item));
+            }),
+            tap((notifications) => this._notifications.next(notifications))
+        );
     }
 
     create(notification: Notification): Observable<Notification> {
         return this.notifications$.pipe(
             take(1),
             map((notifications) => {
-                this._notifications.next([notification, ...notifications]);
+                const withoutDuplicate = notifications.filter(
+                    (item) => item.id !== notification.id
+                );
+                this._notifications.next([notification, ...withoutDuplicate]);
                 return notification;
             })
         );
@@ -84,7 +93,7 @@ export class NotificationsService {
             switchMap((notifications) =>
                 this._httpClient
                     .patch<{ updated: number }>(
-                        `${environment.apiUrl}/notifications/mark-all-read`,
+                        `${environment.apiUrl}/notifications/read-all`,
                         {}
                     )
                     .pipe(

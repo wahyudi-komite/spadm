@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BazaarOrder } from '../bazaar/orders/entities/order.entity';
@@ -175,10 +175,33 @@ export class NotificationsService {
     return { data, meta: { total, page: currentPage, limit: take } };
   }
 
+  async deliverySummary() {
+    const statuses = Object.values(DeliveryStatus);
+    const counts = await Promise.all(
+      statuses.map((status) => this.deliveryRepository.count({ where: { status } })),
+    );
+    const byStatus = Object.fromEntries(
+      statuses.map((status, index) => [status, counts[index]]),
+    ) as Record<DeliveryStatus, number>;
+
+    return {
+      total: counts.reduce((sum, count) => sum + count, 0),
+      pendingWork:
+        byStatus[DeliveryStatus.PENDING]
+        + byStatus[DeliveryStatus.PROCESSING]
+        + byStatus[DeliveryStatus.RETRY],
+      byStatus,
+    };
+  }
+
   async retryDelivery(id: number) {
     const delivery = await this.deliveryRepository.findOne({ where: { id } });
     if (!delivery) throw new NotFoundException('Histori pengiriman tidak ditemukan');
+    if ([DeliveryStatus.SENT, DeliveryStatus.DELIVERED].includes(delivery.status)) {
+      throw new BadRequestException('Pengiriman yang berhasil tidak dapat diulang');
+    }
     delivery.status = DeliveryStatus.RETRY;
+    delivery.attempts = 0;
     delivery.nextAttemptAt = new Date();
     delivery.lastError = null;
     return this.deliveryRepository.save(delivery);

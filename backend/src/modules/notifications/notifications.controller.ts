@@ -73,6 +73,16 @@ export class NotificationsController {
 
   @UseGuards(JwtAuthGuard, PermissionsGuard)
   @Permissions('settings.manage')
+  @Get('deliveries-summary')
+  async deliverySummary() {
+    return {
+      whatsapp: this.whatsappProvider.getStatus(),
+      deliveries: await this.notifService.deliverySummary(),
+    };
+  }
+
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions('settings.manage')
   @Post('deliveries/:id/retry')
   retryDelivery(@Param('id', ParseIntPipe) id: number) {
     return this.notifService.retryDelivery(id);

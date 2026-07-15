@@ -11,9 +11,10 @@ import { BaileysProvider } from './providers/baileys.provider';
 import { MockWhatsAppProvider } from './providers/mock-whatsapp.provider';
 import { WHATSAPP_PROVIDER } from './providers/whatsapp-provider.interface';
 import { NotificationsGateway } from './notifications.gateway';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Notification, NotificationDelivery, BazaarOrder])],
+  imports: [AuthModule, TypeOrmModule.forFeature([Notification, NotificationDelivery, BazaarOrder])],
   controllers: [NotificationsController],
   providers: [
     NotificationsService,

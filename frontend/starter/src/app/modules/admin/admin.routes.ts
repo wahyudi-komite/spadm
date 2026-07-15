@@ -49,5 +49,11 @@ export default [
     canActivate: [PermissionGuard],
     data: { permissions: ['bazaar.distribution.scan'] },
     loadComponent: () => import('./bazaar/distribution/distribution.component').then(m => m.AdminBazaarDistributionComponent)
+  },
+  {
+    path: 'notifications',
+    canActivate: [PermissionGuard],
+    data: { permissions: ['settings.manage'] },
+    loadComponent: () => import('./notifications/notifications-monitor.component').then(m => m.NotificationsMonitorComponent),
   }
 ] as Routes;

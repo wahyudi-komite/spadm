@@ -39,6 +39,12 @@ const menu: NavigationItem[] = [
                 title: 'Anggota',
                 type: 'basic',
                 link: '/admin/members'
+            },
+            {
+                id: 'admin_notifications',
+                title: 'Notification Monitor',
+                type: 'basic',
+                link: '/admin/notifications'
             }
         ]
     },

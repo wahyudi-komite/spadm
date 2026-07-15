@@ -55,6 +55,7 @@ describe('NotificationsService', () => {
           useValue: {
             findOne: jest.fn(),
             findAndCount: jest.fn(),
+            count: jest.fn(),
             save: jest.fn(),
           },
         },
@@ -168,19 +169,38 @@ describe('NotificationsService', () => {
 
   describe('retryDelivery', () => {
     it('should set delivery status to RETRY', async () => {
-      const delivery = { id: 1, status: DeliveryStatus.FAILED } as NotificationDelivery;
+      const delivery = { id: 1, status: DeliveryStatus.FAILED, attempts: 5 } as NotificationDelivery;
       deliveryRepo.findOne.mockResolvedValue(delivery);
       deliveryRepo.save.mockResolvedValue({ ...delivery, status: DeliveryStatus.RETRY });
 
       const result = await service.retryDelivery(1);
 
       expect(result.status).toBe(DeliveryStatus.RETRY);
+      expect(delivery.attempts).toBe(0);
     });
 
     it('should throw when delivery not found', async () => {
       deliveryRepo.findOne.mockResolvedValue(null);
 
       await expect(service.retryDelivery(999)).rejects.toThrow('Histori pengiriman tidak ditemukan');
+    });
+  });
+
+  describe('deliverySummary', () => {
+    it('should aggregate delivery status counts', async () => {
+      deliveryRepo.count
+        .mockResolvedValueOnce(2)
+        .mockResolvedValueOnce(1)
+        .mockResolvedValueOnce(3)
+        .mockResolvedValueOnce(4)
+        .mockResolvedValueOnce(5)
+        .mockResolvedValueOnce(6);
+
+      const result = await service.deliverySummary();
+
+      expect(result.total).toBe(21);
+      expect(result.pendingWork).toBe(6);
+      expect(result.byStatus[DeliveryStatus.FAILED]).toBe(6);
     });
   });
 });

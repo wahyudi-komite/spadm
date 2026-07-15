@@ -2,37 +2,38 @@ import { Injectable, OnDestroy } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
 import { NotificationsService } from 'app/layout/common/notifications/notifications.service';
 import { Notification } from 'app/layout/common/notifications/notifications.types';
-import { UserService } from 'app/core/user/user.service';
+import { AuthService } from 'app/core/auth/auth.service';
 import { environment } from 'environments/environment';
 import { Subject, takeUntil } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationsWebSocketService implements OnDestroy {
     private socket: Socket | null = null;
+    private currentToken: string | null = null;
     private _unsubscribeAll = new Subject<void>();
 
     constructor(
         private _notificationsService: NotificationsService,
-        private _userService: UserService,
+        private _authService: AuthService,
     ) {
-        this._userService.user$
+        this._authService.accessToken$
             .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe((user) => {
-                if (user?.id && !this.socket?.connected) {
-                    this.connect(user.id);
-                } else if (!user?.id) {
+            .subscribe((token) => {
+                if (token && token !== this.currentToken) {
+                    this.connect(token);
+                } else if (!token) {
                     this.disconnect();
                 }
             });
     }
 
-    private connect(userId: number | string): void {
-        if (this.socket?.connected) {
-            this.disconnect();
-        }
+    private connect(token: string): void {
+        this.disconnect();
+        this.currentToken = token;
+        const socketOrigin = environment.apiUrl.replace(/\/api\/?$/, '');
 
-        this.socket = io(`${environment.apiUrl}/notifications`, {
-            query: { userId: String(userId) },
+        this.socket = io(`${socketOrigin}/notifications`, {
+            auth: { token },
             transports: ['websocket', 'polling'],
             reconnection: true,
             reconnectionAttempts: 10,
@@ -67,6 +68,7 @@ export class NotificationsWebSocketService implements OnDestroy {
     disconnect(): void {
         this.socket?.disconnect();
         this.socket = null;
+        this.currentToken = null;
     }
 
     ngOnDestroy(): void {

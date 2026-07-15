@@ -1,4 +1,5 @@
 import { WebSocketGateway, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
+import { JwtService } from '@nestjs/jwt';
 import { Server, Socket } from 'socket.io';
 
 @WebSocketGateway({ namespace: '/notifications', cors: { origin: '*' } })
@@ -8,12 +9,30 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
 
   private userSockets = new Map<number, Set<string>>();
 
-  handleConnection(client: Socket) {
-    const userId = Number(client.handshake.query.userId);
-    if (userId) {
+  constructor(private readonly jwtService: JwtService) {}
+
+  async handleConnection(client: Socket) {
+    const authToken = client.handshake.auth?.token;
+    const authorization = client.handshake.headers.authorization;
+    const token = typeof authToken === 'string'
+      ? authToken
+      : typeof authorization === 'string'
+        ? authorization.replace(/^Bearer\s+/i, '')
+        : null;
+
+    try {
+      if (!token) throw new Error('Missing access token');
+      const payload = await this.jwtService.verifyAsync<{ sub: number }>(token);
+      const userId = Number(payload.sub);
+      if (!Number.isInteger(userId) || userId <= 0) {
+        throw new Error('Invalid access token');
+      }
+
       if (!this.userSockets.has(userId)) this.userSockets.set(userId, new Set());
       this.userSockets.get(userId)!.add(client.id);
       client.join(`user-${userId}`);
+    } catch {
+      client.disconnect(true);
     }
   }
 
