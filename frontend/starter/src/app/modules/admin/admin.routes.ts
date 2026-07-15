@@ -68,4 +68,10 @@ export default [
     data: { permissions: ['bazaar.report.read'] },
     loadChildren: () => import('../../features/reports/reports.routes'),
   },
+  {
+    path: 'leadership',
+    canActivate: [PermissionGuard],
+    data: { permissions: ['finance.dashboard.read'] },
+    loadChildren: () => import('../../features/leadership/leadership.routes'),
+  },
 ] as Routes;

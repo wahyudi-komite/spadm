@@ -45,6 +45,24 @@ const menu: NavigationItem[] = [
                 title: 'Notification Monitor',
                 type: 'basic',
                 link: '/admin/notifications'
+            },
+            {
+                id: 'admin_reports',
+                title: 'Laporan',
+                type: 'basic',
+                link: '/admin/reports'
+            },
+            {
+                id: 'admin_finance',
+                title: 'Finance',
+                type: 'basic',
+                link: '/admin/finance'
+            },
+            {
+                id: 'admin_leadership',
+                title: 'Leadership',
+                type: 'basic',
+                link: '/admin/leadership'
             }
         ]
     },
