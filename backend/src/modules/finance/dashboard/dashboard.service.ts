@@ -75,7 +75,7 @@ export class DashboardService {
       .select('COALESCE(SUM(o.subsidy), 0)', 'totalSubsidy')
       .addSelect('COALESCE(SUM(o.goodieBagFee), 0)', 'totalGoodieBag')
       .addSelect('COALESCE(SUM(o.applicationFee), 0)', 'totalApplicationFee')
-      .innerJoin('o.payment', 'p')
+      .innerJoin(Payment, 'p', 'p.order_id = o.id')
       .where("p.status IN ('PAID','MANUAL_VERIFIED')");
     if (query.from) qb.andWhere('o.createdAt >= :from', { from: query.from });
     if (query.to) qb.andWhere('o.createdAt <= :to', { to: query.to });
