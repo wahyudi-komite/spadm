@@ -1,0 +1,63 @@
+<div class="p-8 max-w-4xl">
+  <h1 class="text-2xl font-bold mb-6">Laporan & Ekspor</h1>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <mat-card class="p-6">
+      <div class="flex items-center gap-3 mb-4">
+        <mat-icon class="text-primary">assessment</mat-icon>
+        <div>
+          <h2 class="text-lg font-semibold">Ekspor Excel</h2>
+          <p class="text-sm text-secondary">Download semua transaksi dalam format Excel</p>
+        </div>
+      </div>
+      <button mat-flat-button color="primary" (click)="exportExcel()">
+        <mat-icon>download</mat-icon> Download Excel
+      </button>
+    </mat-card>
+
+    <mat-card class="p-6">
+      <div class="flex items-center gap-3 mb-4">
+        <mat-icon class="text-warn">picture_as_pdf</mat-icon>
+        <div>
+          <h2 class="text-lg font-semibold">Ekspor PDF</h2>
+          <p class="text-sm text-secondary">Download ringkasan laporan dalam format PDF</p>
+        </div>
+      </div>
+      <button mat-flat-button color="warn" (click)="exportPdf()">
+        <mat-icon>download</mat-icon> Download PDF
+      </button>
+    </mat-card>
+  </div>
+
+  @if (summary) {
+    <mat-card class="mt-6 p-6">
+      <h2 class="text-lg font-semibold mb-4">Ringkasan</h2>
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <div>
+          <p class="text-sm text-secondary">Total Transaksi</p>
+          <p class="text-xl font-bold">{{ summary.totalOrders }}</p>
+        </div>
+        <div>
+          <p class="text-sm text-secondary">Pembayaran Berhasil</p>
+          <p class="text-xl font-bold text-green-600">{{ summary.paidOrders }}</p>
+        </div>
+        <div>
+          <p class="text-sm text-secondary">Pending</p>
+          <p class="text-xl font-bold text-amber-600">{{ summary.pendingPayments }}</p>
+        </div>
+        <div>
+          <p class="text-sm text-secondary">Penerimaan</p>
+          <p class="text-xl font-bold">{{ summary.receivedAmount | number:'1.0-0' }}</p>
+        </div>
+        <div>
+          <p class="text-sm text-secondary">Subsidi</p>
+          <p class="text-xl font-bold">{{ summary.totalSubsidy | number:'1.0-0' }}</p>
+        </div>
+        <div>
+          <p class="text-sm text-secondary">Partisipasi</p>
+          <p class="text-xl font-bold">{{ summary.participationPercentage }}%</p>
+        </div>
+      </div>
+    </mat-card>
+  }
+</div>

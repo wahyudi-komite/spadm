@@ -55,5 +55,11 @@ export default [
     canActivate: [PermissionGuard],
     data: { permissions: ['settings.manage'] },
     loadComponent: () => import('./notifications/notifications-monitor.component').then(m => m.NotificationsMonitorComponent),
-  }
+  },
+  {
+    path: 'reports',
+    canActivate: [PermissionGuard],
+    data: { permissions: ['bazaar.report.read'] },
+    loadChildren: () => import('../../features/reports/reports.routes'),
+  },
 ] as Routes;
