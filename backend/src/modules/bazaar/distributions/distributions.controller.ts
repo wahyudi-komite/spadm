@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -13,6 +14,7 @@ import {
 import { CurrentUser, Permissions } from '../../../common/decorators';
 import { AreaAccessGuard, JwtAuthGuard, PermissionsGuard } from '../../../common/guards';
 import { CreateAreaMappingDto } from './dto/create-area-mapping.dto';
+import { UpdateAreaMappingDto } from './dto/update-area-mapping.dto';
 import { PicDashboardQueryDto } from './dto/pic-dashboard-query.dto';
 import { ConfirmDistributionDto } from './dto/confirm-distribution.dto';
 import { DistributionsService } from './distributions.service';
@@ -54,6 +56,17 @@ export class DistributionsController {
     @CurrentUser() userId: number,
   ) {
     return this.distributionsService.createMapping(dto, userId);
+  }
+
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions('settings.manage')
+  @Patch('mappings/:id')
+  updateMapping(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateAreaMappingDto,
+    @CurrentUser() userId: number,
+  ) {
+    return this.distributionsService.updateMapping(id, dto, userId);
   }
 
   @UseGuards(JwtAuthGuard, PermissionsGuard)

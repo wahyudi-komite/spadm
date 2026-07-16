@@ -8,13 +8,14 @@ import { MatDialog, MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angu
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { environment } from 'environments/environment';
 import { DialogFeedbackService } from 'app/shared/dialog-feedback/dialog-feedback.service';
 
 @Component({
   selector: 'admin-bazaar-area-dialog',
   template: `
-    <h2 mat-dialog-title>Tambah Mapping Area</h2>
+    <h2 mat-dialog-title>{{ data ? 'Edit Mapping Area' : 'Tambah Mapping Area' }}</h2>
     <mat-dialog-content class="mat-typography py-4">
       <form [formGroup]="form" class="flex flex-col gap-4">
         <mat-form-field class="w-full">
@@ -36,22 +37,24 @@ import { DialogFeedbackService } from 'app/shared/dialog-feedback/dialog-feedbac
       <button mat-flat-button color="primary" [disabled]="form.invalid" (click)="save()">Simpan</button>
     </mat-dialog-actions>
   `,
-  imports: [CommonModule, MatDialogModule, MatButtonModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule],
+  imports: [CommonModule, MatDialogModule, MatButtonModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatTooltipModule],
   standalone: true
 })
 export class AdminBazaarAreaDialogComponent {
   form: FormGroup;
+
   constructor(
     private fb: FormBuilder,
     public dialogRef: MatDialogRef<AdminBazaarAreaDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     this.form = this.fb.group({
-      plant: ['', Validators.required],
-      workUnit: ['', Validators.required],
-      distributionAreaId: [null, Validators.required]
+      plant: [data?.plant ?? '', Validators.required],
+      workUnit: [data?.workUnit ?? '', Validators.required],
+      distributionAreaId: [data?.distributionAreaId ?? null, Validators.required]
     });
   }
+
   save() {
     if (this.form.valid) {
       this.dialogRef.close(this.form.value);
@@ -63,7 +66,7 @@ export class AdminBazaarAreaDialogComponent {
   selector: 'admin-bazaar-areas',
   templateUrl: './areas.component.html',
   encapsulation: ViewEncapsulation.None,
-  imports: [CommonModule, MatTableModule, MatButtonModule, MatIconModule, MatDialogModule],
+  imports: [CommonModule, MatTableModule, MatButtonModule, MatIconModule, MatDialogModule, MatTooltipModule],
 })
 export class AdminBazaarAreasComponent implements OnInit {
   mappings: any[] = [];
@@ -90,6 +93,20 @@ export class AdminBazaarAreasComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.http.post(`${environment.apiUrl}/bazaar/distributions/mappings`, result).subscribe(() => {
+          this.loadMappings();
+        });
+      }
+    });
+  }
+
+  editMapping(mapping: any) {
+    const dialogRef = this.dialog.open(AdminBazaarAreaDialogComponent, {
+      width: '400px',
+      data: mapping,
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.http.patch(`${environment.apiUrl}/bazaar/distributions/mappings/${mapping.id}`, result).subscribe(() => {
           this.loadMappings();
         });
       }

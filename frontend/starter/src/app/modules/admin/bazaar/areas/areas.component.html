@@ -32,6 +32,9 @@
             <ng-container matColumnDef="actions">
                 <th mat-header-cell *matHeaderCellDef>Aksi</th>
                 <td mat-cell *matCellDef="let element">
+                    <button mat-icon-button (click)="editMapping(element)" matTooltip="Edit">
+                        <mat-icon>edit</mat-icon>
+                    </button>
                     <button mat-icon-button color="warn" (click)="deleteMapping(element.id)">
                         <mat-icon>delete</mat-icon>
                     </button>

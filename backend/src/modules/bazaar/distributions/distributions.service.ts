@@ -7,6 +7,7 @@ import { OrdersService } from '../orders/orders.service';
 import { DistributionArea } from './entities/distribution-area.entity';
 import { OrganizationalUnitAreaMapping } from './entities/ou-area-mapping.entity';
 import { CreateAreaMappingDto } from './dto/create-area-mapping.dto';
+import { UpdateAreaMappingDto } from './dto/update-area-mapping.dto';
 import { AuditLogService } from '../../audit-logs/audit-log.service';
 import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'crypto';
@@ -294,6 +295,51 @@ export class DistributionsService {
       module: 'bazaar',
       entityType: 'organizational_unit_area_mapping',
       entityId: mapping.id,
+      newValues: mapping,
+    });
+    return mapping;
+  }
+
+  async updateMapping(id: number, dto: UpdateAreaMappingDto, userId: number) {
+    const mapping = await this.areaMappingRepo.findOne({
+      where: { id, deletedAt: IsNull() },
+    });
+    if (!mapping) throw new NotFoundException('Mapping area tidak ditemukan');
+
+    const plant = dto.plant?.trim() ?? mapping.plant;
+    const workUnit = dto.workUnit?.trim() ?? mapping.workUnit;
+
+    if (dto.plant || dto.workUnit) {
+      const existing = await this.areaMappingRepo.findOne({
+        where: {
+          plant,
+          workUnit,
+          deletedAt: IsNull(),
+        },
+      });
+      if (existing && existing.id !== id) {
+        throw new BadRequestException('Mapping plant dan unit kerja sudah tersedia');
+      }
+    }
+
+    if (dto.distributionAreaId) {
+      const area = await this.distributionAreaRepo.findOne({
+        where: { id: dto.distributionAreaId, isActive: true, deletedAt: IsNull() },
+      });
+      if (!area) throw new NotFoundException('Area distribusi tidak ditemukan');
+    }
+
+    Object.assign(mapping, dto);
+    if (dto.plant) mapping.plant = dto.plant.trim();
+    if (dto.workUnit) mapping.workUnit = dto.workUnit.trim();
+
+    await this.areaMappingRepo.save(mapping);
+    await this.auditLogService.log({
+      userId,
+      action: 'UPDATE_AREA_MAPPING',
+      module: 'bazaar',
+      entityType: 'organizational_unit_area_mapping',
+      entityId: id,
       newValues: mapping,
     });
     return mapping;
