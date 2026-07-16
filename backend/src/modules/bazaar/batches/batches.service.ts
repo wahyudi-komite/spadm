@@ -14,7 +14,7 @@ const allowedTransitions: Record<BatchStatus, BatchStatus[]> = {
   [BatchStatus.DRAFT]: [BatchStatus.SCHEDULED, BatchStatus.OPEN, BatchStatus.CANCELLED],
   [BatchStatus.SCHEDULED]: [BatchStatus.OPEN, BatchStatus.CANCELLED],
   [BatchStatus.OPEN]: [BatchStatus.CLOSED, BatchStatus.CANCELLED],
-  [BatchStatus.CLOSED]: [BatchStatus.DISTRIBUTION, BatchStatus.CANCELLED],
+  [BatchStatus.CLOSED]: [BatchStatus.OPEN, BatchStatus.DISTRIBUTION, BatchStatus.CANCELLED],
   [BatchStatus.DISTRIBUTION]: [BatchStatus.COMPLETED, BatchStatus.CANCELLED],
   [BatchStatus.COMPLETED]: [],
   [BatchStatus.CANCELLED]: [],
