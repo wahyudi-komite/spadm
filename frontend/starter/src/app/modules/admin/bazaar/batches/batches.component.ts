@@ -8,13 +8,14 @@ import { MatDialog, MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angu
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { environment } from 'environments/environment';
 import { DialogFeedbackService } from 'app/shared/dialog-feedback/dialog-feedback.service';
 
 @Component({
   selector: 'admin-bazaar-batch-dialog',
   template: `
-    <h2 mat-dialog-title>Tambah Batch Baru</h2>
+    <h2 mat-dialog-title>{{ data ? 'Edit Batch' : 'Tambah Batch Baru' }}</h2>
     <mat-dialog-content class="mat-typography py-4">
       <form [formGroup]="form" class="flex flex-col gap-4">
         <mat-form-field class="w-full">
@@ -32,21 +33,23 @@ import { DialogFeedbackService } from 'app/shared/dialog-feedback/dialog-feedbac
       <button mat-flat-button color="primary" [disabled]="form.invalid" (click)="save()">Simpan</button>
     </mat-dialog-actions>
   `,
-  imports: [CommonModule, MatDialogModule, MatButtonModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule],
+  imports: [CommonModule, MatDialogModule, MatButtonModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatTooltipModule],
   standalone: true
 })
 export class AdminBazaarBatchDialogComponent {
   form: FormGroup;
+
   constructor(
     private fb: FormBuilder,
     public dialogRef: MatDialogRef<AdminBazaarBatchDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     this.form = this.fb.group({
-      eventId: [null, Validators.required],
-      name: ['', Validators.required]
+      eventId: [data?.eventId ?? null, Validators.required],
+      name: [data?.name ?? '', Validators.required]
     });
   }
+
   save() {
     if (this.form.valid) {
       this.dialogRef.close(this.form.value);
@@ -58,7 +61,7 @@ export class AdminBazaarBatchDialogComponent {
   selector: 'admin-bazaar-batches',
   templateUrl: './batches.component.html',
   encapsulation: ViewEncapsulation.None,
-  imports: [CommonModule, MatTableModule, MatButtonModule, MatIconModule, MatDialogModule],
+  imports: [CommonModule, MatTableModule, MatButtonModule, MatIconModule, MatDialogModule, MatTooltipModule],
 })
 export class AdminBazaarBatchesComponent implements OnInit {
   batches: any[] = [];
@@ -103,6 +106,20 @@ export class AdminBazaarBatchesComponent implements OnInit {
       this.http.post(`${environment.apiUrl}/bazaar/batches/${batch.id}/${endpoint}`, {}).subscribe(() => {
         this.loadBatches();
       });
+    });
+  }
+
+  editBatch(batch: any) {
+    const dialogRef = this.dialog.open(AdminBazaarBatchDialogComponent, {
+      width: '400px',
+      data: { eventId: batch.eventId, name: batch.name },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.http.patch(`${environment.apiUrl}/bazaar/batches/${batch.id}`, result).subscribe(() => {
+          this.loadBatches();
+        });
+      }
     });
   }
 
