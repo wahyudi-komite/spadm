@@ -1,4 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname, join } from 'path';
+import { randomUUID } from 'crypto';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -14,6 +18,32 @@ export class ProductsController {
   @Permissions('bazaar.product.create')
   create(@Body() createProductDto: CreateProductDto, @CurrentUser() userId: number) {
     return this.productsService.create(createProductDto, userId);
+  }
+
+  @Post('upload-image')
+  @Permissions('bazaar.product.create')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: join(__dirname, '..', '..', '..', '..', 'storage', 'products'),
+        filename: (_req, file, cb) => {
+          const ext = extname(file.originalname);
+          cb(null, `${randomUUID()}${ext}`);
+        },
+      }),
+      limits: { fileSize: 2 * 1024 * 1024 },
+      fileFilter: (_req, file, cb) => {
+        if (!file.mimetype.startsWith('image/')) {
+          cb(new BadRequestException('Hanya file gambar yang diizinkan'), false);
+          return;
+        }
+        cb(null, true);
+      },
+    }),
+  )
+  uploadImage(@UploadedFile() file: Express.Multer.File) {
+    if (!file) throw new BadRequestException('File tidak ditemukan');
+    return { url: `/storage/products/${file.filename}` };
   }
 
   @Get()

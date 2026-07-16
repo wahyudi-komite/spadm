@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewEncapsulation, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpEventType } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
@@ -8,6 +8,7 @@ import { MatDialog, MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angu
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { environment } from 'environments/environment';
 import { DialogFeedbackService } from 'app/shared/dialog-feedback/dialog-feedback.service';
 
@@ -33,20 +34,44 @@ import { DialogFeedbackService } from 'app/shared/dialog-feedback/dialog-feedbac
           <mat-label>Harga Jual (Rp)</mat-label>
           <input matInput type="number" formControlName="sellingPrice">
         </mat-form-field>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Foto Produk</label>
+          @if (previewUrl) {
+            <div class="relative w-32 h-32 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
+              <img [src]="previewUrl" class="w-full h-full object-cover" />
+            </div>
+          }
+          <button type="button" mat-stroked-button color="primary" (click)="fileInput.click()">
+            <mat-icon>upload</mat-icon>
+            {{ previewUrl ? 'Ganti Foto' : 'Pilih Foto' }}
+          </button>
+          <input #fileInput type="file" accept="image/*" hidden (change)="onFileSelected($event)" />
+          @if (uploading) {
+            <div class="flex items-center gap-2 text-sm text-gray-500">
+              <mat-spinner diameter="16"></mat-spinner>
+              Mengunggah...
+            </div>
+          }
+        </div>
       </form>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
       <button mat-button mat-dialog-close>Batal</button>
-      <button mat-flat-button color="primary" [disabled]="form.invalid" (click)="save()">Simpan</button>
+      <button mat-flat-button color="primary" [disabled]="form.invalid || uploading" (click)="save()">Simpan</button>
     </mat-dialog-actions>
   `,
-  imports: [CommonModule, MatDialogModule, MatButtonModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule],
+  imports: [CommonModule, MatDialogModule, MatButtonModule, MatIconModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatProgressSpinnerModule],
   standalone: true
 })
 export class AdminBazaarProductDialogComponent {
   form: FormGroup;
+  previewUrl: string | null = null;
+  uploading = false;
+
   constructor(
     private fb: FormBuilder,
+    private http: HttpClient,
     public dialogRef: MatDialogRef<AdminBazaarProductDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
@@ -55,9 +80,34 @@ export class AdminBazaarProductDialogComponent {
       name: ['', Validators.required],
       sku: [''],
       normalPrice: [0, [Validators.required, Validators.min(0)]],
-      sellingPrice: [0, Validators.required]
+      sellingPrice: [0, Validators.required],
+      imageUrl: [''],
     });
   }
+
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+    this.uploading = true;
+
+    this.http.post(`${environment.apiUrl}/bazaar/products/upload-image`, formData, {
+      reportProgress: true,
+    }).subscribe({
+      next: (res: any) => {
+        this.previewUrl = `${environment.apiUrl}${res.url}`;
+        this.form.patchValue({ imageUrl: res.url });
+        this.uploading = false;
+      },
+      error: () => {
+        this.uploading = false;
+      },
+    });
+  }
+
   save() {
     if (this.form.valid) {
       const vals = this.form.value;
@@ -79,7 +129,8 @@ export class AdminBazaarProductDialogComponent {
 })
 export class AdminBazaarProductsComponent implements OnInit {
   products: any[] = [];
-  displayedColumns = ['id', 'name', 'sku', 'sellingPrice', 'stock', 'actions'];
+  apiUrl = environment.apiUrl;
+  displayedColumns = ['image', 'id', 'name', 'sku', 'sellingPrice', 'stock', 'actions'];
 
   constructor(
     private http: HttpClient,

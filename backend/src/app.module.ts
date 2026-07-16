@@ -3,6 +3,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 import {
   appConfig,
   databaseConfig,
@@ -64,6 +66,12 @@ import { FinanceModule } from './modules/finance/finance.module';
       },
     ]),
     ScheduleModule.forRoot(),
+
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'storage'),
+      serveRoot: '/storage',
+      serveStaticOptions: { index: false },
+    }),
 
     AuthModule,
     MembersModule,
