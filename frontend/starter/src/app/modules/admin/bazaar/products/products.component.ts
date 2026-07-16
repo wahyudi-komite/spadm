@@ -73,6 +73,7 @@ export class AdminBazaarProductDialogComponent {
   readonly isEditMode: boolean;
   previewUrl: string | null = null;
   uploading = false;
+  storageBaseUrl = environment.apiUrl.replace(/\/api$/, '');
 
   constructor(
     private fb: FormBuilder,
@@ -91,7 +92,7 @@ export class AdminBazaarProductDialogComponent {
       imageUrl: [data?.imageUrl ?? ''],
     });
     if (data?.imageUrl) {
-      this.previewUrl = data.imageUrl;
+      this.previewUrl = this.storageBaseUrl + data.imageUrl;
     }
   }
 
@@ -108,7 +109,7 @@ export class AdminBazaarProductDialogComponent {
       reportProgress: true,
     }).subscribe({
       next: (res: any) => {
-        this.previewUrl = res.url;
+        this.previewUrl = this.storageBaseUrl + res.url;
         this.form.patchValue({ imageUrl: res.url });
         this.uploading = false;
       },
@@ -141,6 +142,7 @@ export class AdminBazaarProductDialogComponent {
 })
 export class AdminBazaarProductsComponent implements OnInit {
   products: any[] = [];
+  storageBaseUrl = environment.apiUrl.replace(/\/api$/, '');
   displayedColumns = ['image', 'id', 'name', 'sku', 'sellingPrice', 'stock', 'actions'];
 
   constructor(
