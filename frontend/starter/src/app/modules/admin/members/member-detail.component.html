@@ -6,7 +6,7 @@
     <h1 class="text-2xl font-bold">Detail Anggota</h1>
   </div>
 
-  <form #memberForm="ngForm">
+  <form #memberForm="ngForm" (ngSubmit)="save()">
     <div class="bg-card rounded-2xl shadow p-6">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <mat-form-field appearance="outline">
@@ -59,7 +59,7 @@
 
       <div class="flex justify-end gap-3 mt-6">
         <button mat-stroked-button [routerLink]="['/admin/members']">Batal</button>
-        <button mat-flat-button color="primary" (click)="save()" [disabled]="loading || memberForm.invalid">
+        <button mat-flat-button color="primary" type="submit" [disabled]="loading || memberForm.invalid">
           <mat-icon>save</mat-icon> Simpan
         </button>
       </div>
