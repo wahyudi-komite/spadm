@@ -21,7 +21,10 @@ import { DialogFeedbackService } from 'app/shared/dialog-feedback/dialog-feedbac
       <form [formGroup]="form" class="flex flex-col gap-4">
         <mat-form-field class="w-full">
           <mat-label>ID Event</mat-label>
-          <input matInput type="number" formControlName="eventId">
+          <input matInput type="number" formControlName="eventId" [readonly]="isEditMode">
+          @if (isEditMode) {
+            <mat-hint>ID Event terisi otomatis dan tidak dapat diubah</mat-hint>
+          }
         </mat-form-field>
         <mat-form-field class="w-full">
           <mat-label>Nama Produk</mat-label>
@@ -67,15 +70,18 @@ import { DialogFeedbackService } from 'app/shared/dialog-feedback/dialog-feedbac
 })
 export class AdminBazaarProductDialogComponent {
   form: FormGroup;
+  readonly isEditMode: boolean;
   previewUrl: string | null = null;
   uploading = false;
 
   constructor(
     private fb: FormBuilder,
     private http: HttpClient,
+    private feedback: DialogFeedbackService,
     public dialogRef: MatDialogRef<AdminBazaarProductDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
+    this.isEditMode = Boolean(data);
     this.form = this.fb.group({
       eventId: [data?.eventId ?? null, Validators.required],
       name: [data?.name ?? '', Validators.required],
@@ -85,7 +91,7 @@ export class AdminBazaarProductDialogComponent {
       imageUrl: [data?.imageUrl ?? ''],
     });
     if (data?.imageUrl) {
-      this.previewUrl = `${environment.apiUrl}${data.imageUrl}`;
+      this.previewUrl = data.imageUrl;
     }
   }
 
@@ -102,12 +108,14 @@ export class AdminBazaarProductDialogComponent {
       reportProgress: true,
     }).subscribe({
       next: (res: any) => {
-        this.previewUrl = `${environment.apiUrl}${res.url}`;
+        this.previewUrl = res.url;
         this.form.patchValue({ imageUrl: res.url });
         this.uploading = false;
       },
-      error: () => {
+      error: (error) => {
         this.uploading = false;
+        input.value = '';
+        this.feedback.error(error.error?.message || 'Foto produk gagal diunggah.');
       },
     });
   }
@@ -133,7 +141,6 @@ export class AdminBazaarProductDialogComponent {
 })
 export class AdminBazaarProductsComponent implements OnInit {
   products: any[] = [];
-  apiUrl = environment.apiUrl;
   displayedColumns = ['image', 'id', 'name', 'sku', 'sellingPrice', 'stock', 'actions'];
 
   constructor(
@@ -156,8 +163,14 @@ export class AdminBazaarProductsComponent implements OnInit {
     const dialogRef = this.dialog.open(AdminBazaarProductDialogComponent, { width: '400px' });
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.http.post(`${environment.apiUrl}/bazaar/products`, result).subscribe(() => {
-          this.loadProducts();
+        this.http.post(`${environment.apiUrl}/bazaar/products`, result).subscribe({
+          next: () => {
+            this.feedback.success('Produk berhasil ditambahkan.');
+            this.loadProducts();
+          },
+          error: (error) => {
+            this.feedback.error(error.error?.message || 'Produk gagal ditambahkan.');
+          },
         });
       }
     });
@@ -170,8 +183,14 @@ export class AdminBazaarProductsComponent implements OnInit {
     });
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.http.patch(`${environment.apiUrl}/bazaar/products/${product.id}`, result).subscribe(() => {
-          this.loadProducts();
+        this.http.patch(`${environment.apiUrl}/bazaar/products/${product.id}`, result).subscribe({
+          next: () => {
+            this.feedback.success('Produk berhasil diperbarui.');
+            this.loadProducts();
+          },
+          error: (error) => {
+            this.feedback.error(error.error?.message || 'Produk gagal diperbarui.');
+          },
         });
       }
     });
