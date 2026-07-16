@@ -34,7 +34,8 @@ export class AdminMemberDetailComponent implements OnInit {
     }
   }
 
-  save() {
+  save(event?: Event) {
+    event?.preventDefault();
     if (!this.memberForm.valid) return;
     this.loading = true;
     this.http.patch(`${environment.apiUrl}/members/${this.member.id}`, this.member).subscribe(() => {
