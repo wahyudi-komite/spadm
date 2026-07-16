@@ -73,6 +73,17 @@ export class MembersController {
     return this.membersService.confirmImport(body.importId, userId);
   }
 
+  @Get('export')
+  @Permissions('member.read')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Export anggota ke Excel' })
+  async export(@Res() res: Response) {
+    const buffer = await this.membersService.exportToExcel();
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename="data-anggota.xlsx"');
+    res.send(buffer);
+  }
+
   @Get('import/template')
   @Permissions('member.import')
   @ApiBearerAuth()

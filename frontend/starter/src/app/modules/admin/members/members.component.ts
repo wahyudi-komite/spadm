@@ -164,6 +164,17 @@ export class AdminMembersComponent implements OnInit, AfterViewInit {
     });
   }
 
+  exportToExcel() {
+    this.http.get(`${environment.apiUrl}/members/export`, { responseType: 'blob' }).subscribe((blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = 'data-anggota.xlsx';
+      anchor.click();
+      window.URL.revokeObjectURL(url);
+    });
+  }
+
   importMembers() {
     const input = document.createElement('input');
     input.type = 'file';

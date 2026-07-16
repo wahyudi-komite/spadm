@@ -5,6 +5,10 @@
       @if (importing) {
         <mat-spinner diameter="20"></mat-spinner>
       }
+      <button mat-stroked-button (click)="exportToExcel()">
+        <mat-icon>file_download</mat-icon>
+        Export Excel
+      </button>
       <button mat-stroked-button (click)="downloadTemplate()">
         <mat-icon>download</mat-icon>
         Template Excel
@@ -93,7 +97,10 @@
           <button mat-icon-button [routerLink]="['/admin/members', m.id]" matTooltip="Edit">
             <mat-icon>edit</mat-icon>
           </button>
-          <button mat-icon-button [routerLink]="['/admin/users', m.user?.id, 'roles']" matTooltip="Atur Role">
+          <button mat-icon-button
+            [routerLink]="m.user?.id ? ['/admin/users', m.user.id, 'roles'] : null"
+            [disabled]="!m.user?.id"
+            [matTooltip]="m.user?.id ? 'Atur Role' : 'Anggota belum memiliki akun login'">
             <mat-icon>admin_panel_settings</mat-icon>
           </button>
         </td>

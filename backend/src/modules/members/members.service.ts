@@ -57,6 +57,7 @@ export class MembersService {
 
       const [data, total] = await this.memberRepository.findAndCount({
         where: searchWhere,
+        relations: { user: true },
         skip,
         take: limit,
         order: { name: 'ASC' },
@@ -73,6 +74,7 @@ export class MembersService {
 
     const [data, total] = await this.memberRepository.findAndCount({
       where,
+      relations: { user: true },
       skip,
       take: limit,
       order: { name: 'ASC' },
@@ -136,6 +138,47 @@ export class MembersService {
       });
     }
     return member;
+  }
+
+  async exportToExcel(): Promise<Buffer> {
+    const members = await this.memberRepository.find({
+      where: { deletedAt: IsNull() },
+      order: { name: 'ASC' },
+    });
+
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('Data Anggota');
+
+    const headers = ['NPK', 'Nama', 'Email', 'Unit Kerja', 'Nomor WhatsApp', 'Status', 'Jabatan Organisasi', 'Plant'];
+    const headerRow = sheet.addRow(headers);
+    headerRow.font = { bold: true };
+    headerRow.eachCell((cell) => {
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } };
+      cell.border = {
+        top: { style: 'thin' }, left: { style: 'thin' },
+        bottom: { style: 'thin' }, right: { style: 'thin' },
+      };
+    });
+
+    for (const member of members) {
+      sheet.addRow([
+        member.npk,
+        member.name,
+        member.email || '',
+        member.workUnit || '',
+        member.phone || '',
+        member.status,
+        member.organizationalPosition || '',
+        member.plant || '',
+      ]);
+    }
+
+    sheet.columns.forEach((col) => {
+      if (col) col.width = 22;
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    return Buffer.from(buffer);
   }
 
   async generateTemplate(): Promise<Buffer> {
