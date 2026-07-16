@@ -35,6 +35,11 @@ export class AdminUserRolesComponent implements OnInit {
 
   ngOnInit() {
     this.userId = Number(this.route.snapshot.paramMap.get('id'));
+    if (!Number.isInteger(this.userId) || this.userId <= 0) {
+      this.feedback.error('ID pengguna tidak valid.');
+      this.location.back();
+      return;
+    }
     this.loadRoles();
     this.loadUserRoles();
   }
@@ -56,10 +61,15 @@ export class AdminUserRolesComponent implements OnInit {
 
   assignRole() {
     if (!this.selectedRoleId) return;
-    this.http.post(`${environment.apiUrl}/roles/users/${this.userId}/roles`, { roleId: this.selectedRoleId })
-      .subscribe(() => {
-        this.selectedRoleId = null;
-        this.loadUserRoles();
+    this.http.post(`${environment.apiUrl}/roles/users/${this.userId}/roles`, { roleId: Number(this.selectedRoleId) })
+      .subscribe({
+        next: () => {
+          this.selectedRoleId = null;
+          this.loadUserRoles();
+        },
+        error: (err) => {
+          this.feedback.error(err.error?.message || 'Gagal assign role');
+        },
       });
   }
 
