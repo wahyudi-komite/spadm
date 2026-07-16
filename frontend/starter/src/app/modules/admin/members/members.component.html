@@ -1,5 +1,16 @@
 <div class="p-8">
-  <h1 class="text-2xl font-bold mb-6">Manajemen Anggota</h1>
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold">Manajemen Anggota</h1>
+    <div class="flex items-center gap-2">
+      @if (importing) {
+        <mat-spinner diameter="20"></mat-spinner>
+      }
+      <button mat-flat-button color="primary" (click)="importMembers()" [disabled]="importing">
+        <mat-icon>upload</mat-icon>
+        Import Excel
+      </button>
+    </div>
+  </div>
 
   <div class="flex flex-wrap items-center gap-4 mb-4">
     <mat-form-field appearance="outline" class="!min-w-[240px]">
