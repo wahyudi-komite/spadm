@@ -40,33 +40,33 @@
   </div>
 
   <div class="overflow-x-auto bg-card rounded-2xl shadow">
-    <table mat-table [dataSource]="members" class="w-full">
+    <table mat-table [dataSource]="members" class="w-full" matSort>
       <ng-container matColumnDef="npk">
-        <th mat-header-cell *matHeaderCellDef>NPK</th>
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>NPK</th>
         <td mat-cell *matCellDef="let m">
           <a [routerLink]="['/admin/members', m.id]" class="text-primary-500 hover:underline font-medium">{{ m.npk }}</a>
         </td>
       </ng-container>
 
       <ng-container matColumnDef="name">
-        <th mat-header-cell *matHeaderCellDef>Nama</th>
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Nama</th>
         <td mat-cell *matCellDef="let m">
           <a [routerLink]="['/admin/members', m.id]" class="text-primary-500 hover:underline font-medium">{{ m.name }}</a>
         </td>
       </ng-container>
 
       <ng-container matColumnDef="plant">
-        <th mat-header-cell *matHeaderCellDef>Plant</th>
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Plant</th>
         <td mat-cell *matCellDef="let m">{{ m.plant || '-' }}</td>
       </ng-container>
 
       <ng-container matColumnDef="workUnit">
-        <th mat-header-cell *matHeaderCellDef>Unit</th>
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Unit</th>
         <td mat-cell *matCellDef="let m">{{ m.workUnit || '-' }}</td>
       </ng-container>
 
       <ng-container matColumnDef="status">
-        <th mat-header-cell *matHeaderCellDef>Status</th>
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
         <td mat-cell *matCellDef="let m">
           <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
             [class.bg-green-100]="m.status === 'active'"
@@ -79,7 +79,7 @@
       </ng-container>
 
       <ng-container matColumnDef="phone">
-        <th mat-header-cell *matHeaderCellDef>Telepon</th>
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Telepon</th>
         <td mat-cell *matCellDef="let m">{{ m.phone || '-' }}</td>
       </ng-container>
 

@@ -1,10 +1,11 @@
-import { Component, OnInit, ViewEncapsulation, Inject } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild, ViewEncapsulation, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTableModule } from '@angular/material/table';
+import { MatSort, MatSortModule } from '@angular/material/sort';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatDialog, MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -92,10 +93,12 @@ export class AdminMemberImportDialogComponent {
   selector: 'admin-members',
   templateUrl: './members.component.html',
   encapsulation: ViewEncapsulation.None,
-  imports: [CommonModule, FormsModule, MatTableModule, MatButtonModule, MatIconModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatTooltipModule, MatProgressSpinnerModule, RouterLink],
+  imports: [CommonModule, FormsModule, MatTableModule, MatSortModule, MatButtonModule, MatIconModule, MatDialogModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatTooltipModule, MatProgressSpinnerModule, RouterLink],
 })
-export class AdminMembersComponent implements OnInit {
-  members: any[] = [];
+export class AdminMembersComponent implements OnInit, AfterViewInit {
+  @ViewChild(MatSort) sort!: MatSort;
+
+  members = new MatTableDataSource<any>([]);
   displayedColumns = ['npk', 'name', 'plant', 'workUnit', 'status', 'phone', 'actions'];
   search = '';
   statusFilter = '';
@@ -117,6 +120,10 @@ export class AdminMembersComponent implements OnInit {
     this.loadMembers();
   }
 
+  ngAfterViewInit() {
+    this.members.sort = this.sort;
+  }
+
   loadMembers() {
     this.loading = true;
     const params: any = { page: this.page, limit: this.limit };
@@ -125,7 +132,7 @@ export class AdminMembersComponent implements OnInit {
     if (this.plantFilter) params.plant = this.plantFilter;
 
     this.http.get(`${environment.apiUrl}/members`, { params }).subscribe((res: any) => {
-      this.members = res.data;
+      this.members.data = res.data;
       this.total = res.meta.total;
       this.totalPages = res.meta.totalPages;
       this.loading = false;
