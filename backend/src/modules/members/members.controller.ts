@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Patch, Body, Param, Query, Res, UseGuards, UploadedFile, UseInterceptors } from '@nestjs/common';
-import { Response } from 'express';
+import type { Response } from 'express';
 import { Throttle } from '@nestjs/throttler';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
