@@ -98,7 +98,6 @@ export class AdminMemberImportDialogComponent {
 export class AdminMembersComponent implements OnInit, AfterViewInit {
   @ViewChild(MatSort) sort!: MatSort;
 
-  environment = environment;
   members = new MatTableDataSource<any>([]);
   displayedColumns = ['npk', 'name', 'plant', 'workUnit', 'status', 'phone', 'actions'];
   search = '';
@@ -154,6 +153,17 @@ export class AdminMembersComponent implements OnInit, AfterViewInit {
     if (this.page < this.totalPages) { this.page++; this.loadMembers(); }
   }
 
+  downloadTemplate() {
+    this.http.get(`${environment.apiUrl}/members/import/template`, { responseType: 'blob' }).subscribe((blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = 'template-import-anggota.xlsx';
+      anchor.click();
+      window.URL.revokeObjectURL(url);
+    });
+  }
+
   importMembers() {
     const input = document.createElement('input');
     input.type = 'file';
@@ -193,7 +203,7 @@ export class AdminMembersComponent implements OnInit, AfterViewInit {
 
   private extractPlants() {
     const unique = new Set<string>();
-    this.members.forEach(m => { if (m.plant) unique.add(m.plant); });
+    this.members.data.forEach(m => { if (m.plant) unique.add(m.plant); });
     this.plants = Array.from(unique).sort();
   }
 }

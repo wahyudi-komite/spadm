@@ -5,10 +5,10 @@
       @if (importing) {
         <mat-spinner diameter="20"></mat-spinner>
       }
-      <a mat-stroked-button [href]="environment.apiUrl + '/members/import/template'" target="_blank">
+      <button mat-stroked-button (click)="downloadTemplate()">
         <mat-icon>download</mat-icon>
         Template Excel
-      </a>
+      </button>
       <button mat-flat-button color="primary" (click)="importMembers()" [disabled]="importing">
         <mat-icon>upload</mat-icon>
         Import Excel
