@@ -17,7 +17,7 @@ import { DialogFeedbackService } from 'app/shared/dialog-feedback/dialog-feedbac
   template: `
     <h2 mat-dialog-title>{{ data ? 'Edit Mapping Area' : 'Tambah Mapping Area' }}</h2>
     <mat-dialog-content class="mat-typography py-4">
-      <form [formGroup]="form" class="flex flex-col gap-4">
+      <form [formGroup]="form" class="flex flex-col gap-4" (ngSubmit)="save()">
         <mat-form-field class="w-full">
           <mat-label>Plant</mat-label>
           <input matInput formControlName="plant">
