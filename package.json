@@ -6,6 +6,6 @@
   "scripts": {
     "start:dev": "npm --prefix backend run start:dev",
     "start": "npm --prefix frontend/starter run start",
-    "dev": "npx concurrently -n \"BE,FE\" -c \"yellow,cyan\" \"npm run start:dev\" \"npm run start -- --open\""
+    "dev": "npx concurrently -n \"BE,FE\" -c \"yellow,cyan\" \"npm run start:dev\" \"npm --prefix frontend/starter run start -- --open\""
   }
 }

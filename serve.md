@@ -1,1 +1,1 @@
-npx concurrently -n "BE,FE" -c "yellow,cyan" "npm run start:dev" "npm run start -- --open"
+npx concurrently -n "BE,FE" -c "yellow,cyan" "npm run start:dev" "npm --prefix frontend/starter run start -- --open"

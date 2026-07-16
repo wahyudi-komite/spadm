@@ -31,7 +31,7 @@ npm --prefix backend run seed:dev
 npm run dev
 
 # Atau menggunakan npx concurrently secara langsung:
-npx concurrently -n "BE,FE" -c "yellow,cyan" "npm run start:dev" "npm run start -- --open"
+npx concurrently -n "BE,FE" -c "yellow,cyan" "npm run start:dev" "npm --prefix frontend/starter run start -- --open"
 ```
 
 Isi seluruh secret di `backend/.env`; file tersebut tidak boleh di-commit. API berjalan di `http://localhost:3000/api`, frontend di `http://localhost:4200`, dan Swagger development di `/api/docs`.
