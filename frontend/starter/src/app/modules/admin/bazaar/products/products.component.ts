@@ -9,13 +9,14 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { environment } from 'environments/environment';
 import { DialogFeedbackService } from 'app/shared/dialog-feedback/dialog-feedback.service';
 
 @Component({
   selector: 'admin-bazaar-product-dialog',
   template: `
-    <h2 mat-dialog-title>Tambah Produk Baru</h2>
+    <h2 mat-dialog-title>{{ data ? 'Edit Produk' : 'Tambah Produk Baru' }}</h2>
     <mat-dialog-content class="mat-typography py-4">
       <form [formGroup]="form" class="flex flex-col gap-4">
         <mat-form-field class="w-full">
@@ -76,13 +77,16 @@ export class AdminBazaarProductDialogComponent {
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     this.form = this.fb.group({
-      eventId: [null, Validators.required],
-      name: ['', Validators.required],
-      sku: [''],
-      normalPrice: [0, [Validators.required, Validators.min(0)]],
-      sellingPrice: [0, Validators.required],
-      imageUrl: [''],
+      eventId: [data?.eventId ?? null, Validators.required],
+      name: [data?.name ?? '', Validators.required],
+      sku: [data?.sku ?? ''],
+      normalPrice: [data?.normalPrice ?? 0, [Validators.required, Validators.min(0)]],
+      sellingPrice: [data?.sellingPrice ?? 0, Validators.required],
+      imageUrl: [data?.imageUrl ?? ''],
     });
+    if (data?.imageUrl) {
+      this.previewUrl = `${environment.apiUrl}${data.imageUrl}`;
+    }
   }
 
   onFileSelected(event: Event) {
@@ -113,7 +117,7 @@ export class AdminBazaarProductDialogComponent {
       const vals = this.form.value;
       const payload = {
         ...vals,
-        slug: vals.name.toLowerCase().replace(/ /g, '-'),
+        slug: this.data?.slug || vals.name.toLowerCase().replace(/ /g, '-'),
         sku: vals.sku || vals.name.substring(0, 5).toUpperCase()
       };
       this.dialogRef.close(payload);
@@ -125,7 +129,7 @@ export class AdminBazaarProductDialogComponent {
   selector: 'admin-bazaar-products',
   templateUrl: './products.component.html',
   encapsulation: ViewEncapsulation.None,
-  imports: [CommonModule, MatTableModule, MatButtonModule, MatIconModule, MatDialogModule],
+  imports: [CommonModule, MatTableModule, MatButtonModule, MatIconModule, MatDialogModule, MatTooltipModule],
 })
 export class AdminBazaarProductsComponent implements OnInit {
   products: any[] = [];
@@ -153,6 +157,20 @@ export class AdminBazaarProductsComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.http.post(`${environment.apiUrl}/bazaar/products`, result).subscribe(() => {
+          this.loadProducts();
+        });
+      }
+    });
+  }
+
+  editProduct(product: any) {
+    const dialogRef = this.dialog.open(AdminBazaarProductDialogComponent, {
+      width: '400px',
+      data: product,
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.http.patch(`${environment.apiUrl}/bazaar/products/${product.id}`, result).subscribe(() => {
           this.loadProducts();
         });
       }
