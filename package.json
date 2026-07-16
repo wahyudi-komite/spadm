@@ -1,0 +1,12 @@
+{
+  "name": "spadm-root",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Root package for managing backend and frontend concurrently",
+  "scripts": {
+    "start:backend": "npm --prefix backend run start:dev",
+    "start:frontend": "npm --prefix frontend/starter run start -- --open",
+    "start": "npx concurrently --kill-others -n \"backend,frontend\" -c \"cyan,magenta\" \"npm run start:backend\" \"npm run start:frontend\"",
+    "dev": "npx concurrently --kill-others -n \"backend,frontend\" -c \"cyan,magenta\" \"npm run start:backend\" \"npm run start:frontend\""
+  }
+}

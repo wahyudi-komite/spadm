@@ -26,8 +26,12 @@ npm --prefix backend install
 npm --prefix frontend/starter install
 npm --prefix backend run migration:run
 npm --prefix backend run seed:dev
-npm --prefix backend run start:dev
-npm --prefix frontend/starter start
+
+# Menjalankan backend dan frontend secara bersamaan dalam 1 terminal menggunakan root package.json
+npm run dev
+
+# Atau menggunakan npx concurrently secara langsung:
+npx concurrently --kill-others -n "backend,frontend" -c "cyan,magenta" "npm --prefix backend run start:dev" "npm --prefix frontend/starter run start -- --open"
 ```
 
 Isi seluruh secret di `backend/.env`; file tersebut tidak boleh di-commit. API berjalan di `http://localhost:3000/api`, frontend di `http://localhost:4200`, dan Swagger development di `/api/docs`.
