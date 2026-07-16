@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Body, Param, Query, Res, UseGuards, UploadedFile, UseInterceptors, Header } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param, Query, Res, UseGuards, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { Response } from 'express';
 import { Throttle } from '@nestjs/throttler';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -76,11 +76,11 @@ export class MembersController {
   @Get('import/template')
   @Permissions('member.import')
   @ApiBearerAuth()
-  @Header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-  @Header('Content-Disposition', 'attachment; filename="template-import-anggota.xlsx"')
   @ApiOperation({ summary: 'Download template Excel import anggota' })
   async downloadTemplate(@Res() res: Response) {
     const buffer = await this.membersService.generateTemplate();
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename="template-import-anggota.xlsx"');
     res.send(buffer);
   }
 }
