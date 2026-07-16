@@ -92,8 +92,12 @@ export class AdminBazaarAreasComponent implements OnInit {
     const dialogRef = this.dialog.open(AdminBazaarAreaDialogComponent, { width: '400px' });
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.http.post(`${environment.apiUrl}/bazaar/distributions/mappings`, result).subscribe(() => {
-          this.loadMappings();
+        this.http.post(`${environment.apiUrl}/bazaar/distributions/mappings`, result).subscribe({
+          next: () => {
+            this.feedback.success('Mapping berhasil ditambahkan');
+            this.loadMappings();
+          },
+          error: (err) => this.feedback.error(err.error?.message || 'Gagal menyimpan mapping'),
         });
       }
     });
@@ -106,8 +110,12 @@ export class AdminBazaarAreasComponent implements OnInit {
     });
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.http.patch(`${environment.apiUrl}/bazaar/distributions/mappings/${mapping.id}`, result).subscribe(() => {
-          this.loadMappings();
+        this.http.patch(`${environment.apiUrl}/bazaar/distributions/mappings/${mapping.id}`, result).subscribe({
+          next: () => {
+            this.feedback.success('Mapping berhasil diperbarui');
+            this.loadMappings();
+          },
+          error: (err) => this.feedback.error(err.error?.message || 'Gagal memperbarui mapping'),
         });
       }
     });
@@ -122,8 +130,12 @@ export class AdminBazaarAreasComponent implements OnInit {
     }).subscribe((confirmed) => {
       if (!confirmed) return;
 
-      this.http.delete(`${environment.apiUrl}/bazaar/distributions/mappings/${id}`).subscribe(() => {
-        this.loadMappings();
+      this.http.delete(`${environment.apiUrl}/bazaar/distributions/mappings/${id}`).subscribe({
+        next: () => {
+          this.feedback.success('Mapping berhasil dihapus');
+          this.loadMappings();
+        },
+        error: (err) => this.feedback.error(err.error?.message || 'Gagal menghapus mapping'),
       });
     });
   }
