@@ -10,6 +10,7 @@ import { DashboardData } from './dashboard.types';
   selector: 'app-dashboard',
   standalone: true,
   templateUrl: './dashboard.component.html',
+  styleUrl: './dashboard.component.scss',
   encapsulation: ViewEncapsulation.None,
   imports: [CommonModule, MatButtonModule, MatIconModule, NgApexchartsModule],
 })

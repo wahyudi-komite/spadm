@@ -14,6 +14,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { RouterLink } from '@angular/router';
 import { environment } from 'environments/environment';
+import { DialogFeedbackService } from 'app/shared/dialog-feedback/dialog-feedback.service';
 
 @Component({
   selector: 'admin-member-import-dialog',
@@ -99,7 +100,7 @@ export class AdminMembersComponent implements OnInit, AfterViewInit {
   @ViewChild(MatSort) sort!: MatSort;
 
   members = new MatTableDataSource<any>([]);
-  displayedColumns = ['npk', 'name', 'plant', 'workUnit', 'status', 'phone', 'actions'];
+  displayedColumns = ['npk', 'name', 'plant', 'workUnit', 'status', 'phone', 'resetPassword', 'actions'];
   search = '';
   statusFilter = '';
   plantFilter = '';
@@ -110,10 +111,12 @@ export class AdminMembersComponent implements OnInit, AfterViewInit {
   totalPages = 0;
   loading = false;
   importing = false;
+  resettingMemberId: number | null = null;
 
   constructor(
     private http: HttpClient,
     private dialog: MatDialog,
+    private feedback: DialogFeedbackService,
   ) {}
 
   ngOnInit() {
@@ -210,6 +213,31 @@ export class AdminMembersComponent implements OnInit, AfterViewInit {
       });
     };
     input.click();
+  }
+
+  resetPassword(member: any) {
+    if (!member.user?.id || this.resettingMemberId !== null) return;
+
+    this.feedback.confirm({
+      title: 'Reset password',
+      message: `Reset password ${member.name} (${member.npk}) ke password awal? Pengguna wajib mengganti password saat login berikutnya.`,
+      confirmText: 'Reset Password',
+      tone: 'warn',
+    }).subscribe((confirmed) => {
+      if (!confirmed) return;
+
+      this.resettingMemberId = member.id;
+      this.http.post(`${environment.apiUrl}/members/${member.id}/reset-password`, {}).subscribe({
+        next: () => {
+          this.resettingMemberId = null;
+          this.feedback.success(`Password ${member.name} berhasil direset.`);
+        },
+        error: (error) => {
+          this.resettingMemberId = null;
+          this.feedback.error(error.error?.message || 'Password anggota gagal direset.');
+        },
+      });
+    });
   }
 
   private extractPlants() {

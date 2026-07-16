@@ -26,17 +26,17 @@
             }
 
             <form class="mt-8" [formGroup]="signInForm" #signInNgForm="ngForm" novalidate>
-                <mat-form-field class="w-full">
-                    <mat-label>NPK</mat-label>
-                    <input id="npk" matInput placeholder="Masukkan NPK" [formControlName]="'npk'" />
+                <mat-form-field class="w-full" floatLabel="always">
+                    <mat-label>Input NPK</mat-label>
+                    <input id="npk" matInput [formControlName]="'npk'" placeholder="Masukkan NPK Anda" />
                     @if (signInForm.get('npk').hasError('required')) {
                     <mat-error> NPK wajib diisi </mat-error>
                     }
                 </mat-form-field>
 
-                <mat-form-field class="w-full">
-                    <mat-label>Password</mat-label>
-                    <input id="password" matInput type="password" [formControlName]="'password'" #passwordField />
+                <mat-form-field class="w-full" floatLabel="always">
+                    <mat-label>Input Password</mat-label>
+                    <input id="password" matInput type="password" [formControlName]="'password'" #passwordField placeholder="Masukkan Password Anda" />
                     <button mat-icon-button type="button"
                         (click)="passwordField.type === 'password' ? (passwordField.type = 'text') : (passwordField.type = 'password')"
                         matSuffix>

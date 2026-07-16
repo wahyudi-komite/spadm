@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
+import { mkdirSync } from 'fs';
 import { extname, join } from 'path';
 import { randomUUID } from 'crypto';
 import { ProductsService } from './products.service';
@@ -21,11 +22,15 @@ export class ProductsController {
   }
 
   @Post('upload-image')
-  @Permissions('bazaar.product.create')
+  @Permissions('bazaar.product.create', 'bazaar.product.update')
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: join(__dirname, '..', '..', '..', '..', 'storage', 'products'),
+        destination: (_req, _file, cb) => {
+          const directory = join(process.cwd(), 'storage', 'products');
+          mkdirSync(directory, { recursive: true });
+          cb(null, directory);
+        },
         filename: (_req, file, cb) => {
           const ext = extname(file.originalname);
           cb(null, `${randomUUID()}${ext}`);

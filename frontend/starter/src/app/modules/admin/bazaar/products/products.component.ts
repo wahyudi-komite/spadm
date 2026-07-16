@@ -36,6 +36,11 @@ import { DialogFeedbackService } from 'app/shared/dialog-feedback/dialog-feedbac
           <input matInput formControlName="sku">
         </mat-form-field>
         <mat-form-field class="w-full">
+          <mat-label>Harga Normal (Rp)</mat-label>
+          <input matInput type="number" formControlName="normalPrice">
+          <mat-hint>Harga ini akan dicoret jika lebih tinggi dari harga jual</mat-hint>
+        </mat-form-field>
+        <mat-form-field class="w-full">
           <mat-label>Harga Jual (Rp)</mat-label>
           <input matInput type="number" formControlName="sellingPrice">
         </mat-form-field>
@@ -146,7 +151,7 @@ export class AdminBazaarProductsComponent implements OnInit, AfterViewInit {
 
   products = new MatTableDataSource<any>([]);
   storageBaseUrl = environment.apiUrl.replace(/\/api$/, '');
-  displayedColumns = ['image', 'id', 'name', 'sku', 'sellingPrice', 'stock', 'actions'];
+  displayedColumns = ['image', 'id', 'name', 'sku', 'normalPrice', 'sellingPrice', 'stock', 'actions'];
 
   constructor(
     private http: HttpClient,

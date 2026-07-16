@@ -120,6 +120,35 @@ export class MembersService {
     return this.findOne(id);
   }
 
+  async resetPassword(id: number, changedByUserId: number) {
+    const member = await this.findOne(id);
+    const user = await this.userRepository.findOne({
+      where: [{ memberId: member.id }, { npk: member.npk }],
+    });
+    if (!user) throw new NotFoundException('Akun login anggota tidak ditemukan');
+
+    const defaultPassword =
+      this.configService.get<string>('DEFAULT_MEMBER_PASSWORD') || 'SmartCare';
+    const hashedPassword = await bcrypt.hash(defaultPassword, 12);
+
+    await this.userRepository.update(user.id, {
+      password: hashedPassword,
+      mustChangePassword: true,
+      failedLoginAttempts: 0,
+      lockedUntil: () => 'NULL',
+    });
+    await this.auditLogService.log({
+      userId: changedByUserId,
+      action: 'RESET_MEMBER_PASSWORD',
+      module: 'members',
+      entityType: 'member',
+      entityId: member.id,
+      description: `Reset password anggota ${member.npk}`,
+    });
+
+    return { message: 'Password anggota berhasil direset' };
+  }
+
   async findOrCreateByNpk(npk: string, name: string) {
     let member = await this.memberRepository.findOne({ where: { npk } });
     if (!member) {

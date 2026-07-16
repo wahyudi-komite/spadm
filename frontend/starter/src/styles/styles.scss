@@ -41,6 +41,11 @@ body {
         radial-gradient(circle at 8% 0%, rgba(0, 159, 227, 0.14), transparent 28rem),
         linear-gradient(180deg, #f8fbff 0%, #eef5fb 100%);
     color: var(--spadm-ink);
+
+    &.dark {
+        background: #111827 !important;
+        color: #f3f4f6;
+    }
 }
 
 .spadm-brand-mark {
@@ -68,6 +73,11 @@ body {
 .mat-mdc-card {
     border: 1px solid rgba(0, 87, 184, 0.12) !important;
     box-shadow: 0 16px 34px rgba(0, 31, 78, 0.08) !important;
+
+    .dark & {
+        border-color: rgba(255, 255, 255, 0.1) !important;
+        background-color: #1f2937 !important;
+    }
 }
 
 .mat-mdc-table {
@@ -81,7 +91,7 @@ body {
 }
 
 .mat-mdc-header-cell {
-    background: linear-gradient(90deg, rgba(0, 31, 78, 0.96), rgba(0, 87, 184, 0.96)) !important;
+    background: var(--spadm-blue) !important;
     color: #ffffff !important;
     font-weight: 700;
 }
@@ -90,10 +100,24 @@ body {
     background: rgba(0, 159, 227, 0.06);
 }
 
+admin-members .mat-column-status {
+    text-align: center !important;
+}
+
+admin-members .mat-column-status .mat-sort-header-container {
+    justify-content: center;
+}
+
 .mat-mdc-form-field.mat-focused .mat-mdc-floating-label,
 .text-primary-500,
 .text-primary-600 {
     color: var(--spadm-blue) !important;
+}
+
+/* Keep dropdown indicators aligned with the SPADM brand theme. */
+.mat-mdc-select:not(.mat-mdc-select-disabled) .mat-mdc-select-arrow {
+    color: var(--spadm-blue) !important;
+    border-top-color: var(--spadm-blue) !important;
 }
 
 .mat-mdc-unelevated-button.mat-primary,
@@ -120,6 +144,16 @@ body {
     border-bottom: 1px solid rgba(0, 87, 184, 0.12);
     background: rgba(255, 255, 255, 0.88) !important;
     backdrop-filter: blur(18px);
+
+    .dark & {
+        border-bottom-color: rgba(255, 255, 255, 0.12);
+        background: rgba(17, 24, 39, 0.88) !important;
+        color: #f3f4f6;
+
+        .text-\[var\(--spadm-navy\)\] {
+            color: #f3f4f6 !important;
+        }
+    }
 }
 
 .spadm-sidebar {
@@ -157,4 +191,115 @@ body {
     --mdc-snackbar-container-color: #d20f17;
     --mat-snack-bar-button-color: #ffffff;
     --mdc-snackbar-supporting-text-color: #ffffff;
+}
+
+.spadm-reports {
+    color: var(--spadm-ink) !important;
+
+    .text-secondary {
+        color: #475569 !important;
+    }
+
+    .text-primary {
+        color: var(--spadm-blue) !important;
+    }
+
+    .text-warn {
+        color: var(--spadm-red) !important;
+    }
+
+    .text-amber-800 {
+        color: #92400e !important;
+    }
+}
+
+.dark .spadm-reports {
+    color: #f3f4f6 !important;
+
+    .text-secondary {
+        color: #cbd5e1 !important;
+    }
+
+    .text-amber-800,
+    .dark\:text-amber-400 {
+        color: #fbbf24 !important;
+    }
+}
+
+.spadm-finance {
+    color: var(--spadm-ink) !important;
+
+    .text-secondary,
+    .text-hint {
+        color: #475569 !important;
+    }
+
+    .text-amber-800 {
+        color: #92400e !important;
+    }
+
+    .apexcharts-text,
+    .apexcharts-legend-text {
+        color: #334155 !important;
+        fill: #334155 !important;
+    }
+}
+
+.dark .spadm-finance {
+    color: #f3f4f6 !important;
+
+    .text-secondary,
+    .text-hint {
+        color: #cbd5e1 !important;
+    }
+
+    .text-amber-800,
+    .dark\:text-amber-400 {
+        color: #fbbf24 !important;
+    }
+
+    .apexcharts-text,
+    .apexcharts-legend-text {
+        color: #cbd5e1 !important;
+        fill: #cbd5e1 !important;
+    }
+}
+
+.spadm-leadership {
+    color: var(--spadm-ink) !important;
+
+    .text-secondary,
+    .text-hint {
+        color: #475569 !important;
+    }
+
+    .text-amber-800 {
+        color: #92400e !important;
+    }
+
+    .apexcharts-text,
+    .apexcharts-legend-text {
+        color: #334155 !important;
+        fill: #334155 !important;
+    }
+}
+
+.dark .spadm-leadership {
+    color: #f3f4f6 !important;
+
+    .text-secondary,
+    .text-hint {
+        color: #cbd5e1 !important;
+    }
+
+    .text-amber-800,
+    .dark\:text-amber-400 {
+        color: #fbbf24 !important;
+    }
+
+    .apexcharts-text,
+    .apexcharts-legend-text {
+        color: #cbd5e1 !important;
+        fill: #cbd5e1 !important;
+    }
 }

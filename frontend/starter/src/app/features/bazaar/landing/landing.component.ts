@@ -78,6 +78,7 @@ export class BazaarLandingComponent implements OnInit {
   activeEvent: any = null;
   activeBatch: any = null;
   products: any[] = [];
+  readonly storageBaseUrl = environment.apiUrl.replace(/\/api\/?$/, '');
   loading = true;
   
   cartIds: number[] = [];
@@ -208,6 +209,12 @@ export class BazaarLandingComponent implements OnInit {
 
   getProduct(id: number): any {
     return this.products.find(p => p.id === id);
+  }
+
+  productImageUrl(imageUrl: string): string {
+    return /^https?:\/\//i.test(imageUrl)
+      ? imageUrl
+      : `${this.storageBaseUrl}${imageUrl}`;
   }
 
   private resetBreakdown() {

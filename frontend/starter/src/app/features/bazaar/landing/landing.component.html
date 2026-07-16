@@ -94,9 +94,16 @@
                     (click)="toggleCart(product)"
                 >
                     <div
-                        class="relative flex h-40 items-center justify-center bg-gray-200 dark:bg-gray-700"
+                        class="relative flex h-40 items-center justify-center overflow-hidden bg-gray-200 dark:bg-gray-700"
                     >
+                        <img
+                            *ngIf="product.imageUrl"
+                            [src]="productImageUrl(product.imageUrl)"
+                            [alt]="product.name"
+                            class="h-full w-full object-cover"
+                        />
                         <mat-icon
+                            *ngIf="!product.imageUrl"
                             class="text-6xl text-gray-400"
                             style="height: 64px; width: 64px"
                             >shopping_bag</mat-icon
@@ -135,6 +142,12 @@
                             {{ product.description || 'Tidak ada deskripsi.' }}
                         </div>
                         <div class="mt-auto">
+                            <div
+                                *ngIf="product.normalPrice > product.sellingPrice"
+                                class="mb-0.5 text-sm text-gray-400 line-through"
+                            >
+                                Rp {{ product.normalPrice | number }}
+                            </div>
                             <div
                                 class="text-xl font-bold text-blue-600 dark:text-blue-400"
                             >

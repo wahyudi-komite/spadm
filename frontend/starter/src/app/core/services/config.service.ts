@@ -38,12 +38,30 @@ export class ConfigService {
                 { id: 'theme-amber', name: 'Amber' },
             ],
         };
-        this._config = new BehaviorSubject(defaultConfig);
+
+        let storedConfig: Partial<AppConfig> = {};
+        try {
+            const stored = localStorage.getItem('app-config');
+            if (stored) {
+                storedConfig = JSON.parse(stored);
+            }
+        } catch (e) {
+            console.error('Failed to parse stored config', e);
+        }
+
+        const initialConfig = { ...defaultConfig, ...storedConfig };
+        this._config = new BehaviorSubject(initialConfig);
         this.config$ = this._config.asObservable();
     }
 
     set config(value: Partial<AppConfig>) {
-        this._config.next({ ...this._config.value, ...value });
+        const newConfig = { ...this._config.value, ...value };
+        this._config.next(newConfig);
+        try {
+            localStorage.setItem('app-config', JSON.stringify(newConfig));
+        } catch (e) {
+            console.error('Failed to store config', e);
+        }
     }
 
     get config(): AppConfig {

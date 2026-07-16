@@ -34,7 +34,11 @@
 
         <mat-form-field appearance="outline">
           <mat-label>Unit Kerja</mat-label>
-          <input matInput [(ngModel)]="member.workUnit" name="workUnit" />
+          <mat-select [(ngModel)]="member.workUnit" name="workUnit">
+            <mat-option *ngFor="let workUnit of workUnits" [value]="workUnit">
+              {{ workUnit }}
+            </mat-option>
+          </mat-select>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
@@ -44,7 +48,11 @@
 
         <mat-form-field appearance="outline">
           <mat-label>Plant</mat-label>
-          <input matInput [(ngModel)]="member.plant" name="plant" />
+          <mat-select [(ngModel)]="member.plant" name="plant">
+            <mat-option *ngFor="let plant of plants" [value]="plant.value">
+              {{ plant.label }}
+            </mat-option>
+          </mat-select>
         </mat-form-field>
 
         <mat-form-field appearance="outline">

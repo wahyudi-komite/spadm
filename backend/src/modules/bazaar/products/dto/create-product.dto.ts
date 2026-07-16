@@ -6,7 +6,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  IsUrl,
+  Matches,
   MaxLength,
   Min,
 } from 'class-validator';
@@ -49,7 +49,11 @@ export class CreateProductDto {
   @Min(0)
   sellingPrice: number;
 
-  @IsUrl({ require_protocol: false })
+  @IsString()
+  @MaxLength(500)
+  @Matches(/^(?:https?:\/\/[^\s]+|\/storage\/products\/[A-Za-z0-9._-]+)$/, {
+    message: 'imageUrl harus berupa URL HTTP(S) atau path gambar produk yang valid',
+  })
   @IsOptional()
   imageUrl?: string;
 

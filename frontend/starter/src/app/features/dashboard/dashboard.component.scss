@@ -1,0 +1,38 @@
+.spadm-dashboard {
+    color: var(--spadm-ink) !important;
+
+    .text-secondary,
+    .text-hint {
+        color: #475569 !important;
+    }
+
+    .text-amber-800 {
+        color: #92400e !important;
+    }
+
+    .apexcharts-text,
+    .apexcharts-legend-text {
+        color: #334155 !important;
+        fill: #334155 !important;
+    }
+}
+
+.dark .spadm-dashboard {
+    color: #f3f4f6 !important;
+
+    .text-secondary,
+    .text-hint {
+        color: #cbd5e1 !important;
+    }
+
+    .text-amber-800,
+    .dark\:text-amber-400 {
+        color: #fbbf24 !important;
+    }
+
+    .apexcharts-text,
+    .apexcharts-legend-text {
+        color: #cbd5e1 !important;
+        fill: #cbd5e1 !important;
+    }
+}

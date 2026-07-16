@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { RolesService } from './roles.service';
 import { CreateRoleDto } from './dto/create-role.dto';
@@ -73,7 +73,7 @@ export class RolesController {
   @Permissions('role.read')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Daftar roles user' })
-  async getUserRoles(@Param('userId') userId: number) {
+  async getUserRoles(@Param('userId', ParseIntPipe) userId: number) {
     return this.rolesService.getUserRoles(userId);
   }
 
@@ -82,7 +82,7 @@ export class RolesController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Assign role ke user' })
   async assignRole(
-    @Param('userId') userId: number,
+    @Param('userId', ParseIntPipe) userId: number,
     @Body() body: AssignRoleDto,
     @CurrentUser() currentUserId: number,
   ) {
@@ -94,8 +94,8 @@ export class RolesController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Revoke role dari user' })
   async revokeRole(
-    @Param('userId') userId: number,
-    @Param('roleId') roleId: number,
+    @Param('userId', ParseIntPipe) userId: number,
+    @Param('roleId', ParseIntPipe) roleId: number,
     @Body() body: { reason?: string },
     @CurrentUser() currentUserId: number,
   ) {
@@ -106,7 +106,7 @@ export class RolesController {
   @Permissions('role.read')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Histori role user' })
-  async getUserRoleHistory(@Param('userId') userId: number) {
+  async getUserRoleHistory(@Param('userId', ParseIntPipe) userId: number) {
     return this.rolesService.getUserRoleHistory(userId);
   }
 }

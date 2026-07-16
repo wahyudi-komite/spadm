@@ -49,7 +49,7 @@ import { FinanceModule } from './modules/finance/finance.module';
         password: configService.get('database.password'),
         database: configService.get('database.database'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        migrations: [__dirname + '/database/migrations/*{.ts,.js}'],
+        migrations: [__dirname + '/database/migrations/!(*.spec){.ts,.js}'],
         synchronize: false,
         logging: process.env.NODE_ENV === 'development',
         timezone: '+07:00',

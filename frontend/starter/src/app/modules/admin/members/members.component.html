@@ -74,8 +74,8 @@
       </ng-container>
 
       <ng-container matColumnDef="status">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
-        <td mat-cell *matCellDef="let m">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header class="text-center">Status</th>
+        <td mat-cell *matCellDef="let m" class="text-center">
           <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
             [class.bg-green-100]="m.status === 'active'"
             [class.text-green-800]="m.status === 'active'"
@@ -89,6 +89,23 @@
       <ng-container matColumnDef="phone">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>Telepon</th>
         <td mat-cell *matCellDef="let m">{{ m.phone || '-' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="resetPassword">
+        <th mat-header-cell *matHeaderCellDef>Reset Password</th>
+        <td mat-cell *matCellDef="let m">
+          <button mat-stroked-button color="warn"
+            [disabled]="!m.user?.id || resettingMemberId !== null"
+            [matTooltip]="m.user?.id ? 'Reset password ke password awal' : 'Anggota belum memiliki akun login'"
+            (click)="resetPassword(m)">
+            @if (resettingMemberId === m.id) {
+              <mat-spinner diameter="18"></mat-spinner>
+            } @else {
+              <mat-icon>lock_reset</mat-icon>
+            }
+            Reset
+          </button>
+        </td>
       </ng-container>
 
       <ng-container matColumnDef="actions">

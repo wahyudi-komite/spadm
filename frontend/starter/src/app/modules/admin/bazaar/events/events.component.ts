@@ -1,9 +1,10 @@
-import { Component, OnInit, ViewEncapsulation, Inject } from '@angular/core';
+import { AfterViewInit, Component, Inject, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTableModule } from '@angular/material/table';
+import { MatSort, MatSortModule } from '@angular/material/sort';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatDialog, MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -20,6 +21,9 @@ import { DialogFeedbackService } from 'app/shared/dialog-feedback/dialog-feedbac
         <mat-form-field class="w-full">
           <mat-label>Nama Event</mat-label>
           <input matInput formControlName="name" placeholder="Contoh: Bazar HUT SPADM ke-21">
+          @if (form.get('name').hasError('required')) {
+            <mat-error>Nama event wajib diisi</mat-error>
+          }
         </mat-form-field>
         <mat-form-field class="w-full">
           <mat-label>Deskripsi (Opsional)</mat-label>
@@ -46,10 +50,13 @@ export class AdminBazaarEventDialogComponent {
       name: ['', Validators.required],
       description: ['']
     });
+    this.form.markAllAsTouched();
   }
   save() {
     if (this.form.valid) {
       this.dialogRef.close(this.form.value);
+    } else {
+      this.form.markAllAsTouched();
     }
   }
 }
@@ -58,10 +65,12 @@ export class AdminBazaarEventDialogComponent {
   selector: 'admin-bazaar-events',
   templateUrl: './events.component.html',
   encapsulation: ViewEncapsulation.None,
-  imports: [CommonModule, MatTableModule, MatButtonModule, MatIconModule, MatDialogModule],
+  imports: [CommonModule, MatTableModule, MatSortModule, MatButtonModule, MatIconModule, MatDialogModule],
 })
-export class AdminBazaarEventsComponent implements OnInit {
-  events: any[] = [];
+export class AdminBazaarEventsComponent implements OnInit, AfterViewInit {
+  @ViewChild(MatSort) sort!: MatSort;
+
+  events = new MatTableDataSource<any>([]);
   displayedColumns = ['id', 'name', 'isActive', 'actions'];
 
   constructor(
@@ -74,9 +83,13 @@ export class AdminBazaarEventsComponent implements OnInit {
     this.loadEvents();
   }
 
+  ngAfterViewInit() {
+    this.events.sort = this.sort;
+  }
+
   loadEvents() {
     this.http.get(`${environment.apiUrl}/bazaar/events`).subscribe((res: any) => {
-      this.events = res;
+      this.events.data = res;
     });
   }
 

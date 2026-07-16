@@ -43,6 +43,17 @@ export class MembersController {
     return this.membersService.update(id, data, userId);
   }
 
+  @Post(':id/reset-password')
+  @Permissions('member.reset_password')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Reset password akun anggota ke password awal' })
+  async resetPassword(
+    @Param('id') id: number,
+    @CurrentUser() userId: number,
+  ) {
+    return this.membersService.resetPassword(id, userId);
+  }
+
   @Post('import/preview')
   @Permissions('member.import')
   @ApiBearerAuth()

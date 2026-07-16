@@ -12,7 +12,7 @@ async function run() {
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_DATABASE || 'spadm',
     entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-    migrations: [__dirname + '/migrations/*{.ts,.js}'],
+    migrations: [__dirname + '/migrations/!(*.spec){.ts,.js}'],
     synchronize: false,
   });
 

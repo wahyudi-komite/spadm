@@ -1,9 +1,10 @@
-import { Component, OnInit, ViewEncapsulation, Inject } from '@angular/core';
+import { AfterViewInit, Component, Inject, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTableModule } from '@angular/material/table';
+import { MatSort, MatSortModule } from '@angular/material/sort';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatDialog, MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -61,25 +62,34 @@ export class AdminBazaarBatchDialogComponent {
   selector: 'admin-bazaar-batches',
   templateUrl: './batches.component.html',
   encapsulation: ViewEncapsulation.None,
-  imports: [CommonModule, MatTableModule, MatButtonModule, MatIconModule, MatDialogModule, MatTooltipModule],
+  imports: [CommonModule, MatTableModule, MatSortModule, MatButtonModule, MatIconModule, MatDialogModule, MatTooltipModule],
 })
-export class AdminBazaarBatchesComponent implements OnInit {
-  batches: any[] = [];
+export class AdminBazaarBatchesComponent implements OnInit, AfterViewInit {
+  @ViewChild(MatSort) sort!: MatSort;
+
+  batches = new MatTableDataSource<any>([]);
   displayedColumns = ['id', 'event', 'name', 'status', 'actions'];
 
   constructor(
     private http: HttpClient,
     private dialog: MatDialog,
     private feedback: DialogFeedbackService
-  ) {}
+  ) {
+    this.batches.sortingDataAccessor = (batch, column) =>
+      column === 'event' ? batch.event?.name ?? '' : batch[column];
+  }
 
   ngOnInit() {
     this.loadBatches();
   }
 
+  ngAfterViewInit() {
+    this.batches.sort = this.sort;
+  }
+
   loadBatches() {
     this.http.get(`${environment.apiUrl}/bazaar/batches`).subscribe((res: any) => {
-      this.batches = res;
+      this.batches.data = res;
     });
   }
 

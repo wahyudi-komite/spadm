@@ -1,4 +1,4 @@
-<div class="p-8">
+<div class="spadm-finance p-8">
   <h1 class="text-2xl font-bold mb-6">Finance Dashboard</h1>
 
   @if (!data) {
@@ -10,7 +10,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
       <div class="bg-card rounded-2xl shadow p-5">
         <p class="text-secondary text-sm font-medium">Total Revenue</p>
-        <p class="text-2xl font-bold mt-1 text-green-600">{{ formatCurrency(data.kpis.totalRevenue) }}</p>
+        <p class="text-2xl font-bold mt-1 text-green-700 dark:text-green-400">{{ formatCurrency(data.kpis.totalRevenue) }}</p>
       </div>
       <div class="bg-card rounded-2xl shadow p-5">
         <p class="text-secondary text-sm font-medium">Transaksi</p>
@@ -18,15 +18,15 @@
       </div>
       <div class="bg-card rounded-2xl shadow p-5">
         <p class="text-secondary text-sm font-medium">Berhasil</p>
-        <p class="text-2xl font-bold mt-1 text-green-600">{{ data.kpis.successfulPayments }}</p>
+        <p class="text-2xl font-bold mt-1 text-green-700 dark:text-green-400">{{ data.kpis.successfulPayments }}</p>
       </div>
       <div class="bg-card rounded-2xl shadow p-5">
         <p class="text-secondary text-sm font-medium">Pending</p>
-        <p class="text-2xl font-bold mt-1 text-amber-600">{{ data.kpis.pendingCount }}</p>
+        <p class="text-2xl font-bold mt-1 text-amber-800 dark:text-amber-400">{{ data.kpis.pendingCount }}</p>
       </div>
       <div class="bg-card rounded-2xl shadow p-5">
         <p class="text-secondary text-sm font-medium">Expired</p>
-        <p class="text-2xl font-bold mt-1 text-red-600">{{ data.kpis.expiredCount }}</p>
+        <p class="text-2xl font-bold mt-1 text-red-700 dark:text-red-400">{{ data.kpis.expiredCount }}</p>
       </div>
     </div>
 

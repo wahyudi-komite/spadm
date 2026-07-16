@@ -9,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { environment } from 'environments/environment';
+import { DialogFeedbackService } from 'app/shared/dialog-feedback/dialog-feedback.service';
 
 @Component({
   selector: 'admin-member-detail',
@@ -18,10 +19,25 @@ import { environment } from 'environments/environment';
 })
 export class AdminMemberDetailComponent implements OnInit {
   member: any = { npk: '', name: '', email: '', phone: '', workUnit: '', organizationalPosition: '', plant: '', status: 'active' };
+  readonly workUnits = ['P1', 'P2', 'P3', 'P4', 'P5', 'PC', 'HO'];
+  readonly plants = [
+    { value: 'P1', label: 'Plant 1' },
+    { value: 'P2', label: 'Plant 2' },
+    { value: 'P3', label: 'Plant 3' },
+    { value: 'P4', label: 'Plant 4' },
+    { value: 'P5', label: 'Plant 5' },
+    { value: 'PC', label: 'Part Center' },
+    { value: 'HO', label: 'Head Office' },
+  ];
   loading = false;
   @ViewChild('memberForm') memberForm!: NgForm;
 
-  constructor(private http: HttpClient, private route: ActivatedRoute, private router: Router) {}
+  constructor(
+    private http: HttpClient,
+    private route: ActivatedRoute,
+    private router: Router,
+    private feedback: DialogFeedbackService,
+  ) {}
 
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
@@ -38,9 +54,16 @@ export class AdminMemberDetailComponent implements OnInit {
     event?.preventDefault();
     if (!this.memberForm.valid) return;
     this.loading = true;
-    this.http.patch(`${environment.apiUrl}/members/${this.member.id}`, this.member).subscribe(() => {
-      this.loading = false;
-      this.router.navigate(['/admin/members']);
+    this.http.patch(`${environment.apiUrl}/members/${this.member.id}`, this.member).subscribe({
+      next: () => {
+        this.loading = false;
+        this.feedback.success('Data anggota berhasil diperbarui.');
+        this.router.navigate(['/admin/members']);
+      },
+      error: (error) => {
+        this.loading = false;
+        this.feedback.error(error.error?.message || 'Data anggota gagal diperbarui. Silakan coba lagi.');
+      },
     });
   }
 }
