@@ -8,6 +8,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatTableModule } from '@angular/material/table';
 import { ActivatedRoute } from '@angular/router';
+import { Location } from '@angular/common';
 import { environment } from 'environments/environment';
 import { DialogFeedbackService } from 'app/shared/dialog-feedback/dialog-feedback.service';
 
@@ -28,7 +29,8 @@ export class AdminUserRolesComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private route: ActivatedRoute,
-    private feedback: DialogFeedbackService
+    private feedback: DialogFeedbackService,
+    public location: Location,
   ) {}
 
   ngOnInit() {
