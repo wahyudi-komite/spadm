@@ -8,26 +8,36 @@
     </div>
 
     <div class="bg-card shadow rounded-2xl overflow-hidden">
-        <table mat-table [dataSource]="batches" class="w-full">
+        <table mat-table [dataSource]="batches" matSort class="w-full">
             <ng-container matColumnDef="id">
-                <th mat-header-cell *matHeaderCellDef>ID</th>
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>ID</th>
                 <td mat-cell *matCellDef="let element">{{element.id}}</td>
             </ng-container>
 
             <ng-container matColumnDef="event">
-                <th mat-header-cell *matHeaderCellDef>Event</th>
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Event</th>
                 <td mat-cell *matCellDef="let element">{{element.event?.name || 'Unknown'}}</td>
             </ng-container>
 
             <ng-container matColumnDef="name">
-                <th mat-header-cell *matHeaderCellDef>Nama Batch</th>
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Nama Batch</th>
                 <td mat-cell *matCellDef="let element">{{element.name}}</td>
             </ng-container>
 
             <ng-container matColumnDef="status">
                 <th mat-header-cell *matHeaderCellDef>Status</th>
                 <td mat-cell *matCellDef="let element">
-                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                    <span class="px-2 py-1 text-xs font-semibold rounded-full"
+                          [class.bg-blue-100]="element.status === 'OPEN'"
+                          [class.text-blue-800]="element.status === 'OPEN'"
+                          [class.bg-gray-100]="element.status === 'DRAFT'"
+                          [class.text-gray-800]="element.status === 'DRAFT'"
+                          [class.bg-green-100]="element.status === 'COMPLETED'"
+                          [class.text-green-800]="element.status === 'COMPLETED'"
+                          [class.bg-yellow-100]="element.status === 'CLOSED'"
+                          [class.text-yellow-800]="element.status === 'CLOSED'"
+                          [class.bg-red-100]="element.status === 'CANCELLED'"
+                          [class.text-red-800]="element.status === 'CANCELLED'">
                         {{element.status}}
                     </span>
                 </td>
@@ -51,7 +61,7 @@
             <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
         </table>
         
-        <div *ngIf="batches.length === 0" class="p-8 text-center text-gray-500">
+        <div *ngIf="batches.data.length === 0" class="p-8 text-center text-gray-500">
             Belum ada batch.
         </div>
     </div>
