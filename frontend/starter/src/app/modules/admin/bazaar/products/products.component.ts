@@ -1,9 +1,10 @@
-import { Component, OnInit, ViewEncapsulation, Inject } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild, ViewEncapsulation, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpEventType } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTableModule } from '@angular/material/table';
+import { MatSort, MatSortModule } from '@angular/material/sort';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatDialog, MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -138,10 +139,12 @@ export class AdminBazaarProductDialogComponent {
   selector: 'admin-bazaar-products',
   templateUrl: './products.component.html',
   encapsulation: ViewEncapsulation.None,
-  imports: [CommonModule, MatTableModule, MatButtonModule, MatIconModule, MatDialogModule, MatTooltipModule],
+  imports: [CommonModule, MatTableModule, MatSortModule, MatButtonModule, MatIconModule, MatDialogModule, MatTooltipModule],
 })
-export class AdminBazaarProductsComponent implements OnInit {
-  products: any[] = [];
+export class AdminBazaarProductsComponent implements OnInit, AfterViewInit {
+  @ViewChild(MatSort) sort!: MatSort;
+
+  products = new MatTableDataSource<any>([]);
   storageBaseUrl = environment.apiUrl.replace(/\/api$/, '');
   displayedColumns = ['image', 'id', 'name', 'sku', 'sellingPrice', 'stock', 'actions'];
 
@@ -155,9 +158,13 @@ export class AdminBazaarProductsComponent implements OnInit {
     this.loadProducts();
   }
 
+  ngAfterViewInit() {
+    this.products.sort = this.sort;
+  }
+
   loadProducts() {
     this.http.get(`${environment.apiUrl}/bazaar/products`).subscribe((res: any) => {
-      this.products = res;
+      this.products.data = res;
     });
   }
 
