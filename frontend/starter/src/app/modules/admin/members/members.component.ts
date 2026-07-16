@@ -98,6 +98,7 @@ export class AdminMemberImportDialogComponent {
 export class AdminMembersComponent implements OnInit, AfterViewInit {
   @ViewChild(MatSort) sort!: MatSort;
 
+  environment = environment;
   members = new MatTableDataSource<any>([]);
   displayedColumns = ['npk', 'name', 'plant', 'workUnit', 'status', 'phone', 'actions'];
   search = '';

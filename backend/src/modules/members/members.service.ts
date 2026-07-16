@@ -138,6 +138,34 @@ export class MembersService {
     return member;
   }
 
+  async generateTemplate(): Promise<Buffer> {
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('Template Import Anggota');
+
+    const headers = ['Nama', 'Email', 'NPK', 'Unit Kerja', 'Nomor WhatsApp', 'Status', 'Jabatan Organisasi', 'Plant'];
+    const headerRow = sheet.addRow(headers);
+    headerRow.font = { bold: true };
+    headerRow.eachCell((cell) => {
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } };
+      cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' },
+      };
+    });
+
+    sheet.addRow(['John Doe', 'john@example.com', '123456', 'Unit A', '08123456789', 'active', 'Staff', 'P1']);
+    sheet.addRow(['', '', '', '', '', 'active/inactive', '', '']);
+
+    sheet.columns.forEach((col) => {
+      if (col) col.width = 20;
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    return Buffer.from(buffer);
+  }
+
   async importFromExcel(rows: Array<{ npk: string; name: string; email?: string; workUnit?: string; phone?: string; plant?: string; status?: string }>) {
     const results = { created: 0, updated: 0, errors: [] as string[] };
 
