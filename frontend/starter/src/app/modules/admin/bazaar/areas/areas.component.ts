@@ -21,14 +21,23 @@ import { DialogFeedbackService } from 'app/shared/dialog-feedback/dialog-feedbac
         <mat-form-field class="w-full">
           <mat-label>Plant</mat-label>
           <input matInput formControlName="plant">
+          <mat-error *ngIf="form.get('plant')?.invalid && form.get('plant')?.touched">
+            Plant wajib diisi
+          </mat-error>
         </mat-form-field>
         <mat-form-field class="w-full">
           <mat-label>Unit Kerja</mat-label>
           <input matInput formControlName="workUnit">
+          <mat-error *ngIf="form.get('workUnit')?.invalid && form.get('workUnit')?.touched">
+            Unit Kerja wajib diisi
+          </mat-error>
         </mat-form-field>
         <mat-form-field class="w-full">
           <mat-label>ID Area Distribusi</mat-label>
           <input matInput type="number" formControlName="distributionAreaId">
+          <mat-error *ngIf="form.get('distributionAreaId')?.invalid && form.get('distributionAreaId')?.touched">
+            ID Area Distribusi wajib diisi
+          </mat-error>
         </mat-form-field>
       </form>
     </mat-dialog-content>
