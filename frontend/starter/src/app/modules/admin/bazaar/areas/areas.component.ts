@@ -1,9 +1,10 @@
-import { Component, OnInit, ViewEncapsulation, Inject } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild, ViewEncapsulation, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTableModule } from '@angular/material/table';
+import { MatSort, MatSortModule } from '@angular/material/sort';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatDialog, MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -75,25 +76,36 @@ export class AdminBazaarAreaDialogComponent {
   selector: 'admin-bazaar-areas',
   templateUrl: './areas.component.html',
   encapsulation: ViewEncapsulation.None,
-  imports: [CommonModule, MatTableModule, MatButtonModule, MatIconModule, MatDialogModule, MatTooltipModule],
+  imports: [CommonModule, MatTableModule, MatSortModule, MatButtonModule, MatIconModule, MatDialogModule, MatTooltipModule],
 })
-export class AdminBazaarAreasComponent implements OnInit {
-  mappings: any[] = [];
+export class AdminBazaarAreasComponent implements OnInit, AfterViewInit {
+  @ViewChild(MatSort) sort!: MatSort;
+
+  mappings = new MatTableDataSource<any>([]);
   displayedColumns = ['id', 'plant', 'workUnit', 'areaCode', 'actions'];
 
   constructor(
     private http: HttpClient,
     private dialog: MatDialog,
     private feedback: DialogFeedbackService
-  ) {}
+  ) {
+    this.mappings.sortingDataAccessor = (mapping, column) => {
+      if (column === 'areaCode') return mapping.distributionArea?.code ?? '';
+      return mapping[column];
+    };
+  }
 
   ngOnInit() {
     this.loadMappings();
   }
 
+  ngAfterViewInit() {
+    this.mappings.sort = this.sort;
+  }
+
   loadMappings() {
     this.http.get(`${environment.apiUrl}/bazaar/distributions/mappings`).subscribe((res: any) => {
-      this.mappings = res;
+      this.mappings.data = res;
     });
   }
 
