@@ -70,7 +70,13 @@ import { FinanceModule } from './modules/finance/finance.module';
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'storage'),
       serveRoot: '/storage',
-      serveStaticOptions: { index: false },
+      serveStaticOptions: {
+        index: false,
+        setHeaders: (res) => {
+          res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+          res.setHeader('Access-Control-Allow-Origin', '*');
+        },
+      },
     }),
 
     AuthModule,
