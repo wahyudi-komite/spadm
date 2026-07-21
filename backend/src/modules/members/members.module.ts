@@ -8,6 +8,7 @@ import { MemberImport } from './entities/member-import.entity';
 import { MemberImportRow } from './entities/member-import-row.entity';
 import { Role } from '../roles/role.entity';
 import { UserRole } from '../roles/user-role.entity';
+import { UserRoleHistory } from '../roles/user-role-history.entity';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { UserRole } from '../roles/user-role.entity';
       
       Role,
       UserRole,
+      UserRoleHistory,
     ]),
   ],
   controllers: [MembersController],

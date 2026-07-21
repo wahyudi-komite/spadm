@@ -11,6 +11,7 @@ import { MemberImport } from './entities/member-import.entity';
 import { MemberImportRow } from './entities/member-import-row.entity';
 import { Role } from '../roles/role.entity';
 import { UserRole } from '../roles/user-role.entity';
+import { UserRoleHistory } from '../roles/user-role-history.entity';
 
 type MemberImportPreviewRow = {
   rowNumber: number;
@@ -37,6 +38,8 @@ export class MembersService {
     private roleRepository: Repository<Role>,
     @InjectRepository(UserRole)
     private userRoleRepository: Repository<UserRole>,
+    @InjectRepository(UserRoleHistory)
+    private userRoleHistoryRepository: Repository<UserRoleHistory>,
     private configService: ConfigService,
     private auditLogService: AuditLogService,
   ) {}
@@ -163,6 +166,49 @@ export class MembersService {
       return this.memberRepository.findOne({
         where: { id: member.id },
         relations: { userRoles: { role: true } },
+      });
+    });
+  }
+
+  async delete(id: number, deletedByUserId: number) {
+    const member = await this.findOne(id);
+
+    return this.memberRepository.manager.transaction(async (manager) => {
+      await manager.softRemove(Member, member);
+
+      const activeRoles = await manager.find(UserRole, {
+        where: { memberId: id, revokedAt: IsNull() },
+        relations: { role: true },
+      });
+
+      for (const ur of activeRoles) {
+        await manager.update(UserRole, ur.id, {
+          revokedAt: new Date(),
+          revokedBy: deletedByUserId,
+          status: 'REVOKED',
+          reason: 'Anggota dihapus',
+        });
+
+        await manager.save(UserRoleHistory, {
+          memberId: id,
+          roleId: ur.roleId,
+          areaId: ur.areaId,
+          startsAt: ur.startsAt,
+          endsAt: ur.endsAt,
+          status: 'REVOKED',
+          action: 'REVOKE' as const,
+          changedBy: deletedByUserId,
+          reason: 'Anggota dihapus',
+        });
+      }
+
+      await this.auditLogService.log({
+        userId: deletedByUserId,
+        action: 'DELETE_MEMBER',
+        module: 'members',
+        entityType: 'member',
+        entityId: id,
+        description: `Hapus anggota ${member.npk} - ${member.name} (${activeRoles.length} role dicabut)`,
       });
     });
   }

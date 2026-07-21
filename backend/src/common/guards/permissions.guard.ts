@@ -33,7 +33,7 @@ export class PermissionsGuard implements CanActivate {
       .createQueryBuilder('userRole')
       .leftJoinAndSelect('userRole.role', 'role')
       .leftJoinAndSelect('role.permissions', 'permission')
-      .where('userRole.userId = :userId', { userId })
+      .where('userRole.memberId = :userId', { userId })
       .andWhere('userRole.status = :status', { status: 'ACTIVE' })
       .andWhere('userRole.revokedAt IS NULL')
       .andWhere('(userRole.startsAt IS NULL OR userRole.startsAt <= :now)', { now })

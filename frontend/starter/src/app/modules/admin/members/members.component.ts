@@ -239,7 +239,7 @@ export class AdminMembersComponent implements OnInit, AfterViewInit {
   }
 
   resetPassword(member: any) {
-    if (!member.user?.id || this.resettingMemberId !== null) return;
+    if (this.resettingMemberId !== null) return;
 
     this.feedback.confirm({
       title: 'Reset password',

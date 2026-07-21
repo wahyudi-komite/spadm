@@ -108,9 +108,9 @@
       <ng-container matColumnDef="roles">
         <th mat-header-cell *matHeaderCellDef>Role</th>
         <td mat-cell *matCellDef="let m">
-          @if (m.user?.userRoles?.length) {
+          @if (m.userRoles?.length) {
             <div class="flex flex-wrap gap-1">
-              @for (ur of m.user.userRoles; track ur.id) {
+              @for (ur of m.userRoles; track ur.id) {
                 <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
                   {{ ur.role?.name }}
                 </span>
@@ -144,8 +144,8 @@
         <th mat-header-cell *matHeaderCellDef>Reset Password</th>
         <td mat-cell *matCellDef="let m">
           <button mat-stroked-button color="warn"
-            [disabled]="!m.user?.id || resettingMemberId !== null"
-            [matTooltip]="m.user?.id ? 'Reset password ke password awal' : 'Anggota belum memiliki akun login'"
+            [disabled]="resettingMemberId !== null"
+            matTooltip="Reset password ke password awal"
             (click)="resetPassword(m)">
             @if (resettingMemberId === m.id) {
               <mat-spinner diameter="18"></mat-spinner>
@@ -164,9 +164,8 @@
             <mat-icon>edit</mat-icon>
           </button>
           <button mat-icon-button
-            [routerLink]="m.user?.id ? ['/admin/users', m.user.id, 'roles'] : null"
-            [disabled]="!m.user?.id"
-            [matTooltip]="m.user?.id ? 'Atur Role' : 'Anggota belum memiliki akun login'">
+            [routerLink]="['/admin/users', m.id, 'roles']"
+            matTooltip="Atur Role">
             <mat-icon>admin_panel_settings</mat-icon>
           </button>
         </td>

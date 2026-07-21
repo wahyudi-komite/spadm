@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Body, Param, Query, Res, UseGuards, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query, Res, UseGuards, UploadedFile, UseInterceptors } from '@nestjs/common';
 import type { Response } from 'express';
 import { Throttle } from '@nestjs/throttler';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -71,6 +71,15 @@ export class MembersController {
     @CurrentUser() userId: number,
   ) {
     return this.membersService.resetPassword(id, userId);
+  }
+
+  @Delete(':id')
+  @Permissions('member.delete')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Hapus anggota (soft delete, cabut semua role)' })
+  async delete(@Param('id') id: number, @CurrentUser() userId: number) {
+    await this.membersService.delete(id, userId);
+    return { message: 'Anggota berhasil dihapus' };
   }
 
   @Post('import/preview')

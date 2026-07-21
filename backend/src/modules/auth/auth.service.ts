@@ -97,7 +97,8 @@ export class AuthService {
     const refreshTokenHash = this.hashToken(refreshToken);
     const session = await this.sessionRepository.findOne({
       where: { refreshToken: refreshTokenHash },
-          });
+      relations: { member: true },
+    });
 
     if (!session) {
       throw new UnauthorizedException({ message: 'Token tidak valid', code: 'INVALID_TOKEN' });
@@ -146,7 +147,7 @@ export class AuthService {
         }
 
         await manager.save(Session, {
-          userId: session.memberId,
+          memberId: session.memberId,
           refreshToken: this.hashToken(tokens.refreshToken),
           ipAddress,
           userAgent,
@@ -277,7 +278,7 @@ export class AuthService {
       .createQueryBuilder('userRole')
       .leftJoinAndSelect('userRole.role', 'role')
       .leftJoinAndSelect('role.permissions', 'permission')
-      .where('userRole.memberId = :userId', { memberId })
+      .where('userRole.memberId = :memberId', { memberId })
       .andWhere('userRole.status = :status', { status: 'ACTIVE' })
       .andWhere('userRole.revokedAt IS NULL')
       .andWhere('(userRole.startsAt IS NULL OR userRole.startsAt <= :now)', { now })

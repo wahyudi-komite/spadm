@@ -29,7 +29,7 @@ export class AreaAccessGuard implements CanActivate {
     const assignments = await this.userRoleRepository
       .createQueryBuilder('assignment')
       .leftJoinAndSelect('assignment.role', 'role')
-      .where('assignment.userId = :userId', { userId })
+      .where('assignment.memberId = :userId', { userId })
       .andWhere('assignment.status = :status', { status: 'ACTIVE' })
       .andWhere('assignment.revokedAt IS NULL')
       .andWhere('(assignment.startsAt IS NULL OR assignment.startsAt <= :now)', { now })
