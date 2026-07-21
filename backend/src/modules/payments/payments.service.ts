@@ -226,7 +226,7 @@ export class PaymentsService {
 
   async getPaymentHistory(userId: number) {
     return this.paymentRepository.find({
-      where: { order: { user: { id: userId } } },
+      where: { order: { member: { id: userId } } },
       relations: { order: true },
       order: { createdAt: 'DESC' },
     });

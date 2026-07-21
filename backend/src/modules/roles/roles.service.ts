@@ -5,7 +5,7 @@ import { Role } from './role.entity';
 import { RolePermission } from './role-permission.entity';
 import { UserRole } from './user-role.entity';
 import { UserRoleHistory } from './user-role-history.entity';
-import { User } from '../auth/entities/user.entity';
+import { Member } from '../members/entities/member.entity';
 import { Permission } from '../permissions/permission.entity';
 import { AuditLogService } from '../audit-logs/audit-log.service';
 import { CreateRoleDto } from './dto/create-role.dto';
@@ -23,8 +23,8 @@ export class RolesService {
     private userRoleRepository: Repository<UserRole>,
     @InjectRepository(UserRoleHistory)
     private userRoleHistoryRepository: Repository<UserRoleHistory>,
-    @InjectRepository(User)
-    private userRepository: Repository<User>,
+    @InjectRepository(Member)
+    private memberRepository: Repository<Member>,
     private auditLogService: AuditLogService,
   ) {}
 
@@ -71,18 +71,18 @@ export class RolesService {
     return this.findOne(roleId);
   }
 
-  async getUserRoles(userId: number) {
+  async getUserRoles(memberId: number) {
     const userRoles = await this.userRoleRepository.find({
-      where: { userId, revokedAt: IsNull() },
+      where: { memberId, revokedAt: IsNull() },
       relations: { role: { permissions: true } },
       order: { assignedAt: 'DESC' },
     });
     return userRoles;
   }
 
-  async assignRole(userId: number, dto: AssignRoleDto, assignedBy: number) {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) throw new NotFoundException('User tidak ditemukan');
+  async assignRole(memberId: number, dto: AssignRoleDto, assignedBy: number) {
+    const member = await this.memberRepository.findOne({ where: { id: memberId } });
+    if (!member) throw new NotFoundException('Anggota tidak ditemukan');
 
     const role = await this.roleRepository.findOne({ where: { id: dto.roleId } });
     if (!role) throw new NotFoundException('Role tidak ditemukan');
@@ -95,7 +95,7 @@ export class RolesService {
 
     const existingQuery = this.userRoleRepository
       .createQueryBuilder('userRole')
-      .where('userRole.userId = :userId', { userId })
+      .where('userRole.memberId = :memberId', { memberId })
       .andWhere('userRole.roleId = :roleId', { roleId: dto.roleId })
       .andWhere('userRole.revokedAt IS NULL');
     if (dto.areaId === undefined) {
@@ -108,7 +108,7 @@ export class RolesService {
 
     const saved = await this.userRoleRepository.save(
       this.userRoleRepository.create({
-        userId,
+        memberId,
         roleId: dto.roleId,
         assignedBy,
         areaId: dto.areaId,
@@ -120,7 +120,7 @@ export class RolesService {
     );
 
     await this.userRoleHistoryRepository.save({
-      userId,
+      memberId,
       roleId: dto.roleId,
       areaId: dto.areaId,
       startsAt,
@@ -131,14 +131,14 @@ export class RolesService {
       reason: dto.reason,
     });
 
-    await this.auditLogService.log({ userId, action: 'ASSIGN_ROLE', module: 'auth', entityType: 'user', entityId: userId, description: `Role ${role.name} assigned` });
+    await this.auditLogService.log({ userId: memberId, action: 'ASSIGN_ROLE', module: 'auth', entityType: 'member', entityId: memberId, description: `Role ${role.name} assigned` });
 
     return this.userRoleRepository.findOne({ where: { id: saved.id }, relations: { role: true } });
   }
 
-  async revokeRole(userId: number, roleId: number, revokedBy: number, reason?: string) {
+  async revokeRole(memberId: number, roleId: number, revokedBy: number, reason?: string) {
     const userRole = await this.userRoleRepository.findOne({
-      where: { userId, roleId, revokedAt: IsNull() },
+      where: { memberId, roleId, revokedAt: IsNull() },
     });
     if (!userRole) throw new NotFoundException('Role assignment tidak ditemukan');
 
@@ -150,7 +150,7 @@ export class RolesService {
     });
 
     await this.userRoleHistoryRepository.save({
-      userId,
+      memberId,
       roleId,
       areaId: userRole.areaId,
       startsAt: userRole.startsAt,
@@ -161,12 +161,12 @@ export class RolesService {
       reason,
     });
 
-    await this.auditLogService.log({ userId, action: 'REVOKE_ROLE', module: 'auth', entityType: 'user', entityId: userId, description: `Role revoked` });
+    await this.auditLogService.log({ userId: memberId, action: 'REVOKE_ROLE', module: 'auth', entityType: 'member', entityId: memberId, description: `Role revoked` });
   }
 
-  async getUserRoleHistory(userId: number) {
+  async getUserRoleHistory(memberId: number) {
     return this.userRoleHistoryRepository.find({
-      where: { userId },
+      where: { memberId },
       order: { createdAt: 'DESC' },
     });
   }

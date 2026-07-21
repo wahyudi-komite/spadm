@@ -60,7 +60,7 @@ export class DistributionsService {
       where: { tokenCode },
       relations: {
         order: {
-          user: { member: true },
+          member: true,
           event: true,
           batch: true,
           distributionArea: true,
@@ -77,7 +77,7 @@ export class DistributionsService {
     if (token.order.batch.status !== BatchStatus.DISTRIBUTION) {
       throw new BadRequestException('Batch belum memasuki periode distribusi');
     }
-    if (token.order.user.member?.status !== 'active') {
+    if (token.order.member?.status !== 'active') {
       throw new BadRequestException('Status anggota tidak aktif');
     }
 
@@ -230,8 +230,8 @@ export class DistributionsService {
         id: order.id,
         orderNumber: order.orderNumber,
         member: {
-          npk: order.user?.npk,
-          name: order.user?.member?.name,
+          npk: order.member?.npk,
+          name: order.member?.name,
         },
         event: order.event?.name,
         batch: order.batch?.name,
@@ -242,7 +242,7 @@ export class DistributionsService {
       recentDistributions: recentDistributions.map((distribution) => ({
         id: distribution.id,
         orderNumber: distribution.order?.orderNumber,
-        memberName: distribution.order?.user?.member?.name,
+        memberName: distribution.order?.member?.name,
         area: distribution.order?.distributionArea,
         distributedBy: distribution.distributedBy?.npk,
         distributedAt: distribution.distributedAt,
@@ -412,10 +412,10 @@ export class DistributionsService {
         status: order.status,
         distributionAreaId: order.distributionAreaId,
         user: {
-          npk: order.user?.npk,
-          member: order.user?.member ? {
-            name: order.user.member.name,
-            status: order.user.member.status,
+          npk: order.member?.npk,
+          member: order.member ? {
+            name: order.member.name,
+            status: order.member.status,
           } : null,
         },
         event: order.event ? { id: order.event.id, name: order.event.name } : null,

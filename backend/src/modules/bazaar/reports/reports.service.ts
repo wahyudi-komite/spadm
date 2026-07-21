@@ -91,8 +91,8 @@ export class ReportsService {
     const orders = await query.getMany() as Array<BazaarOrder & { payment?: Payment }>;
     const rows = orders.map((order) => ({
       'Nomor Transaksi': order.orderNumber,
-      NPK: order.user?.npk,
-      Nama: order.user?.member?.name,
+      NPK: order.member?.npk,
+      Nama: order.member?.name,
       Event: order.event?.name,
       Batch: order.batch?.name,
       Area: order.distributionArea?.code,
@@ -143,16 +143,16 @@ export class ReportsService {
   async receiptPdf(orderId: number, userId: number): Promise<Buffer> {
     const order = await this.orderRepository.findOne({
       where: { id: orderId },
-      relations: { user: { member: true }, event: true, batch: true, distributionArea: true, items: true },
+      relations: { member: true, event: true, batch: true, distributionArea: true, items: true },
     });
     if (!order) throw new NotFoundException('Order tidak ditemukan');
-    if (order.user.id !== userId && !(await this.canReadReports(userId))) throw new ForbiddenException('Anda tidak dapat mengakses bukti ini');
+    if (order.member.id !== userId && !(await this.canReadReports(userId))) throw new ForbiddenException('Anda tidak dapat mengakses bukti ini');
     const payment = await this.paymentRepository.findOne({ where: { order: { id: orderId } } });
     if (!payment || !['PAID', 'MANUAL_VERIFIED'].includes(payment.status)) throw new NotFoundException('Bukti pembayaran belum tersedia');
     const token = await this.pickupTokenRepository.findOne({ where: { order: { id: orderId } } });
     const qrImage = token ? await QRCode.toDataURL(this.signPickupToken(token.tokenCode), { margin: 1, width: 220 }) : null;
     return this.createPdf((doc) => {
-      const member = order.user.member;
+      const member = order.member;
       doc.fontSize(18).text('SPADM', { align: 'center' });
       doc.fontSize(13).text('Bukti Pembayaran Bazar', { align: 'center' }).moveDown();
       doc.fontSize(10).text(`Nomor transaksi: ${order.orderNumber}`);

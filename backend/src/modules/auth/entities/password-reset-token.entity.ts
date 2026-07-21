@@ -6,7 +6,7 @@ export class PasswordResetToken {
   id: number;
 
   @Column()
-  userId: number;
+  memberId: number;
 
   @Column({ length: 255 })
   token: string;

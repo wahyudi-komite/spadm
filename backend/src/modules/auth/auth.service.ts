@@ -4,7 +4,6 @@ import { Repository, IsNull } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
-import { User } from './entities/user.entity';
 import { Session } from './entities/session.entity';
 import { LoginHistory } from './entities/login-history.entity';
 import { PasswordResetToken } from './entities/password-reset-token.entity';
@@ -20,8 +19,6 @@ import { createHash, randomBytes } from 'crypto';
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectRepository(User)
-    private userRepository: Repository<User>,
     @InjectRepository(Session)
     private sessionRepository: Repository<Session>,
     @InjectRepository(LoginHistory)
@@ -38,10 +35,9 @@ export class AuthService {
   ) {}
 
   async signIn(dto: SignInDto, ipAddress?: string, userAgent?: string) {
-    const user = await this.userRepository.findOne({
+    const user = await this.memberRepository.findOne({
       where: { npk: dto.npk },
-      relations: { member: true },
-    });
+          });
 
     if (!user) {
       throw new UnauthorizedException({ message: 'NPK atau password salah', code: 'INVALID_CREDENTIALS' });
@@ -55,37 +51,37 @@ export class AuthService {
       throw new UnauthorizedException({ message: 'Akun terkunci. Coba lagi nanti.', code: 'ACCOUNT_LOCKED' });
     }
 
-    const isPasswordValid = await bcrypt.compare(dto.password, user.password);
+    const isPasswordValid = await bcrypt.compare(dto.password, user.password!);
     if (!isPasswordValid) {
       const attempts = (user.failedLoginAttempts || 0) + 1;
       if (attempts >= 5) {
-        await this.userRepository.update(user.id, {
+        await this.memberRepository.update(user.id, {
           failedLoginAttempts: attempts,
           lockedUntil: new Date(Date.now() + 15 * 60 * 1000),
         });
         await this.auditLogService.log({ userId: user.id, action: 'ACCOUNT_LOCKED', module: 'auth', description: 'Akun terkunci setelah 5x gagal login', ipAddress, userAgent });
       } else {
-        await this.userRepository.update(user.id, { failedLoginAttempts: attempts });
+        await this.memberRepository.update(user.id, { failedLoginAttempts: attempts });
       }
       await this.saveLoginHistory(user.id, ipAddress, userAgent, false, 'Password salah');
       throw new UnauthorizedException({ message: 'NPK atau password salah', code: 'INVALID_CREDENTIALS' });
     }
 
-    await this.userRepository.update(user.id, { failedLoginAttempts: 0 });
+    await this.memberRepository.update(user.id, { failedLoginAttempts: 0 });
 
     const tokens = await this.generateTokens(user);
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 30);
 
     await this.sessionRepository.save({
-      userId: user.id,
+      memberId: user.id,
       refreshToken: this.hashToken(tokens.refreshToken),
       ipAddress,
       userAgent,
       expiresAt,
     });
 
-    await this.userRepository.update(user.id, { lastLoginAt: new Date() });
+    await this.memberRepository.update(user.id, { lastLoginAt: new Date() });
     await this.saveLoginHistory(user.id, ipAddress, userAgent, true);
     await this.auditLogService.log({ userId: user.id, action: 'LOGIN_SUCCESS', module: 'auth', description: `Login NPK ${user.npk}`, ipAddress, userAgent });
 
@@ -101,8 +97,7 @@ export class AuthService {
     const refreshTokenHash = this.hashToken(refreshToken);
     const session = await this.sessionRepository.findOne({
       where: { refreshToken: refreshTokenHash },
-      relations: { user: { member: true } },
-    });
+          });
 
     if (!session) {
       throw new UnauthorizedException({ message: 'Token tidak valid', code: 'INVALID_TOKEN' });
@@ -110,7 +105,7 @@ export class AuthService {
 
     if (!session.isActive) {
       await this.auditLogService.log({
-        userId: session.userId,
+        userId: session.memberId,
         action: 'TOKEN_REUSE_DETECTED',
         module: 'auth',
         description: 'Refresh token yang sudah dirotasi digunakan kembali',
@@ -118,7 +113,7 @@ export class AuthService {
         userAgent,
       });
       await this.sessionRepository.update(
-        { userId: session.userId, isActive: true },
+        { memberId: session.memberId, isActive: true },
         { isActive: false },
       );
       throw new UnauthorizedException({ message: 'Token reuse terdeteksi', code: 'INVALID_TOKEN' });
@@ -129,11 +124,11 @@ export class AuthService {
       throw new UnauthorizedException({ message: 'Session expired', code: 'SESSION_EXPIRED' });
     }
 
-    if (!session.user.isActive) {
+    if (!session.member.isActive) {
       throw new UnauthorizedException({ message: 'Akun tidak aktif', code: 'ACCOUNT_INACTIVE' });
     }
 
-    const tokens = await this.generateTokens(session.user);
+    const tokens = await this.generateTokens(session.member);
 
     try {
       await this.sessionRepository.manager.transaction(async (manager) => {
@@ -151,7 +146,7 @@ export class AuthService {
         }
 
         await manager.save(Session, {
-          userId: session.userId,
+          userId: session.memberId,
           refreshToken: this.hashToken(tokens.refreshToken),
           ipAddress,
           userAgent,
@@ -166,11 +161,11 @@ export class AuthService {
           'TOKEN_REUSE_DETECTED'
       ) {
         await this.sessionRepository.update(
-          { userId: session.userId, isActive: true },
+          { memberId: session.memberId, isActive: true },
           { isActive: false },
         );
         await this.auditLogService.log({
-          userId: session.userId,
+          userId: session.memberId,
           action: 'TOKEN_REUSE_DETECTED',
           module: 'auth',
           description: 'Refresh token digunakan secara bersamaan',
@@ -184,45 +179,45 @@ export class AuthService {
     return {
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
-      user: this.sanitizeUser(session.user),
+      user: this.sanitizeUser(session.member),
     };
   }
 
-  async signOut(userId: number, refreshToken: string) {
+  async signOut(memberId: number, refreshToken: string) {
     if (!refreshToken) return;
     await this.sessionRepository.update(
-      { refreshToken: this.hashToken(refreshToken), userId },
+      { refreshToken: this.hashToken(refreshToken), memberId },
       { isActive: false },
     );
   }
 
-  async signOutFromAllDevices(userId: number) {
-    await this.sessionRepository.update({ userId, isActive: true }, { isActive: false });
+  async signOutFromAllDevices(memberId: number) {
+    await this.sessionRepository.update({ memberId, isActive: true }, { isActive: false });
   }
 
-  async signOutFromSession(userId: number, sessionId: number) {
-    await this.sessionRepository.update({ id: sessionId, userId }, { isActive: false });
+  async signOutFromSession(memberId: number, sessionId: number) {
+    await this.sessionRepository.update({ id: sessionId, memberId }, { isActive: false });
   }
 
-  async changePassword(userId: number, dto: ChangePasswordDto) {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
+  async changePassword(memberId: number, dto: ChangePasswordDto) {
+    const user = await this.memberRepository.findOne({ where: { id: memberId } });
     if (!user) throw new UnauthorizedException('User tidak ditemukan');
 
-    const isPasswordValid = await bcrypt.compare(dto.currentPassword, user.password);
+    const isPasswordValid = await bcrypt.compare(dto.currentPassword, user.password!);
     if (!isPasswordValid) {
       throw new BadRequestException({ message: 'Password saat ini salah', code: 'INVALID_CURRENT_PASSWORD' });
     }
 
     const hashedPassword = await bcrypt.hash(dto.newPassword, 12);
-    await this.userRepository.update(userId, {
+    await this.memberRepository.update(memberId, {
       password: hashedPassword,
       mustChangePassword: false,
     });
-    await this.auditLogService.log({ userId, action: 'CHANGE_PASSWORD', module: 'auth', description: 'Password berhasil diubah' });
+    await this.auditLogService.log({ userId: memberId, action: 'CHANGE_PASSWORD', module: 'auth', description: 'Password berhasil diubah' });
   }
 
   async forgotPassword(dto: ForgotPasswordDto) {
-    const user = await this.userRepository.findOne({ where: { npk: dto.npk } });
+    const user = await this.memberRepository.findOne({ where: { npk: dto.npk } });
     if (!user) {
       return { message: 'Jika NPK terdaftar, link reset password akan dikirim' };
     }
@@ -232,7 +227,7 @@ export class AuthService {
     expiresAt.setHours(expiresAt.getHours() + 1);
 
     await this.passwordResetTokenRepository.save({
-      userId: user.id,
+      memberId: user.id,
       token: this.hashToken(token),
       expiresAt,
     });
@@ -251,39 +246,38 @@ export class AuthService {
     }
 
     const hashedPassword = await bcrypt.hash(dto.newPassword, 12);
-    await this.userRepository.update(resetToken.userId, {
+    await this.memberRepository.update(resetToken.memberId, {
       password: hashedPassword,
       mustChangePassword: false,
     });
-    await this.auditLogService.log({ userId: resetToken.userId, action: 'RESET_PASSWORD', module: 'auth', description: 'Password direset via token' });
+    await this.auditLogService.log({ userId: resetToken.memberId, action: 'RESET_PASSWORD', module: 'auth', description: 'Password direset via token' });
 
     await this.passwordResetTokenRepository.update(resetToken.id, { isUsed: true });
-    await this.sessionRepository.update({ userId: resetToken.userId }, { isActive: false });
+    await this.sessionRepository.update({ memberId: resetToken.memberId }, { isActive: false });
   }
 
-  async getProfile(userId: number) {
-    const user = await this.userRepository.findOne({
-      where: { id: userId },
-      relations: { member: true },
-    });
+  async getProfile(memberId: number) {
+    const user = await this.memberRepository.findOne({
+      where: { id: memberId },
+          });
     if (!user) throw new UnauthorizedException('User tidak ditemukan');
     return this.sanitizeUser(user);
   }
 
-  async getSessions(userId: number) {
+  async getSessions(memberId: number) {
     return this.sessionRepository.find({
-      where: { userId, isActive: true },
+      where: { memberId, isActive: true },
       order: { createdAt: 'DESC' },
     });
   }
 
-  async getUserPermissions(userId: number) {
+  async getUserPermissions(memberId: number) {
     const now = new Date();
     const userRoles = await this.userRoleRepository
       .createQueryBuilder('userRole')
       .leftJoinAndSelect('userRole.role', 'role')
       .leftJoinAndSelect('role.permissions', 'permission')
-      .where('userRole.userId = :userId', { userId })
+      .where('userRole.memberId = :userId', { memberId })
       .andWhere('userRole.status = :status', { status: 'ACTIVE' })
       .andWhere('userRole.revokedAt IS NULL')
       .andWhere('(userRole.startsAt IS NULL OR userRole.startsAt <= :now)', { now })
@@ -298,10 +292,10 @@ export class AuthService {
       }
     }
 
-    return { userId, permissions: Array.from(permissions) };
+    return { memberId, permissions: Array.from(permissions) };
   }
 
-  private async generateTokens(user: User) {
+  private async generateTokens(user: Member) {
     const payload = { sub: user.id, npk: user.npk };
 
     const accessToken = this.jwtService.sign(payload as object, {
@@ -321,14 +315,14 @@ export class AuthService {
     return createHash('sha256').update(token).digest('hex');
   }
 
-  private sanitizeUser(user: User) {
+  private sanitizeUser(user: Member) {
     const { password, ...rest } = user;
     return rest;
   }
 
-  private async saveLoginHistory(userId: number, ipAddress?: string, userAgent?: string, isSuccess = false, failureReason?: string) {
+  private async saveLoginHistory(memberId: number, ipAddress?: string, userAgent?: string, isSuccess = false, failureReason?: string) {
     const entry = this.loginHistoryRepository.create({
-      userId,
+      memberId,
       ipAddress,
       userAgent,
       isSuccess,

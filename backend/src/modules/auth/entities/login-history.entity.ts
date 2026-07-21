@@ -6,7 +6,7 @@ export class LoginHistory {
   id: number;
 
   @Column()
-  userId: number;
+  memberId: number;
 
   @Column({ length: 45, nullable: true })
   ipAddress: string;

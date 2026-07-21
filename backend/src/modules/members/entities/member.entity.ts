@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, OneToOne, OneToMany } from 'typeorm';
-import { User } from '../../auth/entities/user.entity';
+import { Session } from '../../auth/entities/session.entity';
+import { UserRole } from '../../roles/user-role.entity';
 
 @Entity('members')
 export class Member {
@@ -33,8 +34,29 @@ export class Member {
   @Column({ nullable: true })
   distributionAreaId: number;
 
-  @OneToOne(() => User, (user) => user.member)
-  user: User;
+  @Column({ nullable: true })
+  password?: string;
+
+  @Column({ default: false })
+  mustChangePassword: boolean;
+
+  @Column({ default: true })
+  isActive: boolean;
+
+  @Column({ default: 0 })
+  failedLoginAttempts: number;
+
+  @Column({ nullable: true })
+  lockedUntil?: Date;
+
+  @Column({ nullable: true })
+  lastLoginAt?: Date;
+
+  @OneToMany(() => Session, (session) => session.member)
+  sessions: Session[];
+
+  @OneToMany(() => UserRole, (userRole) => userRole.member)
+  userRoles: UserRole[];
 
   @CreateDateColumn()
   createdAt: Date;

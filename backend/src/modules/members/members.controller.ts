@@ -23,8 +23,10 @@ export class MembersController {
     @Query('search') search?: string,
     @Query('status') status?: string,
     @Query('plant') plant?: string,
+    @Query('workUnit') workUnit?: string,
+    @Query('role') role?: string,
   ) {
-    return this.membersService.findAll({ page, limit, search, status, plant });
+    return this.membersService.findAll({ page, limit, search, status, plant, workUnit, role });
   }
 
   @Get(':id')
@@ -33,6 +35,23 @@ export class MembersController {
   @ApiOperation({ summary: 'Detail anggota' })
   async findOne(@Param('id') id: number) {
     return this.membersService.findOne(id);
+  }
+
+  @Post()
+  @Permissions('member.create')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Buat anggota baru (otomatis bikin akun login + role MEMBER)' })
+  async create(@Body() data: {
+    npk: string;
+    name: string;
+    email?: string;
+    workUnit?: string;
+    phone?: string;
+    plant?: string;
+    organizationalPosition?: string;
+    status?: string;
+  }, @CurrentUser() userId: number) {
+    return this.membersService.create(data, userId);
   }
 
   @Patch(':id')

@@ -65,12 +65,12 @@ export class NotificationsService {
 
   async notifyPaymentSuccess(orderId: number): Promise<void> {
     const order = await this.getOrder(orderId);
-    const member = order.user.member;
+    const member = order.member;
     const amount = new Intl.NumberFormat('id-ID', {
       style: 'currency', currency: 'IDR', maximumFractionDigits: 0,
     }).format(Number(order.grandTotal));
     await this.create({
-      userId: order.user.id,
+      userId: order.member.id,
       type: NotificationType.PAYMENT_SUCCESS,
       title: 'Pembayaran berhasil',
       message: `Pembayaran ${order.orderNumber} berhasil. QR pengambilan sudah tersedia.`,
@@ -92,9 +92,9 @@ export class NotificationsService {
 
   async notifyPaymentExpired(orderId: number): Promise<void> {
     const order = await this.getOrder(orderId);
-    const member = order.user.member;
+    const member = order.member;
     await this.create({
-      userId: order.user.id,
+      userId: order.member.id,
       type: NotificationType.PAYMENT_EXPIRED,
       title: 'Pembayaran kedaluwarsa',
       message: `Pembayaran ${order.orderNumber} telah kedaluwarsa. Hak pembelian Anda tetap tersedia.`,
@@ -110,9 +110,9 @@ export class NotificationsService {
 
   async notifyOrderDistributed(orderId: number): Promise<void> {
     const order = await this.getOrder(orderId);
-    const member = order.user.member;
+    const member = order.member;
     await this.create({
-      userId: order.user.id,
+      userId: order.member.id,
       type: NotificationType.ORDER_DISTRIBUTED,
       title: 'Barang telah diserahkan',
       message: `Paket ${order.orderNumber} telah diserahkan. Terima kasih.`,
@@ -215,9 +215,9 @@ export class NotificationsService {
   private async getOrder(id: number): Promise<BazaarOrder> {
     const order = await this.orderRepository.findOne({
       where: { id },
-      relations: { user: { member: true }, distributionArea: true },
+      relations: { member: true, distributionArea: true },
     });
-    if (!order?.user?.member) throw new NotFoundException('Data order atau anggota tidak ditemukan');
+    if (!order?.member) throw new NotFoundException('Data order atau anggota tidak ditemukan');
     return order;
   }
 }

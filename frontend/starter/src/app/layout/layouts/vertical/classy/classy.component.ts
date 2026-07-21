@@ -82,6 +82,13 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
             });
     }
 
+    get initials(): string {
+        if (!this.user?.name) return '';
+        const names = this.user.name.trim().split(' ');
+        if (names.length === 1) return names[0].charAt(0).toUpperCase();
+        return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
+    }
+
     toggleScheme(): void {
         const cycle: ('light' | 'dark' | 'auto')[] = ['light', 'dark', 'auto'];
         const idx = cycle.indexOf(this.scheme);

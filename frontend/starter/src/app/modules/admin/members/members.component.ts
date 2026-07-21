@@ -105,12 +105,21 @@ export class AdminMembersComponent implements OnInit, AfterViewInit {
   statusFilter = '';
   plantFilter = '';
   workUnitFilter = '';
+  roleFilter = '';
   organizationalPositionFilter = '';
   plants: string[] = [];
   workUnits: string[] = [];
+  roles: any[] = [];
   organizationalPositions: string[] = [];
   page = 1;
-  limit = 20;
+  limit = 10;
+  limitOptions = [
+    { label: '10', value: 10 },
+    { label: '20', value: 20 },
+    { label: '50', value: 50 },
+    { label: '100', value: 100 },
+    { label: 'All', value: 999999 },
+  ];
   total = 0;
   totalPages = 0;
   loading = false;
@@ -125,6 +134,13 @@ export class AdminMembersComponent implements OnInit, AfterViewInit {
 
   ngOnInit() {
     this.loadMembers();
+    this.loadRoles();
+  }
+
+  loadRoles() {
+    this.http.get(`${environment.apiUrl}/roles`).subscribe((res: any) => {
+      this.roles = res;
+    });
   }
 
   ngAfterViewInit() {
@@ -138,6 +154,7 @@ export class AdminMembersComponent implements OnInit, AfterViewInit {
     if (this.statusFilter) params.status = this.statusFilter;
     if (this.plantFilter) params.plant = this.plantFilter;
     if (this.workUnitFilter) params.workUnit = this.workUnitFilter;
+    if (this.roleFilter) params.role = this.roleFilter;
     if (this.organizationalPositionFilter) params.organizationalPosition = this.organizationalPositionFilter;
 
     this.http.get(`${environment.apiUrl}/members`, { params }).subscribe((res: any) => {

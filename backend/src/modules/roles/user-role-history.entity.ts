@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { User } from '../auth/entities/user.entity';
+import { Member } from '../members/entities/member.entity';
 import { Role } from './role.entity';
 
 @Entity('user_role_histories')
@@ -8,7 +8,7 @@ export class UserRoleHistory {
   id: number;
 
   @Column()
-  userId: number;
+  memberId: number;
 
   @Column()
   roleId: number;
@@ -37,9 +37,9 @@ export class UserRoleHistory {
   @CreateDateColumn()
   createdAt: Date;
 
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'userId' })
-  user: User;
+  @ManyToOne(() => Member)
+  @JoinColumn({ name: 'memberId' })
+  member: Member;
 
   @ManyToOne(() => Role)
   @JoinColumn({ name: 'roleId' })

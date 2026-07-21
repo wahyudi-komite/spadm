@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { User } from './user.entity';
+import { Member } from '../../members/entities/member.entity';
 
 @Entity('sessions')
 export class Session {
@@ -7,11 +7,11 @@ export class Session {
   id: number;
 
   @Column()
-  userId: number;
+  memberId: number;
 
-  @ManyToOne(() => User, (user) => user.sessions)
-  @JoinColumn({ name: 'userId' })
-  user: User;
+  @ManyToOne(() => Member, (member) => member.sessions)
+  @JoinColumn({ name: 'memberId' })
+  member: Member;
 
   @Column({ length: 500 })
   refreshToken: string;

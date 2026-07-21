@@ -5,7 +5,6 @@ import * as bcrypt from 'bcrypt';
 import ExcelJS from 'exceljs';
 import { Member } from './entities/member.entity';
 import { MemberStatusHistory } from './entities/member-status-history.entity';
-import { User } from '../auth/entities/user.entity';
 import { AuditLogService } from '../audit-logs/audit-log.service';
 import { ConfigService } from '@nestjs/config';
 import { MemberImport } from './entities/member-import.entity';
@@ -30,17 +29,19 @@ export class MembersService {
     private memberRepository: Repository<Member>,
     @InjectRepository(MemberStatusHistory)
     private memberStatusHistoryRepository: Repository<MemberStatusHistory>,
-    @InjectRepository(User)
-    private userRepository: Repository<User>,
     @InjectRepository(MemberImport)
     private memberImportRepository: Repository<MemberImport>,
     @InjectRepository(MemberImportRow)
     private memberImportRowRepository: Repository<MemberImportRow>,
+    @InjectRepository(Role)
+    private roleRepository: Repository<Role>,
+    @InjectRepository(UserRole)
+    private userRoleRepository: Repository<UserRole>,
     private configService: ConfigService,
     private auditLogService: AuditLogService,
   ) {}
 
-  async findAll(query: { page?: number; limit?: number; search?: string; status?: string; plant?: string }) {
+  async findAll(query: { page?: number; limit?: number; search?: string; status?: string; plant?: string; workUnit?: string; role?: string }) {
     const page = query.page || 1;
     const limit = query.limit || 20;
     const skip = (page - 1) * limit;
@@ -54,10 +55,12 @@ export class MembersService {
       ];
       if (query.status) searchWhere.forEach((w: any) => w.status = query.status);
       if (query.plant) searchWhere.forEach((w: any) => w.plant = query.plant);
+      if (query.workUnit) searchWhere.forEach((w: any) => w.workUnit = query.workUnit);
+      if (query.role) searchWhere.forEach((w: any) => w.user = { userRoles: { role: { name: query.role } } });
 
       const [data, total] = await this.memberRepository.findAndCount({
         where: searchWhere,
-        relations: { user: { userRoles: { role: true } } },
+        relations: { userRoles: { role: true } },
         skip,
         take: limit,
         order: { updatedAt: 'DESC' },
@@ -71,10 +74,16 @@ export class MembersService {
     if (query.plant) {
       where.plant = query.plant;
     }
+    if (query.workUnit) {
+      where.workUnit = query.workUnit;
+    }
+    if (query.role) {
+      where.user = { userRoles: { role: { name: query.role } } };
+    }
 
     const [data, total] = await this.memberRepository.findAndCount({
       where,
-      relations: { user: { userRoles: { role: true } } },
+      relations: { userRoles: { role: true } },
       skip,
       take: limit,
       order: { updatedAt: 'DESC' },
@@ -97,6 +106,67 @@ export class MembersService {
     return member;
   }
 
+  async create(data: {
+    npk: string;
+    name: string;
+    email?: string;
+    workUnit?: string;
+    phone?: string;
+    plant?: string;
+    organizationalPosition?: string;
+    status?: string;
+  }, createdByUserId?: number) {
+    const existing = await this.memberRepository.findOne({ where: { npk: data.npk } });
+    if (existing) throw new BadRequestException(`NPK ${data.npk} sudah terdaftar`);
+
+    const passwordHash = await bcrypt.hash(
+      this.configService.get<string>('DEFAULT_MEMBER_PASSWORD') || 'SmartCare',
+      12,
+    );
+
+    const memberRole = await this.roleRepository.findOne({ where: { name: 'MEMBER' } });
+    if (!memberRole) throw new BadRequestException('Role MEMBER belum tersedia');
+
+    return this.memberRepository.manager.transaction(async (manager) => {
+      const member = await manager.save(Member, manager.create(Member, {
+        npk: data.npk,
+        name: data.name,
+        email: data.email,
+        workUnit: data.workUnit,
+        phone: data.phone,
+        plant: data.plant,
+        organizationalPosition: data.organizationalPosition,
+        status: data.status || 'active',
+        password: passwordHash,
+        mustChangePassword: true,
+        isActive: (data.status || 'active') === 'active',
+      }));
+
+      await manager.save(UserRole, {
+        memberId: member.id,
+        roleId: memberRole.id,
+        assignedBy: createdByUserId,
+        startsAt: new Date(),
+        status: 'ACTIVE',
+        reason: 'Pembuatan anggota baru',
+      });
+
+      await this.auditLogService.log({
+        userId: createdByUserId,
+        action: 'CREATE_MEMBER',
+        module: 'members',
+        entityType: 'member',
+        entityId: member.id,
+        description: `Buat anggota ${member.npk} - ${member.name}`,
+      });
+
+      return this.memberRepository.findOne({
+        where: { id: member.id },
+        relations: { userRoles: { role: true } },
+      });
+    });
+  }
+
   async update(id: number, data: Partial<Member>, changedByUserId?: number) {
     const member = await this.findOne(id);
 
@@ -108,11 +178,7 @@ export class MembersService {
         changedByUserId,
       });
 
-      if (data.status === 'inactive') {
-        await this.userRepository.update({ npk: member.npk }, { isActive: false });
-      } else if (data.status === 'active') {
-        await this.userRepository.update({ npk: member.npk }, { isActive: true });
-      }
+      (data as any).isActive = data.status === "active";
     }
 
     await this.memberRepository.update(id, data);
@@ -122,16 +188,13 @@ export class MembersService {
 
   async resetPassword(id: number, changedByUserId: number) {
     const member = await this.findOne(id);
-    const user = await this.userRepository.findOne({
-      where: [{ memberId: member.id }, { npk: member.npk }],
-    });
-    if (!user) throw new NotFoundException('Akun login anggota tidak ditemukan');
+    
 
     const defaultPassword =
       this.configService.get<string>('DEFAULT_MEMBER_PASSWORD') || 'SmartCare';
     const hashedPassword = await bcrypt.hash(defaultPassword, 12);
 
-    await this.userRepository.update(user.id, {
+    await this.memberRepository.update(member.id, {
       password: hashedPassword,
       mustChangePassword: true,
       failedLoginAttempts: 0,
@@ -153,18 +216,12 @@ export class MembersService {
     let member = await this.memberRepository.findOne({ where: { npk } });
     if (!member) {
       member = this.memberRepository.create({ npk, name });
-      member = await this.memberRepository.save(member);
-
       const defaultPassword = this.configService.get('DEFAULT_MEMBER_PASSWORD') || 'SmartCare';
       const hashedPassword = await bcrypt.hash(defaultPassword, 12);
-
-      await this.userRepository.save({
-        npk,
-        password: hashedPassword,
-        mustChangePassword: true,
-        memberId: member.id,
-        isActive: true,
-      });
+      member.password = hashedPassword;
+      member.mustChangePassword = true;
+      member.isActive = true;
+      member = await this.memberRepository.save(member);
     }
     return member;
   }
@@ -258,11 +315,10 @@ export class MembersService {
             phone: row.phone || existingMember.phone,
             plant: row.plant || existingMember.plant,
             status: row.status || existingMember.status,
+            isActive: (row.status || existingMember.status) === "active",
           });
 
-          if (row.status === 'inactive') {
-            await this.userRepository.update({ npk: row.npk }, { isActive: false });
-          }
+          
 
           results.updated++;
         } else {
@@ -277,14 +333,9 @@ export class MembersService {
             phone: row.phone,
             plant: row.plant,
             status: row.status || 'active',
-          });
-
-          await this.userRepository.save({
-            npk: row.npk,
             password: hashedPassword,
             mustChangePassword: true,
-            memberId: member.id,
-            isActive: row.status !== 'inactive',
+            isActive: row.status !== "inactive",
           });
 
           results.created++;
@@ -477,11 +528,7 @@ export class MembersService {
               const previousStatus = member.status;
               Object.assign(member, data);
               await manager.save(member);
-              await manager.update(
-                User,
-                { npk: data.npk },
-                { isActive: data.status === 'active' },
-              );
+              member.isActive = data.status === "active";
               if (previousStatus !== data.status) {
                 await manager.save(MemberStatusHistory, {
                   memberId: member.id,
@@ -493,20 +540,13 @@ export class MembersService {
               }
               updated++;
             } else {
-              member = await manager.save(
-                Member,
-                manager.create(Member, data),
-              );
-              const user = await manager.save(User, {
-                npk: data.npk,
-                password: passwordHash,
-                mustChangePassword: true,
-                memberId: member.id,
-                isActive: data.status === 'active',
-              });
+              (data as any).password = passwordHash;
+              (data as any).mustChangePassword = true;
+              (data as any).isActive = data.status === "active";
+              member = await manager.save(Member, manager.create(Member, data));
               await manager.save(UserRole, {
-                userId: user.id,
-                roleId: memberRole.id,
+                memberId: member.id,
+        roleId: memberRole.id,
                 assignedBy: userId,
                 startsAt: new Date(),
                 status: 'ACTIVE',

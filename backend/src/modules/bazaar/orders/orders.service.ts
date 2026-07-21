@@ -88,7 +88,7 @@ export class OrdersService {
     mapping: OrganizationalUnitAreaMapping | null;
   } | null> {
     const member = await this.memberRepo.findOne({
-      where: { user: { id: userId } }
+      where: { id: userId }
     });
 
     if (!member || !member.plant || !member.workUnit) return null;
@@ -125,9 +125,9 @@ export class OrdersService {
     // Check existing order
     const existingOrder = await this.orderRepo.findOne({
       where: [
-        { user: { id: userId }, event: { id: eventId }, status: OrderStatus.PENDING },
-        { user: { id: userId }, event: { id: eventId }, status: OrderStatus.PAID },
-        { user: { id: userId }, event: { id: eventId }, status: OrderStatus.CONFIRMED }
+        { member: { id: userId }, event: { id: eventId }, status: OrderStatus.PENDING },
+        { member: { id: userId }, event: { id: eventId }, status: OrderStatus.PAID },
+        { member: { id: userId }, event: { id: eventId }, status: OrderStatus.CONFIRMED }
       ]
     });
 
@@ -175,7 +175,7 @@ export class OrdersService {
     }
 
     // Check member status and resolve area
-    const member = await this.memberRepo.findOne({ where: { user: { id: userId } } });
+    const member = await this.memberRepo.findOne({ where: { id: userId } });
     if (!member) {
       throw new BadRequestException('Data anggota tidak ditemukan.');
     }
@@ -215,10 +215,10 @@ export class OrdersService {
       savedOrderId = await this.orderRepo.manager.transaction(async (manager) => {
         const duplicate = await manager.findOne(BazaarOrder, {
           where: [
-            { user: { id: userId }, event: { id: eventId }, status: OrderStatus.PENDING },
-            { user: { id: userId }, event: { id: eventId }, status: OrderStatus.CONFIRMED },
-            { user: { id: userId }, event: { id: eventId }, status: OrderStatus.PAID },
-            { user: { id: userId }, event: { id: eventId }, status: OrderStatus.COMPLETED },
+            { member: { id: userId }, event: { id: eventId }, status: OrderStatus.PENDING },
+            { member: { id: userId }, event: { id: eventId }, status: OrderStatus.CONFIRMED },
+            { member: { id: userId }, event: { id: eventId }, status: OrderStatus.PAID },
+            { member: { id: userId }, event: { id: eventId }, status: OrderStatus.COMPLETED },
           ],
           lock: { mode: 'pessimistic_write' },
         });
@@ -251,7 +251,7 @@ export class OrdersService {
         );
         const order = manager.create(BazaarOrder, {
           orderNumber,
-          user: { id: userId },
+          member: { id: userId },
           event: { id: event.id },
           batch: { id: activeBatch.id },
           status: OrderStatus.PENDING,
@@ -306,7 +306,7 @@ export class OrdersService {
 
   async cancelOrder(orderId: number, userId: number, reason?: string) {
     const order = await this.orderRepo.findOne({
-      where: { id: orderId, user: { id: userId } },
+      where: { id: orderId, member: { id: userId } },
       relations: { items: true }
     });
 
@@ -340,14 +340,14 @@ export class OrdersService {
 
   async getMyOrders(userId: number) {
     return this.orderRepo.find({
-      where: { user: { id: userId } },
+      where: { id: userId },
       relations: { items: true, event: true, batch: true, distributionArea: true },
       order: { createdAt: 'DESC' }
     });
   }
 
   async getOrderById(orderId: number, userId?: number) {
-    const where = userId ? { id: orderId, user: { id: userId } } : { id: orderId };
+    const where = userId ? { id: orderId, member: { id: userId } } : { id: orderId };
     const order = await this.orderRepo.findOne({
       where,
       relations: { items: true, event: true, batch: true, distributionArea: true }

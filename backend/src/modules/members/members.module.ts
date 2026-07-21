@@ -4,9 +4,10 @@ import { MembersController } from './members.controller';
 import { MembersService } from './members.service';
 import { Member } from './entities/member.entity';
 import { MemberStatusHistory } from './entities/member-status-history.entity';
-import { User } from '../auth/entities/user.entity';
 import { MemberImport } from './entities/member-import.entity';
 import { MemberImportRow } from './entities/member-import-row.entity';
+import { Role } from '../roles/role.entity';
+import { UserRole } from '../roles/user-role.entity';
 
 @Module({
   imports: [
@@ -15,7 +16,9 @@ import { MemberImportRow } from './entities/member-import-row.entity';
       MemberStatusHistory,
       MemberImport,
       MemberImportRow,
-      User,
+      
+      Role,
+      UserRole,
     ]),
   ],
   controllers: [MembersController],

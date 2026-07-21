@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
-import { User } from '../../../auth/entities/user.entity';
+import { Member } from '../../../members/entities/member.entity';
 import { BazaarEvent } from '../../events/entities/event.entity';
 import { BazaarBatch } from '../../batches/entities/batch.entity';
 import { DistributionArea } from '../../distributions/entities/distribution-area.entity';
@@ -23,9 +23,9 @@ export class BazaarOrder {
   orderNumber: string;
 
   // We link to User, but logically represents a Member. The requirement says members log in via NPK (which is User).
-  @ManyToOne(() => User)
+  @ManyToOne(() => Member)
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  member: Member;
 
   @ManyToOne(() => BazaarEvent)
   @JoinColumn({ name: 'event_id' })
