@@ -99,7 +99,7 @@ export class RolesController {
     @Body() body: { reason?: string },
     @CurrentUser() currentUserId: number,
   ) {
-    return this.rolesService.revokeRole(userId, roleId, currentUserId, body.reason);
+    return this.rolesService.revokeRole(userId, roleId, currentUserId, body?.reason);
   }
 
   @Get('users/:userId/roles/history')

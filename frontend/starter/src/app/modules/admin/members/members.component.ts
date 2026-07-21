@@ -100,7 +100,7 @@ export class AdminMembersComponent implements OnInit, AfterViewInit {
   @ViewChild(MatSort) sort!: MatSort;
 
   members = new MatTableDataSource<any>([]);
-  displayedColumns = ['npk', 'name', 'plant', 'workUnit', 'organizationalPosition', 'status', 'phone', 'resetPassword', 'actions'];
+  displayedColumns = ['npk', 'name', 'plant', 'workUnit', 'organizationalPosition', 'roles', 'status', 'phone', 'resetPassword', 'actions'];
   search = '';
   statusFilter = '';
   plantFilter = '';

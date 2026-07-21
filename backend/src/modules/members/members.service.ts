@@ -57,7 +57,7 @@ export class MembersService {
 
       const [data, total] = await this.memberRepository.findAndCount({
         where: searchWhere,
-        relations: { user: true },
+        relations: { user: { userRoles: { role: true } } },
         skip,
         take: limit,
         order: { updatedAt: 'DESC' },
@@ -74,7 +74,7 @@ export class MembersService {
 
     const [data, total] = await this.memberRepository.findAndCount({
       where,
-      relations: { user: true },
+      relations: { user: { userRoles: { role: true } } },
       skip,
       take: limit,
       order: { updatedAt: 'DESC' },
