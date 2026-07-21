@@ -28,22 +28,31 @@
         <div *ngIf="!loading && activeEvent" class="mx-auto w-full max-w-5xl">
             <!-- Banner / Header -->
             <div
-                class="relative mb-8 overflow-hidden rounded-3xl bg-blue-600 p-8 text-white shadow-lg sm:p-12"
+                class="relative mb-4 overflow-hidden rounded-2xl bg-blue-600 p-4 text-white shadow sm:mb-8 sm:rounded-3xl sm:p-10 sm:shadow-lg lg:p-12"
             >
-                <div class="relative z-10">
-                    <div
-                        class="mb-4 inline-block rounded-full bg-blue-800 px-3 py-1 text-sm font-semibold text-blue-100"
-                    >
-                        Event Spesial
+                <div class="relative z-10 flex flex-col sm:block">
+                    <div class="flex items-center justify-between sm:block">
+                        <div
+                            class="mb-1 inline-block rounded-full bg-blue-800 px-2 py-0.5 text-[10px] font-semibold text-blue-100 sm:mb-4 sm:px-3 sm:py-1 sm:text-sm"
+                        >
+                            Event Spesial
+                        </div>
+                        <div
+                            class="mb-1 flex items-center space-x-2 rounded-xl border border-white/20 bg-white/10 px-2 py-1 backdrop-blur sm:hidden"
+                        >
+                            <span *ngIf="activeBatch" class="text-xs font-bold">{{ activeBatch.name }}</span>
+                            <span *ngIf="activeBatch" class="rounded-full bg-green-500 px-1.5 text-[8px] font-bold uppercase text-white">BUKA</span>
+                            <span *ngIf="!activeBatch" class="text-xs font-bold">Tutup</span>
+                        </div>
                     </div>
                     <h1
-                        class="mb-4 text-4xl font-extrabold tracking-tight sm:text-5xl"
+                        class="text-xl font-extrabold tracking-tight sm:mb-4 sm:text-4xl lg:text-5xl"
                     >
                         {{ activeEvent.name }}
                     </h1>
 
                     <div
-                        class="mt-6 inline-block rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur"
+                        class="mt-6 hidden rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur sm:inline-block"
                     >
                         <div class="flex items-center space-x-3">
                             <span
@@ -64,7 +73,7 @@
                 </div>
                 <!-- Decorative circle -->
                 <div
-                    class="absolute -bottom-24 -right-24 h-96 w-96 rounded-full bg-blue-500 opacity-70 mix-blend-multiply blur-3xl filter"
+                    class="absolute -bottom-16 -right-16 h-40 w-40 rounded-full bg-blue-500 opacity-60 mix-blend-multiply blur-2xl filter sm:-bottom-24 sm:-right-24 sm:h-96 sm:w-96 sm:opacity-70 sm:blur-3xl"
                 ></div>
             </div>
 
@@ -82,10 +91,10 @@
                 Belum ada produk yang ditambahkan.
             </div>
 
-            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="grid grid-cols-3 gap-2 sm:gap-6">
                 <div
                     *ngFor="let product of products"
-                    class="flex cursor-pointer flex-col overflow-hidden rounded-2xl border-2 bg-white shadow-sm transition-all duration-300 hover:shadow-xl dark:bg-gray-800"
+                    class="flex cursor-pointer flex-col overflow-hidden rounded-xl border-2 bg-white shadow-sm transition-all duration-300 hover:shadow-xl dark:bg-gray-800 sm:rounded-2xl"
                     [ngClass]="
                         isInCart(product.id)
                             ? '-translate-y-1 transform border-blue-500'
@@ -94,7 +103,7 @@
                     (click)="toggleCart(product)"
                 >
                     <div
-                        class="relative flex h-40 items-center justify-center overflow-hidden bg-gray-200 dark:bg-gray-700"
+                        class="relative flex h-24 items-center justify-center overflow-hidden bg-gray-200 dark:bg-gray-700 sm:h-40"
                     >
                         <img
                             *ngIf="product.imageUrl"
@@ -104,19 +113,19 @@
                         />
                         <mat-icon
                             *ngIf="!product.imageUrl"
-                            class="text-6xl text-gray-400"
-                            style="height: 64px; width: 64px"
+                            class="text-gray-400"
+                            style="font-size: 32px; height: 32px; width: 32px;"
                             >shopping_bag</mat-icon
                         >
 
                         <!-- Selected Overlay -->
                         <div
                             *ngIf="isInCart(product.id)"
-                            class="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-blue-500 text-white shadow-lg"
+                            class="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-white shadow-lg sm:right-3 sm:top-3 sm:h-8 sm:w-8"
                         >
                             <mat-icon
-                                class="text-sm text-white"
-                                style="height: 20px; width: 20px"
+                                class="text-white"
+                                style="font-size: 14px; height: 14px; width: 14px;"
                                 >check</mat-icon
                             >
                         </div>
@@ -129,29 +138,35 @@
                             class="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm"
                         >
                             <span
-                                class="text-xl font-bold uppercase tracking-widest text-white"
+                                class="text-xs font-bold uppercase tracking-widest text-white sm:text-xl"
                                 >Habis</span
                             >
                         </div>
                     </div>
-                    <div class="flex flex-auto flex-col p-5">
-                        <h3 class="mb-1 text-lg font-bold leading-tight">
+                    <div class="flex flex-auto flex-col p-2 sm:p-5">
+                        <h3 class="mb-1 truncate text-[10px] font-bold leading-tight sm:whitespace-normal sm:text-lg">
                             {{ product.name }}
                         </h3>
-                        <div class="mb-3 flex-auto text-xs text-gray-500">
+                        <div class="mb-3 hidden flex-auto text-xs text-gray-500 sm:block">
                             {{ product.description || 'Tidak ada deskripsi.' }}
                         </div>
-                        <div class="mt-auto">
-                            <div
-                                *ngIf="product.normalPrice > product.sellingPrice"
-                                class="mb-0.5 text-sm text-gray-400 line-through"
-                            >
-                                Rp {{ product.normalPrice | number }}
+                        <div class="mt-auto flex items-end justify-between">
+                            <div class="flex-auto overflow-hidden">
+                                <div
+                                    *ngIf="product.normalPrice > product.sellingPrice"
+                                    class="mb-0.5 truncate text-[8px] text-gray-400 line-through sm:text-sm"
+                                >
+                                    Rp{{ product.normalPrice | number }}
+                                </div>
+                                <div
+                                    class="truncate text-[10px] font-bold text-blue-600 dark:text-blue-400 sm:text-xl"
+                                >
+                                    Rp{{ product.sellingPrice | number }}
+                                </div>
                             </div>
-                            <div
-                                class="text-xl font-bold text-blue-600 dark:text-blue-400"
-                            >
-                                Rp {{ product.sellingPrice | number }}
+                            <div class="ml-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-colors hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 sm:h-10 sm:w-10">
+                                <mat-icon *ngIf="!isInCart(product.id)" style="font-size: 12px; height: 12px; width: 12px;">add_shopping_cart</mat-icon>
+                                <mat-icon *ngIf="isInCart(product.id)" class="text-red-500" style="font-size: 12px; height: 12px; width: 12px;">remove_shopping_cart</mat-icon>
                             </div>
                         </div>
                     </div>
@@ -253,7 +268,7 @@
                     class="flex justify-between text-green-600"
                     *ngIf="cartIds.length > 0"
                 >
-                    <span>Subsidy SPADM</span>
+                    <span>Subsidi SPADM</span>
                     <span class="font-semibold"
                         >- Rp {{ subsidy | number }}</span
                     >
