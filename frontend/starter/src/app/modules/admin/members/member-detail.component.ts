@@ -54,15 +54,21 @@ export class AdminMemberDetailComponent implements OnInit {
     event?.preventDefault();
     if (!this.memberForm.valid) return;
     this.loading = true;
-    this.http.patch(`${environment.apiUrl}/members/${this.member.id}`, this.member).subscribe({
+    
+    const isNew = this.route.snapshot.paramMap.get('id') === 'new';
+    const request$ = isNew 
+        ? this.http.post(`${environment.apiUrl}/members`, this.member)
+        : this.http.patch(`${environment.apiUrl}/members/${this.member.id}`, this.member);
+
+    request$.subscribe({
       next: () => {
         this.loading = false;
-        this.feedback.success('Data anggota berhasil diperbarui.');
+        this.feedback.success(`Data anggota berhasil ${isNew ? 'ditambahkan' : 'diperbarui'}.`);
         this.router.navigate(['/admin/members']);
       },
       error: (error) => {
         this.loading = false;
-        this.feedback.error(error.error?.message || 'Data anggota gagal diperbarui. Silakan coba lagi.');
+        this.feedback.error(error.error?.message || `Data anggota gagal ${isNew ? 'ditambahkan' : 'diperbarui'}. Silakan coba lagi.`);
       },
     });
   }

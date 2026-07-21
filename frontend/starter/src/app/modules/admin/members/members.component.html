@@ -5,6 +5,10 @@
       @if (importing) {
         <mat-spinner diameter="20"></mat-spinner>
       }
+      <button mat-flat-button color="primary" routerLink="/admin/members/new">
+        <mat-icon>add</mat-icon>
+        Tambah Anggota
+      </button>
       <button mat-stroked-button (click)="exportToExcel()">
         <mat-icon>file_download</mat-icon>
         Export Excel

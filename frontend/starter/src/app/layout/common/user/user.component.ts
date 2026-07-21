@@ -41,6 +41,13 @@ export class UserComponent implements OnInit, OnDestroy {
     @Input() showAvatar: boolean = true;
     user: User;
 
+    get initials(): string {
+        if (!this.user || !this.user.name) return '';
+        const names = this.user.name.trim().split(' ');
+        if (names.length === 1) return names[0].charAt(0).toUpperCase();
+        return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
+    }
+
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
     /**

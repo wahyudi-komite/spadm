@@ -60,7 +60,7 @@ export class MembersService {
         relations: { user: true },
         skip,
         take: limit,
-        order: { name: 'ASC' },
+        order: { updatedAt: 'DESC' },
       });
 
       return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
@@ -77,7 +77,7 @@ export class MembersService {
       relations: { user: true },
       skip,
       take: limit,
-      order: { name: 'ASC' },
+      order: { updatedAt: 'DESC' },
     });
 
     return {

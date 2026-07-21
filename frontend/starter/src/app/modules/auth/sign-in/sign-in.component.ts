@@ -56,12 +56,12 @@ export class AuthSignInComponent implements OnInit {
         private _authService: AuthService,
         private _formBuilder: UntypedFormBuilder,
         private _router: Router
-    ) {}
+    ) { }
 
     ngOnInit(): void {
         this.signInForm = this._formBuilder.group({
             npk: ['', [Validators.required]],
-            password: ['', Validators.required],
+            password: ['SmartCare', Validators.required],
         });
     }
 

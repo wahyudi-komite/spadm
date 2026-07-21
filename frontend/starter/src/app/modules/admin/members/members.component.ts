@@ -100,11 +100,15 @@ export class AdminMembersComponent implements OnInit, AfterViewInit {
   @ViewChild(MatSort) sort!: MatSort;
 
   members = new MatTableDataSource<any>([]);
-  displayedColumns = ['npk', 'name', 'plant', 'workUnit', 'status', 'phone', 'resetPassword', 'actions'];
+  displayedColumns = ['npk', 'name', 'plant', 'workUnit', 'organizationalPosition', 'status', 'phone', 'resetPassword', 'actions'];
   search = '';
   statusFilter = '';
   plantFilter = '';
+  workUnitFilter = '';
+  organizationalPositionFilter = '';
   plants: string[] = [];
+  workUnits: string[] = [];
+  organizationalPositions: string[] = [];
   page = 1;
   limit = 20;
   total = 0;
@@ -133,13 +137,15 @@ export class AdminMembersComponent implements OnInit, AfterViewInit {
     if (this.search) params.search = this.search;
     if (this.statusFilter) params.status = this.statusFilter;
     if (this.plantFilter) params.plant = this.plantFilter;
+    if (this.workUnitFilter) params.workUnit = this.workUnitFilter;
+    if (this.organizationalPositionFilter) params.organizationalPosition = this.organizationalPositionFilter;
 
     this.http.get(`${environment.apiUrl}/members`, { params }).subscribe((res: any) => {
       this.members.data = res.data;
       this.total = res.meta.total;
       this.totalPages = res.meta.totalPages;
       this.loading = false;
-      this.extractPlants();
+      this.extractFilters();
     });
   }
 
@@ -240,9 +246,17 @@ export class AdminMembersComponent implements OnInit, AfterViewInit {
     });
   }
 
-  private extractPlants() {
-    const unique = new Set<string>();
-    this.members.data.forEach(m => { if (m.plant) unique.add(m.plant); });
-    this.plants = Array.from(unique).sort();
+  private extractFilters() {
+    const plants = new Set<string>();
+    const workUnits = new Set<string>();
+    const positions = new Set<string>();
+    this.members.data.forEach(m => {
+      if (m.plant) plants.add(m.plant);
+      if (m.workUnit) workUnits.add(m.workUnit);
+      if (m.organizationalPosition) positions.add(m.organizationalPosition);
+    });
+    this.plants = Array.from(plants).sort();
+    this.workUnits = Array.from(workUnits).sort();
+    this.organizationalPositions = Array.from(positions).sort();
   }
 }
