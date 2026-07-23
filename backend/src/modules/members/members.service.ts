@@ -109,14 +109,6 @@ export class MembersService {
     return member;
   }
 
-  async create(data: {
-    npk: string;
-    name: string;
-    email?: string;
-    workUnit?: string;
-    phone?: string;
-    plant?: string;
-    organizationalPosition?: string;
   private capitalizeName(nameInput?: string): string {
     if (!nameInput) return '';
     return nameInput
