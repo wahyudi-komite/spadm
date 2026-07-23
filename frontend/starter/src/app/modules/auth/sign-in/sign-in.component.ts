@@ -12,7 +12,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MessageModule } from 'primeng/message';
 import { AuthService } from 'app/core/auth/auth.service';
 
@@ -29,6 +29,7 @@ import { AuthService } from 'app/core/auth/auth.service';
         MatButtonModule,
         MatIconModule,
         MatProgressSpinnerModule,
+        RouterLink,
     ],
 })
 export class AuthSignInComponent implements OnInit {

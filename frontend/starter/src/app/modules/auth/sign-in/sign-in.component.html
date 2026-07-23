@@ -3,8 +3,25 @@
     <div class="w-full px-4 py-8 sm:bg-card sm:w-auto sm:rounded-xl sm:border sm:border-blue-100 sm:p-12 sm:shadow-xl dark:sm:bg-gray-900 dark:sm:border-gray-700">
         <div class="mx-auto w-full max-w-80 sm:mx-0 sm:w-80">
             <div class="flex w-full justify-center">
-                <img src="images/logo/logo-spadm.png" class="h-40 w-40" />
+                <div class="relative">
+                    <div class="logo-ring"></div>
+                    <img src="images/logo/logo-spadm.png" class="relative h-40 w-40" />
+                </div>
             </div>
+
+            <style>
+                .logo-ring {
+                    position: absolute;
+                    inset: 4px;
+                    border-radius: 9999px;
+                    border: 2px solid var(--spadm-blue);
+                    animation: logoPulse 2s ease-in-out infinite;
+                }
+                @keyframes logoPulse {
+                    0%, 100% { transform: scale(1); opacity: 0.6; }
+                    50% { transform: scale(1.1); opacity: 0; }
+                }
+            </style>
 
             <h4 class=" mt-5 text-center font-sans text-4xl font-black leading-snug tracking-normal
                     text-[var(--spadm-navy)] dark:text-white antialiased">
@@ -50,7 +67,14 @@
                     <mat-error> Password wajib diisi </mat-error>
                 </mat-form-field>
 
-                <button class="fuse-mat-button-large mt-4 w-full" mat-flat-button [color]="'primary'"
+                <div class="-mt-2 mb-4 flex justify-end">
+                    <a class="text-sm font-medium text-[var(--spadm-blue)] hover:text-[var(--spadm-sky)] hover:underline cursor-pointer"
+                       [routerLink]="['/forgot-password']">
+                        Lupa Password?
+                    </a>
+                </div>
+
+                <button class="fuse-mat-button-large mt-0 w-full" mat-flat-button [color]="'primary'"
                     [disabled]="signInForm.disabled" (click)="signIn()">
                     @if (!signInForm.disabled) {
                     <span> Masuk </span>
