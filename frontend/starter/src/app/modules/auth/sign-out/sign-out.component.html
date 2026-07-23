@@ -4,9 +4,26 @@
     >
         <div class="mx-auto w-full max-w-80 sm:mx-0 sm:w-80">
             <!-- Logo -->
-            <div class="mx-auto w-48">
-                <img src="images/logo/logo-spadm.png" />
+            <div class="mx-auto w-48 flex justify-center">
+                <div class="relative inline-block">
+                    <div class="logo-ring"></div>
+                    <img src="images/logo/logo-spadm.png" class="relative" />
+                </div>
             </div>
+
+            <style>
+                .logo-ring {
+                    position: absolute;
+                    inset: 4px;
+                    border-radius: 9999px;
+                    border: 2px solid var(--spadm-blue);
+                    animation: logoPulse 2s ease-in-out infinite;
+                }
+                @keyframes logoPulse {
+                    0%, 100% { transform: scale(1); opacity: 0.6; }
+                    50% { transform: scale(1.1); opacity: 0; }
+                }
+            </style>
 
             <!-- Title -->
             <div
