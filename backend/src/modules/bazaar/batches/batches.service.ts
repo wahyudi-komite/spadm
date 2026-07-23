@@ -3,8 +3,9 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Not, Repository } from 'typeorm';
+import { In, IsNull, LessThanOrEqual, MoreThan, Not, Repository } from 'typeorm';
 import { AuditLogService } from '../../audit-logs/audit-log.service';
 import { CreateBatchDto } from './dto/create-batch.dto';
 import { UpdateBatchDto } from './dto/update-batch.dto';
@@ -28,11 +29,66 @@ export class BatchesService {
     private readonly auditLogService: AuditLogService,
   ) {}
 
+  @Cron('*/1 * * * *')
+  async handleAutoSchedule() {
+    const now = new Date();
+
+    // 1. Otomatis Buka (OPEN) Batch yang sudah waktunya buka
+    const batchesToOpen = await this.batchRepository.find({
+      where: {
+        status: In([BatchStatus.DRAFT, BatchStatus.SCHEDULED]),
+        purchaseStartAt: LessThanOrEqual(now),
+        purchaseEndAt: MoreThan(now),
+        deletedAt: IsNull(),
+      },
+    });
+
+    for (const batch of batchesToOpen) {
+      try {
+        await this.transition(batch.id, BatchStatus.OPEN, 0);
+      } catch (e) {
+        // Ignore invalid transition errors in cron
+      }
+    }
+
+    // 2. Otomatis Tutup (CLOSED) Batch yang sudah habis waktunya
+    const batchesToClose = await this.batchRepository.find({
+      where: {
+        status: BatchStatus.OPEN,
+        purchaseEndAt: LessThanOrEqual(now),
+        deletedAt: IsNull(),
+      },
+    });
+
+    for (const batch of batchesToClose) {
+      try {
+        await this.transition(batch.id, BatchStatus.CLOSED, 0);
+      } catch (e) {
+        // Ignore invalid transition errors in cron
+      }
+    }
+  }
+
   async create(dto: CreateBatchDto, userId: number) {
     this.validateDates(dto);
+
+    let initialStatus = dto.status || BatchStatus.DRAFT;
+    if (!dto.status && dto.purchaseStartAt) {
+      const start = new Date(dto.purchaseStartAt);
+      const end = dto.purchaseEndAt ? new Date(dto.purchaseEndAt) : null;
+      const now = new Date();
+      if (start > now) {
+        initialStatus = BatchStatus.SCHEDULED;
+      } else if (start <= now && (!end || end > now)) {
+        initialStatus = BatchStatus.OPEN;
+      }
+    }
+
     const batch = await this.batchRepository.save(
       this.batchRepository.create({
         ...dto,
+        status: initialStatus,
+        isPurchaseEnabled: initialStatus === BatchStatus.OPEN,
         createdBy: userId,
         updatedBy: userId,
       }),

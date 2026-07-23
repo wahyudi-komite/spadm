@@ -13,20 +13,56 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { environment } from 'environments/environment';
 import { DialogFeedbackService } from 'app/shared/dialog-feedback/dialog-feedback.service';
 
+function formatDateForInput(dateVal: any): string {
+  if (!dateVal) return '';
+  const d = new Date(dateVal);
+  if (isNaN(d.getTime())) return '';
+  const pad = (n: number) => (n < 10 ? '0' + n : n);
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 @Component({
   selector: 'admin-bazaar-batch-dialog',
   template: `
-    <h2 mat-dialog-title>{{ data ? 'Edit Batch' : 'Tambah Batch Baru' }}</h2>
+    <h2 mat-dialog-title>{{ data?.id ? 'Edit Batch' : 'Tambah Batch Baru' }}</h2>
     <mat-dialog-content class="mat-typography py-4">
       <form [formGroup]="form" class="flex flex-col gap-4">
-        <mat-form-field class="w-full">
+        <mat-form-field class="w-full" appearance="outline" floatLabel="always">
           <mat-label>ID Event</mat-label>
           <input matInput type="number" formControlName="eventId" placeholder="ID Event">
         </mat-form-field>
-        <mat-form-field class="w-full">
+        <mat-form-field class="w-full" appearance="outline" floatLabel="always">
           <mat-label>Nama Batch</mat-label>
           <input matInput formControlName="name" placeholder="Contoh: Batch 1">
         </mat-form-field>
+
+        <div class="border rounded-xl p-3 bg-gray-50 dark:bg-gray-800/40 flex flex-col gap-3">
+          <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Jadwal Pembelian (Buka & Tutup)</span>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <mat-form-field appearance="outline" floatLabel="always" class="w-full">
+              <mat-label>Waktu Buka Pembelian</mat-label>
+              <input matInput type="datetime-local" formControlName="purchaseStartAt">
+            </mat-form-field>
+            <mat-form-field appearance="outline" floatLabel="always" class="w-full">
+              <mat-label>Waktu Tutup Pembelian</mat-label>
+              <input matInput type="datetime-local" formControlName="purchaseEndAt">
+            </mat-form-field>
+          </div>
+        </div>
+
+        <div class="border rounded-xl p-3 bg-gray-50 dark:bg-gray-800/40 flex flex-col gap-3">
+          <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Jadwal Distribusi</span>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <mat-form-field appearance="outline" floatLabel="always" class="w-full">
+              <mat-label>Mulai Distribusi</mat-label>
+              <input matInput type="datetime-local" formControlName="distributionStartAt">
+            </mat-form-field>
+            <mat-form-field appearance="outline" floatLabel="always" class="w-full">
+              <mat-label>Selesai Distribusi</mat-label>
+              <input matInput type="datetime-local" formControlName="distributionEndAt">
+            </mat-form-field>
+          </div>
+        </div>
       </form>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
@@ -47,13 +83,22 @@ export class AdminBazaarBatchDialogComponent {
   ) {
     this.form = this.fb.group({
       eventId: [data?.eventId ?? null, Validators.required],
-      name: [data?.name ?? '', Validators.required]
+      name: [data?.name ?? '', Validators.required],
+      purchaseStartAt: [formatDateForInput(data?.purchaseStartAt)],
+      purchaseEndAt: [formatDateForInput(data?.purchaseEndAt)],
+      distributionStartAt: [formatDateForInput(data?.distributionStartAt)],
+      distributionEndAt: [formatDateForInput(data?.distributionEndAt)]
     });
   }
 
   save() {
     if (this.form.valid) {
-      this.dialogRef.close(this.form.value);
+      const val = { ...this.form.value };
+      val.purchaseStartAt = val.purchaseStartAt ? new Date(val.purchaseStartAt).toISOString() : null;
+      val.purchaseEndAt = val.purchaseEndAt ? new Date(val.purchaseEndAt).toISOString() : null;
+      val.distributionStartAt = val.distributionStartAt ? new Date(val.distributionStartAt).toISOString() : null;
+      val.distributionEndAt = val.distributionEndAt ? new Date(val.distributionEndAt).toISOString() : null;
+      this.dialogRef.close(val);
     }
   }
 }
@@ -68,7 +113,7 @@ export class AdminBazaarBatchesComponent implements OnInit, AfterViewInit {
   @ViewChild(MatSort) sort!: MatSort;
 
   batches = new MatTableDataSource<any>([]);
-  displayedColumns = ['id', 'event', 'name', 'status', 'actions'];
+  displayedColumns = ['id', 'event', 'name', 'purchaseSchedule', 'distributionSchedule', 'status', 'actions'];
 
   constructor(
     private http: HttpClient,
@@ -94,11 +139,17 @@ export class AdminBazaarBatchesComponent implements OnInit, AfterViewInit {
   }
 
   createBatch() {
-    const dialogRef = this.dialog.open(AdminBazaarBatchDialogComponent, { width: '400px' });
+    const dialogRef = this.dialog.open(AdminBazaarBatchDialogComponent, { width: '520px' });
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.http.post(`${environment.apiUrl}/bazaar/batches`, result).subscribe(() => {
-          this.loadBatches();
+        this.http.post(`${environment.apiUrl}/bazaar/batches`, result).subscribe({
+          next: () => {
+            this.feedback.success('Batch berhasil dibuat');
+            this.loadBatches();
+          },
+          error: (err) => {
+            this.feedback.error(err.error?.message || 'Gagal membuat batch');
+          }
         });
       }
     });
@@ -113,21 +164,41 @@ export class AdminBazaarBatchesComponent implements OnInit, AfterViewInit {
       if (!confirmed) return;
 
       const endpoint = newStatus === 'OPEN' ? 'open' : 'close';
-      this.http.post(`${environment.apiUrl}/bazaar/batches/${batch.id}/${endpoint}`, {}).subscribe(() => {
-        this.loadBatches();
+      this.http.post(`${environment.apiUrl}/bazaar/batches/${batch.id}/${endpoint}`, {}).subscribe({
+        next: () => {
+          this.feedback.success(`Status batch berhasil diubah menjadi ${newStatus}`);
+          this.loadBatches();
+        },
+        error: (err) => {
+          this.feedback.error(err.error?.message || 'Gagal mengubah status batch');
+        }
       });
     });
   }
 
   editBatch(batch: any) {
     const dialogRef = this.dialog.open(AdminBazaarBatchDialogComponent, {
-      width: '400px',
-      data: { eventId: batch.eventId, name: batch.name },
+      width: '520px',
+      data: {
+        id: batch.id,
+        eventId: batch.eventId,
+        name: batch.name,
+        purchaseStartAt: batch.purchaseStartAt,
+        purchaseEndAt: batch.purchaseEndAt,
+        distributionStartAt: batch.distributionStartAt,
+        distributionEndAt: batch.distributionEndAt,
+      },
     });
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.http.patch(`${environment.apiUrl}/bazaar/batches/${batch.id}`, result).subscribe(() => {
-          this.loadBatches();
+        this.http.patch(`${environment.apiUrl}/bazaar/batches/${batch.id}`, result).subscribe({
+          next: () => {
+            this.feedback.success('Batch berhasil diperbarui');
+            this.loadBatches();
+          },
+          error: (err) => {
+            this.feedback.error(err.error?.message || 'Gagal memperbarui batch');
+          }
         });
       }
     });
