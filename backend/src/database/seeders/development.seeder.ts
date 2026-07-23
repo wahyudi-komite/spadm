@@ -35,16 +35,12 @@ async function seedDevelopment(): Promise<void> {
       );
 
       await manager.query(
-        `INSERT INTO users (npk, password, mustChangePassword, isActive, memberId)
-         VALUES (?, ?, true, true, ?)
-         ON DUPLICATE KEY UPDATE isActive = true, memberId = VALUES(memberId)`,
-        [seed.npk, passwordHash, member.id],
+        `UPDATE members
+         SET password = ?, mustChangePassword = true, isActive = true
+         WHERE id = ? AND (password IS NULL OR password = '' OR password != ?)`,
+        [passwordHash, member.id, passwordHash],
       );
 
-      const [user] = await manager.query(
-        'SELECT id FROM users WHERE npk = ? LIMIT 1',
-        [seed.npk],
-      );
       const [role] = await manager.query(
         'SELECT id FROM roles WHERE name = ? LIMIT 1',
         [seed.roleName],
@@ -56,16 +52,16 @@ async function seedDevelopment(): Promise<void> {
 
       const [activeAssignment] = await manager.query(
         `SELECT id FROM user_roles
-         WHERE userId = ? AND roleId = ? AND revokedAt IS NULL
+         WHERE memberId = ? AND roleId = ? AND revokedAt IS NULL
          LIMIT 1`,
-        [user.id, role.id],
+        [member.id, role.id],
       );
 
       if (!activeAssignment) {
         await manager.query(
-          `INSERT INTO user_roles (userId, roleId, assignedBy, assignedAt)
+          `INSERT INTO user_roles (memberId, roleId, assignedBy, assignedAt)
            VALUES (?, ?, ?, NOW())`,
-          [user.id, role.id, user.id],
+          [member.id, role.id, member.id],
         );
       }
     }

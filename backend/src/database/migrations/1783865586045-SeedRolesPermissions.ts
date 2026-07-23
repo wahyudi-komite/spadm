@@ -21,6 +21,11 @@ export class SeedRolesPermissions1783865586045 implements MigrationInterface {
         description: 'Mengubah anggota',
       },
       {
+        name: 'member.delete',
+        group: 'member',
+        description: 'Menghapus anggota',
+      },
+      {
         name: 'member.import',
         group: 'member',
         description: 'Import anggota Excel',
@@ -34,6 +39,11 @@ export class SeedRolesPermissions1783865586045 implements MigrationInterface {
         name: 'member.assign_role',
         group: 'member',
         description: 'Assign role ke anggota',
+      },
+      {
+        name: 'admin.whatsapp.manage',
+        group: 'whatsapp',
+        description: 'Mengelola WhatsApp Baileys',
       },
       { name: 'role.read', group: 'role', description: 'Melihat daftar role' },
       { name: 'role.create', group: 'role', description: 'Membuat role' },
@@ -216,14 +226,14 @@ export class SeedRolesPermissions1783865586045 implements MigrationInterface {
     ]);
 
     await queryRunner.query(
-      `INSERT INTO user_roles (userId, roleId, assignedBy, assignedAt)
-       SELECT u.id, r.id, NULL, NOW()
-       FROM users u
+      `INSERT INTO user_roles (memberId, roleId, assignedBy, assignedAt)
+       SELECT m.id, r.id, NULL, NOW()
+       FROM members m
        CROSS JOIN roles r
-       WHERE u.npk IN (?, ?) AND r.name = ?
+       WHERE m.npk IN (?, ?) AND r.name = ?
        AND NOT EXISTS (
          SELECT 1 FROM user_roles ur
-         WHERE ur.userId = u.id AND ur.roleId = r.id AND ur.revokedAt IS NULL
+         WHERE ur.memberId = m.id AND ur.roleId = r.id AND ur.revokedAt IS NULL
        )`,
       ['23893', '15012', 'SUPER_ADMIN'],
     );

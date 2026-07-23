@@ -59,7 +59,7 @@ export class MembersService {
       if (query.status) searchWhere.forEach((w: any) => w.status = query.status);
       if (query.plant) searchWhere.forEach((w: any) => w.plant = query.plant);
       if (query.workUnit) searchWhere.forEach((w: any) => w.workUnit = query.workUnit);
-      if (query.role) searchWhere.forEach((w: any) => w.user = { userRoles: { role: { name: query.role } } });
+      if (query.role) searchWhere.forEach((w: any) => w.userRoles = { role: { name: query.role } });
 
       const [data, total] = await this.memberRepository.findAndCount({
         where: searchWhere,
@@ -81,7 +81,7 @@ export class MembersService {
       where.workUnit = query.workUnit;
     }
     if (query.role) {
-      where.user = { userRoles: { role: { name: query.role } } };
+      where.userRoles = { role: { name: query.role } };
     }
 
     const [data, total] = await this.memberRepository.findAndCount({

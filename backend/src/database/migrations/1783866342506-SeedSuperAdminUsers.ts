@@ -12,40 +12,38 @@ export class SeedSuperAdminUsers1783866342506 implements MigrationInterface {
     ];
 
     for (const u of superAdmins) {
-      const existingUser = await queryRunner.query(`SELECT id FROM users WHERE npk = ?`, [u.npk]);
-      if (existingUser.length > 0) continue;
+      const existingMember = await queryRunner.query(`SELECT id FROM members WHERE npk = ?`, [u.npk]);
+      if (existingMember.length > 0) continue;
 
       const memberResult = await queryRunner.query(
-        `INSERT INTO members (npk, name, status) VALUES (?, ?, 'active')`,
-        [u.npk, u.name],
+        `INSERT INTO members (npk, name, status, password, mustChangePassword, isActive) VALUES (?, ?, 'active', ?, true, true)`,
+        [u.npk, u.name, hash],
       );
       const memberId = memberResult.insertId;
-
-      const userResult = await queryRunner.query(
-        `INSERT INTO users (npk, password, mustChangePassword, isActive, memberId) VALUES (?, ?, true, true, ?)`,
-        [u.npk, hash, memberId],
-      );
-      const userId = userResult.insertId;
 
       const role = await queryRunner.query(`SELECT id FROM roles WHERE name = 'SUPER_ADMIN'`);
       const roleId = role[0].id;
 
-      const existingMember = await queryRunner.query(
-        `SELECT id FROM user_roles WHERE userId = ? AND roleId = ?`,
-        [userId, roleId],
+      const existingAssignment = await queryRunner.query(
+        `SELECT id FROM user_roles WHERE memberId = ? AND roleId = ? AND revokedAt IS NULL`,
+        [memberId, roleId],
       );
-      if (existingMember.length === 0) {
+      if (existingAssignment.length === 0) {
         await queryRunner.query(
-          `INSERT INTO user_roles (userId, roleId, assignedBy, assignedAt) VALUES (?, ?, 1, NOW())`,
-          [userId, roleId],
+          `INSERT INTO user_roles (memberId, roleId, assignedBy, assignedAt) VALUES (?, ?, 1, NOW())`,
+          [memberId, roleId],
         );
       }
     }
   }
 
   async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DELETE FROM user_roles WHERE userId IN (SELECT id FROM users WHERE npk IN ('23893','15012'))`);
-    await queryRunner.query(`DELETE FROM users WHERE npk IN ('23893','15012')`);
+    const memberIds = await queryRunner.query(
+      `SELECT id FROM members WHERE npk IN ('23893','15012')`,
+    );
+    for (const m of memberIds) {
+      await queryRunner.query(`DELETE FROM user_roles WHERE memberId = ?`, [m.id]);
+    }
     await queryRunner.query(`DELETE FROM members WHERE npk IN ('23893','15012')`);
   }
 }
