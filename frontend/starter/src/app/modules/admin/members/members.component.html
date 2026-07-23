@@ -162,7 +162,7 @@
 
       <ng-container matColumnDef="actions">
         <th mat-header-cell *matHeaderCellDef></th>
-        <td mat-cell *matCellDef="let m">
+        <td mat-cell *matCellDef="let m" class="whitespace-nowrap">
           <button mat-icon-button (click)="openMemberDialog(m)" matTooltip="Edit">
             <mat-icon>edit</mat-icon>
           </button>
