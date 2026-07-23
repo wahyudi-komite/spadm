@@ -262,12 +262,15 @@ export class AdminMemberDialogComponent {
     } else if (digits && !digits.startsWith('62')) {
       digits = '62' + digits;
     }
-    this.member.phone = digits;
+    if (/^62\d{8,13}$/.test(digits)) {
+      this.member.phone = digits;
+    }
   }
 
   save() {
     this.formatName();
     this.formatPhone();
+    this.memberForm?.control.updateValueAndValidity();
     if (!this.memberForm?.valid || this.npkExists) return;
     this.loading = true;
 
