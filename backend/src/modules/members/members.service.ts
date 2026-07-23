@@ -117,10 +117,51 @@ export class MembersService {
     phone?: string;
     plant?: string;
     organizationalPosition?: string;
+  private capitalizeName(nameInput?: string): string {
+    if (!nameInput) return '';
+    return nameInput
+      .toLowerCase()
+      .split(' ')
+      .map((word) => (word ? word.charAt(0).toUpperCase() + word.slice(1) : ''))
+      .join(' ')
+      .trim();
+  }
+
+  private normalizePhone(phoneInput?: string): string {
+    if (!phoneInput) return '';
+    let phone = String(phoneInput).trim().replace(/\D/g, '');
+    if (!phone) return '';
+    if (phone.startsWith('0')) {
+      phone = '62' + phone.substring(1);
+    } else if (!phone.startsWith('62')) {
+      phone = '62' + phone;
+    }
+    return phone;
+  }
+
+  async checkNpkExists(npk: string): Promise<boolean> {
+    if (!npk) return false;
+    const count = await this.memberRepository.count({ where: { npk: npk.trim() } });
+    return count > 0;
+  }
+
+  async create(data: {
+    npk: string;
+    name: string;
+    email?: string;
+    workUnit?: string;
+    phone?: string;
+    plant?: string;
+    organizationalPosition?: string;
     status?: string;
   }, createdByUserId?: number) {
     const existing = await this.memberRepository.findOne({ where: { npk: data.npk } });
     if (existing) throw new BadRequestException(`NPK ${data.npk} sudah terdaftar`);
+
+    const normalizedPhone = this.normalizePhone(data.phone);
+    if (normalizedPhone && !/^62\d{8,13}$/.test(normalizedPhone)) {
+      throw new BadRequestException('Nomor telepon harus diawali 62 (contoh: 6281234567890)');
+    }
 
     const passwordHash = await bcrypt.hash(
       this.configService.get<string>('DEFAULT_MEMBER_PASSWORD') || 'SmartCare',
@@ -133,10 +174,10 @@ export class MembersService {
     return this.memberRepository.manager.transaction(async (manager) => {
       const member = await manager.save(Member, manager.create(Member, {
         npk: data.npk,
-        name: data.name,
+        name: this.capitalizeName(data.name),
         email: data.email,
         workUnit: data.workUnit,
-        phone: data.phone,
+        phone: normalizedPhone,
         plant: data.plant,
         organizationalPosition: data.organizationalPosition,
         status: data.status || 'active',
@@ -215,6 +256,18 @@ export class MembersService {
 
   async update(id: number, data: Partial<Member>, changedByUserId?: number) {
     const member = await this.findOne(id);
+    delete data.npk;
+
+    if (data.name) {
+      data.name = this.capitalizeName(data.name);
+    }
+
+    if (data.phone !== undefined) {
+      data.phone = this.normalizePhone(data.phone);
+      if (data.phone && !/^62\d{8,13}$/.test(data.phone)) {
+        throw new BadRequestException('Nomor telepon harus diawali 62 (contoh: 6281234567890)');
+      }
+    }
 
     if (data.status && data.status !== member.status) {
       await this.memberStatusHistoryRepository.save({
@@ -460,10 +513,10 @@ export class MembersService {
     const normalizedRows: MemberImportPreviewRow[] = rawRows.map((rawData, index) => {
       const normalizedData = {
         npk: String(rawData.NPK || '').trim(),
-        name: String(rawData.Nama || '').trim(),
+        name: this.capitalizeName(String(rawData.Nama || '')),
         email: String(rawData.Email || '').trim(),
         workUnit: String(rawData['Unit Kerja'] || '').trim(),
-        phone: String(rawData['Nomor WhatsApp'] || '').trim(),
+        phone: this.normalizePhone(String(rawData['Nomor WhatsApp'] || '')),
         status: String(rawData.Status || 'active').trim().toLowerCase(),
         organizationalPosition: String(
           rawData['Jabatan Organisasi'] || '',
@@ -475,6 +528,9 @@ export class MembersService {
         errors.push('NPK wajib diisi, maksimal 10 karakter alfanumerik');
       }
       if (!normalizedData.name) errors.push('Nama wajib diisi');
+      if (normalizedData.phone && !/^62\d{8,13}$/.test(normalizedData.phone)) {
+        errors.push('Nomor WhatsApp harus diawali 62 (contoh: 6281234567890)');
+      }
       if (!['active', 'inactive'].includes(normalizedData.status)) {
         errors.push('Status harus active atau inactive');
       }

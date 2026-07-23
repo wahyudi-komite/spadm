@@ -1,12 +1,13 @@
 import { AfterViewInit, Component, OnInit, ViewChild, ViewEncapsulation, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatDialog, MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { CdkDrag, CdkDragHandle } from '@angular/cdk/drag-drop';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -19,7 +20,10 @@ import { DialogFeedbackService } from 'app/shared/dialog-feedback/dialog-feedbac
 @Component({
   selector: 'admin-member-import-dialog',
   template: `
-    <h2 mat-dialog-title>Review Import Anggota</h2>
+    <div class="flex items-center justify-between cursor-move select-none pr-6 pt-4" cdkDrag cdkDragRootElement=".cdk-overlay-pane" cdkDragHandle>
+      <h2 mat-dialog-title class="!m-0 !p-0 pl-6">Review Import Anggota</h2>
+      <mat-icon class="text-gray-400">drag_indicator</mat-icon>
+    </div>
     <mat-dialog-content class="mat-typography py-4 max-h-[70vh]">
       <div class="flex gap-4 mb-4 text-sm">
         <div class="flex items-center gap-1"><span class="font-semibold">Total:</span> {{ data.total }}</div>
@@ -74,7 +78,7 @@ import { DialogFeedbackService } from 'app/shared/dialog-feedback/dialog-feedbac
       <button mat-flat-button color="primary" [disabled]="data.invalid > 0" (click)="confirm()">Konfirmasi Import</button>
     </mat-dialog-actions>
   `,
-  imports: [CommonModule, MatDialogModule, MatButtonModule, MatTableModule],
+  imports: [CommonModule, MatDialogModule, MatButtonModule, MatTableModule, MatIconModule, CdkDrag, CdkDragHandle],
   standalone: true
 })
 export class AdminMemberImportDialogComponent {
@@ -83,10 +87,220 @@ export class AdminMemberImportDialogComponent {
   constructor(
     public dialogRef: MatDialogRef<AdminMemberImportDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { importId: number; total: number; valid: number; invalid: number; rows: any[] },
-  ) {}
+  ) { }
 
   confirm() {
     this.dialogRef.close({ confirmed: true, importId: this.data.importId });
+  }
+}
+
+@Component({
+  selector: 'admin-member-dialog',
+  template: `
+    <div class="flex items-center justify-between cursor-move select-none pr-6 pt-4 pb-2" cdkDrag cdkDragRootElement=".cdk-overlay-pane" cdkDragHandle>
+      <h2 mat-dialog-title class="!text-xl !font-bold !m-0 !p-0 pl-6">{{ isEdit ? 'Edit Data Anggota' : 'Tambah Anggota Baru' }}</h2>
+      <mat-icon class="text-gray-400">drag_indicator</mat-icon>
+    </div>
+    <mat-dialog-content class="mat-typography py-4">
+      <form #memberForm="ngForm" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+        <mat-form-field appearance="outline" floatLabel="always">
+          <mat-label>NPK</mat-label>
+          <input matInput [(ngModel)]="member.npk" name="npk" (blur)="checkNpk()" (input)="npkExists = false" #npk="ngModel" required [readonly]="isEdit" [class.opacity-60]="isEdit" [class.cursor-not-allowed]="isEdit" placeholder="Masukkan NPK" />
+          <mat-hint *ngIf="isEdit">NPK tidak dapat diubah</mat-hint>
+          <mat-error *ngIf="npkExists">NPK {{ member.npk }} sudah terdaftar</mat-error>
+          <mat-error *ngIf="npk.invalid && npk.touched && !npkExists">NPK wajib diisi</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" floatLabel="always">
+          <mat-label>Nama</mat-label>
+          <input matInput [(ngModel)]="member.name" name="name" (blur)="formatName()" #name="ngModel" required placeholder="Masukkan Nama" />
+          <mat-error *ngIf="name.invalid && name.touched">Nama wajib diisi</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" floatLabel="always">
+          <mat-label>Email</mat-label>
+          <input matInput [(ngModel)]="member.email" name="email" #email="ngModel" type="email" email placeholder="contoh@email.com" />
+          <mat-error *ngIf="email.invalid && email.touched">Format email tidak valid</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" floatLabel="always">
+          <mat-label>Telepon</mat-label>
+          <input matInput [(ngModel)]="member.phone" name="phone" (blur)="formatPhone()" placeholder="6281234567890" pattern="^62\d{8,13}$" #phone="ngModel" />
+          <mat-hint>Format selalu diawali 62</mat-hint>
+          <mat-error *ngIf="phone.invalid && phone.touched">Nomor telepon harus diawali 62 (contoh: 6281234567890)</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" floatLabel="always">
+          <mat-label>Unit Kerja</mat-label>
+          <mat-select [(ngModel)]="member.workUnit" name="workUnit" placeholder="Pilih Unit Kerja">
+            <mat-option *ngFor="let u of workUnits" [value]="u">{{ u }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" floatLabel="always">
+          <mat-label>Jabatan Organisasi</mat-label>
+          <mat-select [(ngModel)]="member.organizationalPosition" name="organizationalPosition" placeholder="Pilih Jabatan Organisasi">
+            <mat-option *ngFor="let pos of positions" [value]="pos">{{ pos }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" floatLabel="always">
+          <mat-label>Plant</mat-label>
+          <mat-select [(ngModel)]="member.plant" name="plant" placeholder="Pilih Plant">
+            <mat-option *ngFor="let p of plants" [value]="p.value">{{ p.label }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" floatLabel="always">
+          <mat-label>Status</mat-label>
+          <mat-select [(ngModel)]="member.status" name="status" #status="ngModel" required placeholder="Pilih Status">
+            <mat-option value="active">Aktif</mat-option>
+            <mat-option value="inactive">Nonaktif</mat-option>
+          </mat-select>
+          <mat-error *ngIf="status.invalid && status.touched">Status wajib dipilih</mat-error>
+        </mat-form-field>
+      </form>
+    </mat-dialog-content>
+    <mat-dialog-actions class="flex justify-between items-center w-full">
+      <div>
+        @if (isEdit) {
+          <button mat-button color="warn" type="button" [disabled]="loading" (click)="deleteMember()">
+            <mat-icon>delete</mat-icon> Hapus
+          </button>
+        }
+      </div>
+      <div class="flex gap-2">
+        <button mat-button mat-dialog-close [disabled]="loading">Batal</button>
+        <button mat-flat-button color="primary" [disabled]="loading || !memberForm.valid || npkExists" (click)="save()">
+          @if (loading) {
+            <mat-spinner diameter="18" class="mr-2 inline-block"></mat-spinner>
+          }
+          Simpan
+        </button>
+      </div>
+    </mat-dialog-actions>
+  `,
+  imports: [CommonModule, FormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatProgressSpinnerModule, MatIconModule, CdkDrag, CdkDragHandle],
+  standalone: true
+})
+export class AdminMemberDialogComponent {
+  member: any;
+  isEdit = false;
+  loading = false;
+  npkExists = false;
+  @ViewChild('memberForm') memberForm!: NgForm;
+
+  readonly workUnits = ['P1', 'P2', 'P3', 'P4', 'P5', 'PC', 'HO'];
+  readonly positions = ['ANGGOTA', 'PENGURUS', 'KORLAP', 'KOMISARIS', 'SEKRETARIS', 'BENDAHARA', 'KETUA'];
+  readonly plants = [
+    { value: 'P1', label: 'Plant 1' },
+    { value: 'P2', label: 'Plant 2' },
+    { value: 'P3', label: 'Plant 3' },
+    { value: 'P4', label: 'Plant 4' },
+    { value: 'P5', label: 'Plant 5' },
+    { value: 'PC', label: 'Part Center' },
+    { value: 'HO', label: 'Head Office' },
+  ];
+
+  constructor(
+    public dialogRef: MatDialogRef<AdminMemberDialogComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: any,
+    private http: HttpClient,
+    private feedback: DialogFeedbackService,
+  ) {
+    if (data) {
+      this.isEdit = true;
+      this.member = { ...data };
+    } else {
+      this.isEdit = false;
+      this.member = { npk: '', name: '', email: '', phone: '', workUnit: '', organizationalPosition: '', plant: '', status: 'active' };
+    }
+  }
+
+  checkNpk() {
+    if (this.isEdit || !this.member?.npk?.trim()) {
+      this.npkExists = false;
+      return;
+    }
+    this.http.get(`${environment.apiUrl}/members/check-npk/${this.member.npk.trim()}`).subscribe({
+      next: (res: any) => {
+        this.npkExists = res.exists;
+      },
+      error: () => {
+        this.npkExists = false;
+      },
+    });
+  }
+
+  formatName() {
+    if (!this.member?.name) return;
+    this.member.name = this.member.name
+      .toLowerCase()
+      .split(' ')
+      .map((word: string) => word ? word.charAt(0).toUpperCase() + word.slice(1) : '')
+      .join(' ')
+      .trim();
+  }
+
+  formatPhone() {
+    if (!this.member?.phone) return;
+    let digits = String(this.member.phone).trim().replace(/\D/g, '');
+    if (digits.startsWith('0')) {
+      digits = '62' + digits.substring(1);
+    } else if (digits && !digits.startsWith('62')) {
+      digits = '62' + digits;
+    }
+    this.member.phone = digits;
+  }
+
+  save() {
+    this.formatName();
+    this.formatPhone();
+    if (!this.memberForm?.valid || this.npkExists) return;
+    this.loading = true;
+
+    const request$ = this.isEdit
+      ? this.http.patch(`${environment.apiUrl}/members/${this.member.id}`, this.member)
+      : this.http.post(`${environment.apiUrl}/members`, this.member);
+
+    request$.subscribe({
+      next: () => {
+        this.loading = false;
+        this.feedback.success(`Data anggota berhasil ${this.isEdit ? 'diperbarui' : 'ditambahkan'}.`);
+        this.dialogRef.close(true);
+      },
+      error: (error) => {
+        this.loading = false;
+        const msg = error.error?.message || '';
+        if (msg.toLowerCase().includes('sudah terdaftar')) {
+          this.npkExists = true;
+        }
+        this.feedback.error(msg || `Data anggota gagal ${this.isEdit ? 'diperbarui' : 'ditambahkan'}.`);
+      },
+    });
+  }
+
+  deleteMember() {
+    this.feedback.confirm({
+      title: 'Hapus Anggota',
+      message: `Apakah Anda yakin ingin menghapus anggota ${this.member.name} (${this.member.npk})? Tindakan ini akan menghapus data anggota dan mencabut role terkait.`,
+      confirmText: 'Hapus Anggota',
+      tone: 'warn',
+    }).subscribe((confirmed) => {
+      if (!confirmed) return;
+      this.loading = true;
+      this.http.delete(`${environment.apiUrl}/members/${this.member.id}`).subscribe({
+        next: () => {
+          this.loading = false;
+          this.feedback.success(`Anggota ${this.member.name} berhasil dihapus.`);
+          this.dialogRef.close(true);
+        },
+        error: (error) => {
+          this.loading = false;
+          this.feedback.error(error.error?.message || 'Gagal menghapus data anggota.');
+        },
+      });
+    });
   }
 }
 
@@ -130,11 +344,24 @@ export class AdminMembersComponent implements OnInit, AfterViewInit {
     private http: HttpClient,
     private dialog: MatDialog,
     private feedback: DialogFeedbackService,
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.loadMembers();
     this.loadRoles();
+  }
+
+  openMemberDialog(member?: any) {
+    const dialogRef = this.dialog.open(AdminMemberDialogComponent, {
+      width: '640px',
+      data: member ? { ...member } : null,
+    });
+
+    dialogRef.afterClosed().subscribe((saved) => {
+      if (saved) {
+        this.loadMembers();
+      }
+    });
   }
 
   loadRoles() {
@@ -258,6 +485,27 @@ export class AdminMembersComponent implements OnInit, AfterViewInit {
         error: (error) => {
           this.resettingMemberId = null;
           this.feedback.error(error.error?.message || 'Password anggota gagal direset.');
+        },
+      });
+    });
+  }
+
+  deleteMember(member: any) {
+    this.feedback.confirm({
+      title: 'Hapus Anggota',
+      message: `Apakah Anda yakin ingin menghapus anggota ${member.name} (${member.npk})? Tindakan ini akan menghapus data anggota dan mencabut role terkait.`,
+      confirmText: 'Hapus Anggota',
+      tone: 'warn',
+    }).subscribe((confirmed) => {
+      if (!confirmed) return;
+
+      this.http.delete(`${environment.apiUrl}/members/${member.id}`).subscribe({
+        next: () => {
+          this.feedback.success(`Anggota ${member.name} berhasil dihapus.`);
+          this.loadMembers();
+        },
+        error: (error) => {
+          this.feedback.error(error.error?.message || 'Gagal menghapus data anggota.');
         },
       });
     });

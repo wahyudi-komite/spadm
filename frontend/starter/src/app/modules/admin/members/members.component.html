@@ -1,31 +1,10 @@
 <div class="p-8">
-  <div class="flex items-center justify-between mb-6">
+  <div class="mb-6">
     <h1 class="text-2xl font-bold">Manajemen Anggota</h1>
-    <div class="flex items-center gap-2">
-      @if (importing) {
-        <mat-spinner diameter="20"></mat-spinner>
-      }
-      <button mat-flat-button color="primary" routerLink="/admin/members/new">
-        <mat-icon>add</mat-icon>
-        Tambah Anggota
-      </button>
-      <button mat-stroked-button (click)="exportToExcel()">
-        <mat-icon>file_download</mat-icon>
-        Export Excel
-      </button>
-      <button mat-stroked-button (click)="downloadTemplate()">
-        <mat-icon>download</mat-icon>
-        Template Excel
-      </button>
-      <button mat-flat-button color="primary" (click)="importMembers()" [disabled]="importing">
-        <mat-icon>upload</mat-icon>
-        Import Excel
-      </button>
-    </div>
   </div>
 
   <div class="flex flex-wrap items-center gap-4 mb-4">
-    <mat-form-field appearance="outline" class="!min-w-[240px]">
+    <mat-form-field appearance="outline" class="!min-w-[240px]" floatLabel="always">
       <mat-label>Cari anggota</mat-label>
       <input matInput [(ngModel)]="search" (keyup.enter)="searchMembers()" placeholder="NPK atau Nama" />
       <button mat-icon-button matSuffix (click)="searchMembers()">
@@ -67,11 +46,35 @@
     </mat-form-field>
   </div>
 
-  <div class="flex items-center justify-end mb-2 text-sm text-gray-600 gap-2">
-    <span>Tampilkan:</span>
-    <select class="border border-gray-300 rounded px-2 py-1 text-sm bg-white" [(ngModel)]="limit" (ngModelChange)="searchMembers()">
-      <option *ngFor="let opt of limitOptions" [value]="opt.value">{{ opt.label }}</option>
-    </select>
+  <div class="flex flex-wrap items-center justify-between gap-4 mb-3">
+    <div class="flex flex-wrap items-center gap-2">
+      @if (importing) {
+        <mat-spinner diameter="20"></mat-spinner>
+      }
+      <button mat-flat-button color="primary" (click)="openMemberDialog()">
+        <mat-icon>add</mat-icon>
+        Tambah Anggota
+      </button>
+      <button mat-stroked-button (click)="exportToExcel()">
+        <mat-icon>file_download</mat-icon>
+        Export Excel
+      </button>
+      <button mat-stroked-button (click)="downloadTemplate()">
+        <mat-icon>download</mat-icon>
+        Template Excel
+      </button>
+      <button mat-flat-button color="primary" (click)="importMembers()" [disabled]="importing">
+        <mat-icon>upload</mat-icon>
+        Import Excel
+      </button>
+    </div>
+
+    <div class="flex items-center text-sm text-gray-600 gap-2">
+      <span>Tampilkan:</span>
+      <select class="border border-gray-300 rounded px-2 py-1 text-sm bg-white" [(ngModel)]="limit" (ngModelChange)="searchMembers()">
+        <option *ngFor="let opt of limitOptions" [value]="opt.value">{{ opt.label }}</option>
+      </select>
+    </div>
   </div>
 
   <div class="overflow-x-auto bg-card rounded-2xl shadow">
@@ -79,14 +82,14 @@
       <ng-container matColumnDef="npk">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>NPK</th>
         <td mat-cell *matCellDef="let m">
-          <a [routerLink]="['/admin/members', m.id]" class="text-primary-500 hover:underline font-medium">{{ m.npk }}</a>
+          <button type="button" (click)="openMemberDialog(m)" class="text-primary-500 hover:underline font-medium bg-transparent border-0 p-0 text-left cursor-pointer">{{ m.npk }}</button>
         </td>
       </ng-container>
 
       <ng-container matColumnDef="name">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>Nama</th>
         <td mat-cell *matCellDef="let m">
-          <a [routerLink]="['/admin/members', m.id]" class="text-primary-500 hover:underline font-medium">{{ m.name }}</a>
+          <button type="button" (click)="openMemberDialog(m)" class="text-primary-500 hover:underline font-medium bg-transparent border-0 p-0 text-left cursor-pointer">{{ m.name }}</button>
         </td>
       </ng-container>
 
@@ -160,13 +163,16 @@
       <ng-container matColumnDef="actions">
         <th mat-header-cell *matHeaderCellDef></th>
         <td mat-cell *matCellDef="let m">
-          <button mat-icon-button [routerLink]="['/admin/members', m.id]" matTooltip="Edit">
+          <button mat-icon-button (click)="openMemberDialog(m)" matTooltip="Edit">
             <mat-icon>edit</mat-icon>
           </button>
           <button mat-icon-button
             [routerLink]="['/admin/users', m.id, 'roles']"
             matTooltip="Atur Role">
             <mat-icon>admin_panel_settings</mat-icon>
+          </button>
+          <button mat-icon-button color="warn" (click)="deleteMember(m)" matTooltip="Hapus Anggota">
+            <mat-icon>delete</mat-icon>
           </button>
         </td>
       </ng-container>

@@ -29,6 +29,15 @@ export class MembersController {
     return this.membersService.findAll({ page, limit, search, status, plant, workUnit, role });
   }
 
+  @Get('check-npk/:npk')
+  @Permissions('member.read')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Cek apakah NPK sudah terdaftar' })
+  async checkNpk(@Param('npk') npk: string) {
+    const exists = await this.membersService.checkNpkExists(npk);
+    return { exists };
+  }
+
   @Get(':id')
   @Permissions('member.read')
   @ApiBearerAuth()
