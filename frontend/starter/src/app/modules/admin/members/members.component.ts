@@ -125,7 +125,7 @@ export class AdminMemberImportDialogComponent {
 
         <mat-form-field appearance="outline" floatLabel="always">
           <mat-label>Telepon</mat-label>
-          <input matInput [(ngModel)]="member.phone" name="phone" (blur)="formatPhone()" placeholder="6281234567890" pattern="^62\d{8,13}$" #phone="ngModel" />
+          <input matInput [(ngModel)]="member.phone" name="phone" (blur)="formatPhone()" placeholder="6281234567890" pattern="^(62\d{8,13})?$" #phone="ngModel" />
           <mat-hint>Format selalu diawali 62</mat-hint>
           <mat-error *ngIf="phone.invalid && phone.touched">Nomor telepon harus diawali 62 (contoh: 6281234567890)</mat-error>
         </mat-form-field>
@@ -210,7 +210,19 @@ export class AdminMemberDialogComponent {
   ) {
     if (data) {
       this.isEdit = true;
-      this.member = { ...data };
+      this.member = {
+        id: data.id,
+        npk: data.npk || '',
+        name: data.name || '',
+        email: data.email || '',
+        phone: data.phone || '',
+        workUnit: data.workUnit || '',
+        organizationalPosition: data.organizationalPosition || 'ANGGOTA',
+        plant: data.plant || '',
+        status: data.status || 'active',
+      };
+      this.formatPhone();
+      this.formatName();
     } else {
       this.isEdit = false;
       this.member = { npk: '', name: '', email: '', phone: '', workUnit: '', organizationalPosition: 'ANGGOTA', plant: '', status: 'active' };
