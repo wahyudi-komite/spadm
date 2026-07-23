@@ -213,7 +213,7 @@ export class AdminMemberDialogComponent {
       this.member = { ...data };
     } else {
       this.isEdit = false;
-      this.member = { npk: '', name: '', email: '', phone: '', workUnit: '', organizationalPosition: '', plant: '', status: 'active' };
+      this.member = { npk: '', name: '', email: '', phone: '', workUnit: '', organizationalPosition: 'ANGGOTA', plant: '', status: 'active' };
     }
   }
 

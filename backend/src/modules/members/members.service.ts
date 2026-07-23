@@ -179,7 +179,7 @@ export class MembersService {
         workUnit: data.workUnit,
         phone: normalizedPhone,
         plant: data.plant,
-        organizationalPosition: data.organizationalPosition,
+        organizationalPosition: data.organizationalPosition || 'ANGGOTA',
         status: data.status || 'active',
         password: passwordHash,
         mustChangePassword: true,
